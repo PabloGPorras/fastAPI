@@ -1,8 +1,31 @@
-from sqlalchemy import Column, Integer, String, create_engine
+from sqlalchemy import Column, Integer, String,ForeignKey, create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
-
+from sqlalchemy.orm import relationship
 Base = declarative_base()
+
+
+class Person(Base):
+    __tablename__ = "persons"
+    id = Column(Integer, primary_key=True)
+    name = Column(String)
+    age = Column(Integer)
+    gender = Column(String)
+
+    # Define the relationship to Relative
+    relatives = relationship("Relative", back_populates="person", cascade="all, delete-orphan")
+    # Predefined options for the gender field
+    gender_options = ["Male", "Female", "Other"]
+
+class Relative(Base):
+    __tablename__ = "relatives"
+    id = Column(Integer, primary_key=True)
+    person_id = Column(Integer, ForeignKey("persons.id"))
+    name = Column(String)
+    relation_type = Column(String)  # Ensure this is not conflicting with the `relationship` function
+
+    # Define the back_populates for the Person relationship
+    person = relationship("Person", back_populates="relatives")
 
 class ExampleModel(Base):
     __tablename__ = "example"
