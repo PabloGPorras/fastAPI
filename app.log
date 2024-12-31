@@ -1,0 +1,690 @@
+2024-12-28 23:49:30,528 - main - INFO - Received request to create a new entry.
+2024-12-28 23:49:30,528 - main - DEBUG - Main data extracted: {'name': 'Winnie', 'age': '23', 'gender': 'Male', 'relatives[0][name]': 'Tim', 'relatives[0][relation_type]': '40'}
+2024-12-28 23:49:30,528 - main - ERROR - Error creating new entry: 'relatives[0][name]' is an invalid keyword argument for Person
+Traceback (most recent call last):
+  File "C:\Users\pablo\projects\test_app\main.py", line 216, in create_new
+    main_object = Person(**main_data)
+                  ^^^^^^^^^^^^^^^^^^^
+  File "<string>", line 4, in __init__
+  File "c:\Users\pablo\projects\test_app\.venv\Lib\site-packages\sqlalchemy\orm\state.py", line 571, in _initialize_instance
+    with util.safe_reraise():
+  File "c:\Users\pablo\projects\test_app\.venv\Lib\site-packages\sqlalchemy\util\langhelpers.py", line 146, in __exit__
+    raise exc_value.with_traceback(exc_tb)
+  File "c:\Users\pablo\projects\test_app\.venv\Lib\site-packages\sqlalchemy\orm\state.py", line 569, in _initialize_instance
+    manager.original_init(*mixed[1:], **kwargs)
+  File "c:\Users\pablo\projects\test_app\.venv\Lib\site-packages\sqlalchemy\orm\decl_base.py", line 2177, in _declarative_constructor
+    raise TypeError(
+TypeError: 'relatives[0][name]' is an invalid keyword argument for Person
+2024-12-28 23:49:30,576 - main - DEBUG - Database session closed.
+2024-12-28 23:49:30,828 - main - INFO - Received request to create a new entry.
+2024-12-28 23:49:30,828 - main - DEBUG - Main data extracted: {'name': 'Winnie', 'age': '23', 'gender': 'Male', 'relatives[0][name]': 'Tim', 'relatives[0][relation_type]': '40'}
+2024-12-28 23:49:30,828 - main - ERROR - Error creating new entry: 'relatives[0][name]' is an invalid keyword argument for Person
+Traceback (most recent call last):
+  File "C:\Users\pablo\projects\test_app\main.py", line 216, in create_new
+    main_object = Person(**main_data)
+                  ^^^^^^^^^^^^^^^^^^^
+  File "<string>", line 4, in __init__
+  File "c:\Users\pablo\projects\test_app\.venv\Lib\site-packages\sqlalchemy\orm\state.py", line 571, in _initialize_instance
+    with util.safe_reraise():
+  File "c:\Users\pablo\projects\test_app\.venv\Lib\site-packages\sqlalchemy\util\langhelpers.py", line 146, in __exit__
+    raise exc_value.with_traceback(exc_tb)
+  File "c:\Users\pablo\projects\test_app\.venv\Lib\site-packages\sqlalchemy\orm\state.py", line 569, in _initialize_instance
+    manager.original_init(*mixed[1:], **kwargs)
+  File "c:\Users\pablo\projects\test_app\.venv\Lib\site-packages\sqlalchemy\orm\decl_base.py", line 2177, in _declarative_constructor
+    raise TypeError(
+TypeError: 'relatives[0][name]' is an invalid keyword argument for Person
+2024-12-28 23:49:30,828 - main - DEBUG - Database session closed.
+2024-12-28 23:51:49,532 - main - INFO - Received request to create a new entry.
+2024-12-28 23:51:49,537 - main - DEBUG - Main data extracted: {'name': 'Winnie', 'age': '23', 'gender': 'Male'}
+2024-12-28 23:51:49,556 - main - INFO - Main object created successfully with ID 8
+2024-12-28 23:51:49,556 - main - DEBUG - Parsed relatives: [{'': '40'}]
+2024-12-28 23:51:49,556 - main - ERROR - Error creating new entry: '' is an invalid keyword argument for Relative
+Traceback (most recent call last):
+  File "C:\Users\pablo\projects\test_app\main.py", line 233, in create_new
+    relative_object = Relative(**relative_data, person_id=main_object.id)
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<string>", line 4, in __init__
+  File "c:\Users\pablo\projects\test_app\.venv\Lib\site-packages\sqlalchemy\orm\state.py", line 571, in _initialize_instance
+    with util.safe_reraise():
+  File "c:\Users\pablo\projects\test_app\.venv\Lib\site-packages\sqlalchemy\util\langhelpers.py", line 146, in __exit__
+    raise exc_value.with_traceback(exc_tb)
+  File "c:\Users\pablo\projects\test_app\.venv\Lib\site-packages\sqlalchemy\orm\state.py", line 569, in _initialize_instance
+    manager.original_init(*mixed[1:], **kwargs)
+  File "c:\Users\pablo\projects\test_app\.venv\Lib\site-packages\sqlalchemy\orm\decl_base.py", line 2177, in _declarative_constructor
+    raise TypeError(
+TypeError: '' is an invalid keyword argument for Relative
+2024-12-28 23:51:49,566 - main - DEBUG - Database session closed.
+2024-12-28 23:51:49,834 - main - INFO - Received request to create a new entry.
+2024-12-28 23:51:49,834 - main - DEBUG - Main data extracted: {'name': 'Winnie', 'age': '23', 'gender': 'Male'}
+2024-12-28 23:51:49,850 - main - INFO - Main object created successfully with ID 9
+2024-12-28 23:51:49,850 - main - DEBUG - Parsed relatives: [{'': '40'}]
+2024-12-28 23:51:49,850 - main - ERROR - Error creating new entry: '' is an invalid keyword argument for Relative
+Traceback (most recent call last):
+  File "C:\Users\pablo\projects\test_app\main.py", line 233, in create_new
+    relative_object = Relative(**relative_data, person_id=main_object.id)
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<string>", line 4, in __init__
+  File "c:\Users\pablo\projects\test_app\.venv\Lib\site-packages\sqlalchemy\orm\state.py", line 571, in _initialize_instance
+    with util.safe_reraise():
+  File "c:\Users\pablo\projects\test_app\.venv\Lib\site-packages\sqlalchemy\util\langhelpers.py", line 146, in __exit__
+    raise exc_value.with_traceback(exc_tb)
+  File "c:\Users\pablo\projects\test_app\.venv\Lib\site-packages\sqlalchemy\orm\state.py", line 569, in _initialize_instance
+    manager.original_init(*mixed[1:], **kwargs)
+  File "c:\Users\pablo\projects\test_app\.venv\Lib\site-packages\sqlalchemy\orm\decl_base.py", line 2177, in _declarative_constructor
+    raise TypeError(
+TypeError: '' is an invalid keyword argument for Relative
+2024-12-28 23:51:49,850 - main - DEBUG - Database session closed.
+2024-12-28 23:52:36,423 - main - INFO - Received request to create a new entry.
+2024-12-28 23:52:36,431 - main - DEBUG - Main data extracted: {'name': 'Winnie', 'age': '23', 'gender': 'Male'}
+2024-12-28 23:52:36,513 - main - INFO - Main object created successfully with ID 10
+2024-12-28 23:52:36,513 - main - DEBUG - Parsed relatives: [{'': '40'}]
+2024-12-28 23:52:36,513 - main - ERROR - Error creating new entry: '' is an invalid keyword argument for Relative
+Traceback (most recent call last):
+  File "C:\Users\pablo\projects\test_app\main.py", line 233, in create_new
+    relative_object = Relative(**relative_data, person_id=main_object.id)
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<string>", line 4, in __init__
+  File "c:\Users\pablo\projects\test_app\.venv\Lib\site-packages\sqlalchemy\orm\state.py", line 571, in _initialize_instance
+    with util.safe_reraise():
+  File "c:\Users\pablo\projects\test_app\.venv\Lib\site-packages\sqlalchemy\util\langhelpers.py", line 146, in __exit__
+    raise exc_value.with_traceback(exc_tb)
+  File "c:\Users\pablo\projects\test_app\.venv\Lib\site-packages\sqlalchemy\orm\state.py", line 569, in _initialize_instance
+    manager.original_init(*mixed[1:], **kwargs)
+  File "c:\Users\pablo\projects\test_app\.venv\Lib\site-packages\sqlalchemy\orm\decl_base.py", line 2177, in _declarative_constructor
+    raise TypeError(
+TypeError: '' is an invalid keyword argument for Relative
+2024-12-28 23:52:36,521 - main - DEBUG - Database session closed.
+2024-12-28 23:52:36,734 - main - INFO - Received request to create a new entry.
+2024-12-28 23:52:36,734 - main - DEBUG - Main data extracted: {'name': 'Winnie', 'age': '23', 'gender': 'Male'}
+2024-12-28 23:52:36,743 - main - INFO - Main object created successfully with ID 11
+2024-12-28 23:52:36,743 - main - DEBUG - Parsed relatives: [{'': '40'}]
+2024-12-28 23:52:36,749 - main - ERROR - Error creating new entry: '' is an invalid keyword argument for Relative
+Traceback (most recent call last):
+  File "C:\Users\pablo\projects\test_app\main.py", line 233, in create_new
+    relative_object = Relative(**relative_data, person_id=main_object.id)
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<string>", line 4, in __init__
+  File "c:\Users\pablo\projects\test_app\.venv\Lib\site-packages\sqlalchemy\orm\state.py", line 571, in _initialize_instance
+    with util.safe_reraise():
+  File "c:\Users\pablo\projects\test_app\.venv\Lib\site-packages\sqlalchemy\util\langhelpers.py", line 146, in __exit__
+    raise exc_value.with_traceback(exc_tb)
+  File "c:\Users\pablo\projects\test_app\.venv\Lib\site-packages\sqlalchemy\orm\state.py", line 569, in _initialize_instance
+    manager.original_init(*mixed[1:], **kwargs)
+  File "c:\Users\pablo\projects\test_app\.venv\Lib\site-packages\sqlalchemy\orm\decl_base.py", line 2177, in _declarative_constructor
+    raise TypeError(
+TypeError: '' is an invalid keyword argument for Relative
+2024-12-28 23:52:36,749 - main - DEBUG - Database session closed.
+2024-12-28 23:53:43,541 - main - INFO - Received request to create a new entry.
+2024-12-28 23:53:43,541 - main - DEBUG - Main data extracted: {'name': 'Winnie', 'age': '23', 'gender': 'Male'}
+2024-12-28 23:53:43,573 - main - INFO - Main object created successfully with ID 12
+2024-12-28 23:53:43,573 - main - DEBUG - Parsed relatives: {0: {'name': 'Tim', 'relation_type': '40'}}
+2024-12-28 23:53:43,573 - main - INFO - Relative object added: {'name': 'Tim', 'relation_type': '40'}
+2024-12-28 23:53:43,582 - main - INFO - All changes committed to the database successfully.
+2024-12-28 23:53:43,582 - main - DEBUG - Database session closed.
+2024-12-28 23:54:17,156 - main - INFO - Received request to create a new entry.
+2024-12-28 23:54:17,164 - main - DEBUG - Main data extracted: {'name': 'Valeria', 'age': '23', 'gender': 'Female'}
+2024-12-28 23:54:17,187 - main - INFO - Main object created successfully with ID 13
+2024-12-28 23:54:17,189 - main - DEBUG - Parsed relatives: {0: {'name': 'Ceaser', 'relation_type': 'Dad'}}
+2024-12-28 23:54:17,189 - main - INFO - Relative object added: {'name': 'Ceaser', 'relation_type': 'Dad'}
+2024-12-28 23:54:17,201 - main - INFO - All changes committed to the database successfully.
+2024-12-28 23:54:17,201 - main - DEBUG - Database session closed.
+2024-12-28 23:54:17,214 - main - INFO - Received request to create a new entry.
+2024-12-28 23:54:17,222 - main - DEBUG - Main data extracted: {'name': 'Valeria', 'age': '23', 'gender': 'Female'}
+2024-12-28 23:54:17,299 - main - INFO - Main object created successfully with ID 14
+2024-12-28 23:54:17,299 - main - DEBUG - Parsed relatives: {0: {'name': 'Ceaser', 'relation_type': 'Dad'}}
+2024-12-28 23:54:17,299 - main - INFO - Relative object added: {'name': 'Ceaser', 'relation_type': 'Dad'}
+2024-12-28 23:54:17,308 - main - INFO - All changes committed to the database successfully.
+2024-12-28 23:54:17,308 - main - DEBUG - Database session closed.
+2024-12-28 23:54:52,588 - main - INFO - Received request to create a new entry.
+2024-12-28 23:54:52,596 - main - DEBUG - Main data extracted: {'name': 'Paul', 'age': '25', 'gender': 'Male'}
+2024-12-28 23:54:52,612 - main - INFO - Main object created successfully with ID 15
+2024-12-28 23:54:52,612 - main - DEBUG - Parsed relatives: {0: {'name': 'Gena', 'relation_type': 'Mom'}, 1: {'name': 'Sandra', 'relation_type': 'Mom 2'}}
+2024-12-28 23:54:52,612 - main - INFO - Relative object added: {'name': 'Gena', 'relation_type': 'Mom'}
+2024-12-28 23:54:52,612 - main - INFO - Relative object added: {'name': 'Sandra', 'relation_type': 'Mom 2'}
+2024-12-28 23:54:52,648 - main - INFO - All changes committed to the database successfully.
+2024-12-28 23:54:52,648 - main - DEBUG - Database session closed.
+2024-12-28 23:55:29,457 - main - INFO - Received request to create a new entry.
+2024-12-28 23:55:29,490 - main - DEBUG - Main data extracted: {'name': 'Bob', 'age': '79', 'gender': 'Male'}
+2024-12-28 23:55:29,497 - main - INFO - Main object created successfully with ID 16
+2024-12-28 23:55:29,497 - main - DEBUG - Parsed relatives: {0: {'name': 'Raul', 'relation_type': 'Dad'}, 1: {'name': 'Paul', 'relation_type': 'Mom'}, 2: {'name': 'Rose', 'relation_type': 'Sister'}}
+2024-12-28 23:55:29,497 - main - INFO - Relative object added: {'name': 'Raul', 'relation_type': 'Dad'}
+2024-12-28 23:55:29,505 - main - INFO - Relative object added: {'name': 'Paul', 'relation_type': 'Mom'}
+2024-12-28 23:55:29,505 - main - INFO - Relative object added: {'name': 'Rose', 'relation_type': 'Sister'}
+2024-12-28 23:55:29,521 - main - INFO - All changes committed to the database successfully.
+2024-12-28 23:55:29,521 - main - DEBUG - Database session closed.
+2024-12-28 23:55:29,521 - main - INFO - Received request to create a new entry.
+2024-12-28 23:55:29,521 - main - DEBUG - Main data extracted: {'name': 'Bob', 'age': '79', 'gender': 'Male'}
+2024-12-28 23:55:29,591 - main - INFO - Main object created successfully with ID 17
+2024-12-28 23:55:29,591 - main - DEBUG - Parsed relatives: {0: {'name': 'Raul', 'relation_type': 'Dad'}, 1: {'name': 'Paul', 'relation_type': 'Mom'}, 2: {'name': 'Rose', 'relation_type': 'Sister'}}
+2024-12-28 23:55:29,591 - main - INFO - Relative object added: {'name': 'Raul', 'relation_type': 'Dad'}
+2024-12-28 23:55:29,591 - main - INFO - Relative object added: {'name': 'Paul', 'relation_type': 'Mom'}
+2024-12-28 23:55:29,591 - main - INFO - Relative object added: {'name': 'Rose', 'relation_type': 'Sister'}
+2024-12-28 23:55:29,596 - main - INFO - All changes committed to the database successfully.
+2024-12-28 23:55:29,596 - main - DEBUG - Database session closed.
+2024-12-28 23:58:19,930 - main - INFO - Received request to create a new entry.
+2024-12-28 23:58:19,950 - main - DEBUG - Main data extracted: {'name': 'Hagop', 'age': '5', 'gender': 'Male'}
+2024-12-28 23:58:19,957 - main - INFO - Main object created successfully with ID 18
+2024-12-28 23:58:19,957 - main - DEBUG - Parsed relatives: {0: {'name': 'Nick', 'relation_type': 'Friend'}, 1: {'name': 'Ana V Sanchez Sanchez', 'relation_type': 'Friend'}}
+2024-12-28 23:58:19,957 - main - INFO - Relative object added: {'name': 'Nick', 'relation_type': 'Friend'}
+2024-12-28 23:58:19,957 - main - INFO - Relative object added: {'name': 'Ana V Sanchez Sanchez', 'relation_type': 'Friend'}
+2024-12-28 23:58:19,965 - main - INFO - All changes committed to the database successfully.
+2024-12-28 23:58:19,973 - main - DEBUG - Database session closed.
+2024-12-28 23:58:49,367 - main - INFO - Received request to create a new entry.
+2024-12-28 23:58:49,367 - main - DEBUG - Main data extracted: {'name': 'Hagop', 'age': '5', 'gender': 'Male'}
+2024-12-28 23:58:49,375 - main - INFO - Main object created successfully with ID 19
+2024-12-28 23:58:49,375 - main - DEBUG - Parsed relatives: {0: {'name': 'Paul', 'relation_type': 'Friend'}, 1: {'name': 'Panblo', 'relation_type': 'Dad'}}
+2024-12-28 23:58:49,375 - main - INFO - Relative object added: {'name': 'Paul', 'relation_type': 'Friend'}
+2024-12-28 23:58:49,375 - main - INFO - Relative object added: {'name': 'Panblo', 'relation_type': 'Dad'}
+2024-12-28 23:58:49,383 - main - INFO - All changes committed to the database successfully.
+2024-12-28 23:58:49,383 - main - DEBUG - Database session closed.
+2024-12-28 23:59:43,527 - main - INFO - Received request to create a new entry.
+2024-12-28 23:59:43,527 - main - DEBUG - Main data extracted: {'name': 'Winnie', 'age': '3', 'gender': 'Male'}
+2024-12-28 23:59:43,538 - main - INFO - Main object created successfully with ID 20
+2024-12-28 23:59:43,538 - main - DEBUG - Parsed relatives: {}
+2024-12-28 23:59:43,538 - main - INFO - All changes committed to the database successfully.
+2024-12-28 23:59:43,547 - main - DEBUG - Database session closed.
+2024-12-29 00:00:11,299 - main - INFO - Received request to create a new entry.
+2024-12-29 00:00:11,299 - main - DEBUG - Main data extracted: {'name': 'Valeria', 'age': '49', 'gender': 'Male'}
+2024-12-29 00:00:11,306 - main - INFO - Main object created successfully with ID 21
+2024-12-29 00:00:11,306 - main - DEBUG - Parsed relatives: {0: {'name': 'Jack', 'relation_type': 'Dog'}}
+2024-12-29 00:00:11,314 - main - INFO - Relative object added: {'name': 'Jack', 'relation_type': 'Dog'}
+2024-12-29 00:00:11,316 - main - INFO - All changes committed to the database successfully.
+2024-12-29 00:00:11,316 - main - DEBUG - Database session closed.
+2024-12-29 00:05:40,044 - main - INFO - Received request to create a new entry.
+2024-12-29 00:05:40,076 - main - ERROR - Error creating new entry: 'dynamic_table_body.html' not found in search path: 'templates'
+Traceback (most recent call last):
+  File "C:\Users\pablo\projects\test_app\main.py", line 234, in create_new
+    return templates.TemplateResponse(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "c:\Users\pablo\projects\test_app\.venv\Lib\site-packages\starlette\templating.py", line 208, in TemplateResponse
+    template = self.get_template(name)
+               ^^^^^^^^^^^^^^^^^^^^^^^
+  File "c:\Users\pablo\projects\test_app\.venv\Lib\site-packages\starlette\templating.py", line 131, in get_template
+    return self.env.get_template(name)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "c:\Users\pablo\projects\test_app\.venv\Lib\site-packages\jinja2\environment.py", line 1016, in get_template
+    return self._load_template(name, globals)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "c:\Users\pablo\projects\test_app\.venv\Lib\site-packages\jinja2\environment.py", line 975, in _load_template
+    template = self.loader.load(self, name, self.make_globals(globals))
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "c:\Users\pablo\projects\test_app\.venv\Lib\site-packages\jinja2\loaders.py", line 126, in load
+    source, filename, uptodate = self.get_source(environment, name)
+                                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "c:\Users\pablo\projects\test_app\.venv\Lib\site-packages\jinja2\loaders.py", line 209, in get_source
+    raise TemplateNotFound(
+jinja2.exceptions.TemplateNotFound: 'dynamic_table_body.html' not found in search path: 'templates'
+2024-12-29 00:06:54,049 - main - INFO - Received request to create a new entry.
+2024-12-29 00:06:54,049 - main - DEBUG - Main data extracted: {'name': 'Luna', 'age': '89', 'gender': 'Other'}
+2024-12-29 00:06:54,073 - main - INFO - Main object created successfully with ID 23
+2024-12-29 00:06:54,081 - main - DEBUG - Parsed relatives: {0: {'name': 'Ana V Sanchez Sanchez', 'relation_type': 'Owner'}, 1: {'name': 'Pablo George Porras', 'relation_type': 'Owner'}}
+2024-12-29 00:06:54,089 - main - INFO - Relative object added: {'name': 'Ana V Sanchez Sanchez', 'relation_type': 'Owner'}
+2024-12-29 00:06:54,089 - main - INFO - Relative object added: {'name': 'Pablo George Porras', 'relation_type': 'Owner'}
+2024-12-29 00:06:54,111 - main - INFO - All changes committed to the database successfully.
+2024-12-29 00:06:54,114 - main - DEBUG - Database session closed.
+2024-12-29 00:07:50,543 - python_multipart.multipart - DEBUG - Calling on_part_begin with no data
+2024-12-29 00:07:50,551 - python_multipart.multipart - DEBUG - Calling on_header_field with data[42:61]
+2024-12-29 00:07:50,551 - python_multipart.multipart - DEBUG - Calling on_header_value with data[63:126]
+2024-12-29 00:07:50,551 - python_multipart.multipart - DEBUG - Calling on_header_end with no data
+2024-12-29 00:07:50,551 - python_multipart.multipart - DEBUG - Calling on_header_field with data[128:140]
+2024-12-29 00:07:50,551 - python_multipart.multipart - DEBUG - Calling on_header_value with data[142:150]
+2024-12-29 00:07:50,551 - python_multipart.multipart - DEBUG - Calling on_header_end with no data
+2024-12-29 00:07:50,551 - python_multipart.multipart - DEBUG - Calling on_headers_finished with no data
+2024-12-29 00:07:50,555 - python_multipart.multipart - DEBUG - Calling on_part_data with data[154:391]
+2024-12-29 00:07:50,555 - python_multipart.multipart - DEBUG - Calling on_part_end with no data
+2024-12-29 00:07:50,555 - python_multipart.multipart - DEBUG - Calling on_end with no data
+2024-12-29 00:08:45,244 - python_multipart.multipart - DEBUG - Calling on_part_begin with no data
+2024-12-29 00:08:45,244 - python_multipart.multipart - DEBUG - Calling on_header_field with data[42:61]
+2024-12-29 00:08:45,244 - python_multipart.multipart - DEBUG - Calling on_header_value with data[63:126]
+2024-12-29 00:08:45,244 - python_multipart.multipart - DEBUG - Calling on_header_end with no data
+2024-12-29 00:08:45,244 - python_multipart.multipart - DEBUG - Calling on_header_field with data[128:140]
+2024-12-29 00:08:45,244 - python_multipart.multipart - DEBUG - Calling on_header_value with data[142:150]
+2024-12-29 00:08:45,244 - python_multipart.multipart - DEBUG - Calling on_header_end with no data
+2024-12-29 00:08:45,252 - python_multipart.multipart - DEBUG - Calling on_headers_finished with no data
+2024-12-29 00:08:45,252 - python_multipart.multipart - DEBUG - Calling on_part_data with data[154:391]
+2024-12-29 00:08:45,252 - python_multipart.multipart - DEBUG - Calling on_part_end with no data
+2024-12-29 00:08:45,252 - python_multipart.multipart - DEBUG - Calling on_end with no data
+2024-12-29 00:08:45,252 - main - INFO - Received bulk import request. File name: bulk_import_template (7).csv
+2024-12-29 00:08:45,252 - main - DEBUG - Processing row 1: {'name': 'Ana', 'age': '12', 'gender': 'Male', 'relative_name_1': 'Luna', 'relative_relationship_1': 'dog', 'relative_name_2': 'Jack', 'relative_relationship_2': 'Father'}
+2024-12-29 00:08:45,260 - main - ERROR - Error processing bulk import: 'relationship' is an invalid keyword argument for Relative
+Traceback (most recent call last):
+  File "C:\Users\pablo\projects\test_app\main.py", line 207, in bulk_import
+    relatives.append(Relative(name=relative_name, relationship=relative_relationship))
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<string>", line 4, in __init__
+  File "c:\Users\pablo\projects\test_app\.venv\Lib\site-packages\sqlalchemy\orm\state.py", line 571, in _initialize_instance
+    with util.safe_reraise():
+  File "c:\Users\pablo\projects\test_app\.venv\Lib\site-packages\sqlalchemy\util\langhelpers.py", line 146, in __exit__
+    raise exc_value.with_traceback(exc_tb)
+  File "c:\Users\pablo\projects\test_app\.venv\Lib\site-packages\sqlalchemy\orm\state.py", line 569, in _initialize_instance
+    manager.original_init(*mixed[1:], **kwargs)
+  File "c:\Users\pablo\projects\test_app\.venv\Lib\site-packages\sqlalchemy\orm\decl_base.py", line 2177, in _declarative_constructor
+    raise TypeError(
+TypeError: 'relationship' is an invalid keyword argument for Relative
+2024-12-29 00:08:45,260 - main - DEBUG - Database session closed.
+2024-12-29 00:09:33,287 - python_multipart.multipart - DEBUG - Calling on_part_begin with no data
+2024-12-29 00:09:33,295 - python_multipart.multipart - DEBUG - Calling on_header_field with data[42:61]
+2024-12-29 00:09:33,296 - python_multipart.multipart - DEBUG - Calling on_header_value with data[63:126]
+2024-12-29 00:09:33,297 - python_multipart.multipart - DEBUG - Calling on_header_end with no data
+2024-12-29 00:09:33,297 - python_multipart.multipart - DEBUG - Calling on_header_field with data[128:140]
+2024-12-29 00:09:33,297 - python_multipart.multipart - DEBUG - Calling on_header_value with data[142:150]
+2024-12-29 00:09:33,297 - python_multipart.multipart - DEBUG - Calling on_header_end with no data
+2024-12-29 00:09:33,297 - python_multipart.multipart - DEBUG - Calling on_headers_finished with no data
+2024-12-29 00:09:33,297 - python_multipart.multipart - DEBUG - Calling on_part_data with data[154:391]
+2024-12-29 00:09:33,297 - python_multipart.multipart - DEBUG - Calling on_part_end with no data
+2024-12-29 00:09:33,297 - python_multipart.multipart - DEBUG - Calling on_end with no data
+2024-12-29 00:09:33,297 - main - INFO - Received bulk import request. File name: bulk_import_template (7).csv
+2024-12-29 00:09:33,297 - main - DEBUG - Processing row 1: {'name': 'Ana', 'age': '12', 'gender': 'Male', 'relative_name_1': 'Luna', 'relative_relationship_1': 'dog', 'relative_name_2': 'Jack', 'relative_relationship_2': 'Father'}
+2024-12-29 00:09:33,305 - main - ERROR - Error processing bulk import: 'relationship' is an invalid keyword argument for Relative
+Traceback (most recent call last):
+  File "C:\Users\pablo\projects\test_app\main.py", line 207, in bulk_import
+    relatives.append(Relative(name=relative_name, relationship=relative_relationship))
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<string>", line 4, in __init__
+  File "c:\Users\pablo\projects\test_app\.venv\Lib\site-packages\sqlalchemy\orm\state.py", line 571, in _initialize_instance
+    with util.safe_reraise():
+  File "c:\Users\pablo\projects\test_app\.venv\Lib\site-packages\sqlalchemy\util\langhelpers.py", line 146, in __exit__
+    raise exc_value.with_traceback(exc_tb)
+  File "c:\Users\pablo\projects\test_app\.venv\Lib\site-packages\sqlalchemy\orm\state.py", line 569, in _initialize_instance
+    manager.original_init(*mixed[1:], **kwargs)
+  File "c:\Users\pablo\projects\test_app\.venv\Lib\site-packages\sqlalchemy\orm\decl_base.py", line 2177, in _declarative_constructor
+    raise TypeError(
+TypeError: 'relationship' is an invalid keyword argument for Relative
+2024-12-29 00:09:33,312 - main - DEBUG - Database session closed.
+2024-12-29 00:11:50,647 - python_multipart.multipart - DEBUG - Calling on_part_begin with no data
+2024-12-29 00:11:50,656 - python_multipart.multipart - DEBUG - Calling on_header_field with data[42:61]
+2024-12-29 00:11:50,656 - python_multipart.multipart - DEBUG - Calling on_header_value with data[63:126]
+2024-12-29 00:11:50,656 - python_multipart.multipart - DEBUG - Calling on_header_end with no data
+2024-12-29 00:11:50,656 - python_multipart.multipart - DEBUG - Calling on_header_field with data[128:140]
+2024-12-29 00:11:50,656 - python_multipart.multipart - DEBUG - Calling on_header_value with data[142:150]
+2024-12-29 00:11:50,656 - python_multipart.multipart - DEBUG - Calling on_header_end with no data
+2024-12-29 00:11:50,656 - python_multipart.multipart - DEBUG - Calling on_headers_finished with no data
+2024-12-29 00:11:50,656 - python_multipart.multipart - DEBUG - Calling on_part_data with data[154:391]
+2024-12-29 00:11:50,656 - python_multipart.multipart - DEBUG - Calling on_part_end with no data
+2024-12-29 00:11:50,656 - python_multipart.multipart - DEBUG - Calling on_end with no data
+2024-12-29 00:11:50,656 - main - INFO - Received bulk import request. File name: bulk_import_template (7).csv
+2024-12-29 00:11:50,656 - main - DEBUG - Processing row 1: {'name': 'Ana', 'age': '12', 'gender': 'Male', 'relative_name_1': 'Luna', 'relative_relationship_1': 'dog', 'relative_name_2': 'Jack', 'relative_relationship_2': 'Father'}
+2024-12-29 00:11:50,664 - main - DEBUG - Added relative for row 1: Luna, dog
+2024-12-29 00:11:50,664 - main - DEBUG - Added relative for row 1: Jack, Father
+2024-12-29 00:11:50,664 - main - INFO - Person added to session: Ana
+2024-12-29 00:11:50,664 - main - DEBUG - Processing row 2: {'name': 'Pablo', 'age': '13', 'gender': 'Male', 'relative_name_1': 'Luna', 'relative_relationship_1': 'dog', 'relative_name_2': 'Jack', 'relative_relationship_2': 'Father'}
+2024-12-29 00:11:50,664 - main - DEBUG - Added relative for row 2: Luna, dog
+2024-12-29 00:11:50,664 - main - DEBUG - Added relative for row 2: Jack, Father
+2024-12-29 00:11:50,670 - main - INFO - Person added to session: Pablo
+2024-12-29 00:11:50,670 - main - DEBUG - Processing row 3: {'name': 'Tommy', 'age': '13', 'gender': 'Male', 'relative_name_1': 'Luna', 'relative_relationship_1': 'dog', 'relative_name_2': 'Jack', 'relative_relationship_2': 'Father'}
+2024-12-29 00:11:50,670 - main - DEBUG - Added relative for row 3: Luna, dog
+2024-12-29 00:11:50,670 - main - DEBUG - Added relative for row 3: Jack, Father
+2024-12-29 00:11:50,672 - main - INFO - Person added to session: Tommy
+2024-12-29 00:11:50,672 - main - DEBUG - Processing row 4: {'name': 'Rob', 'age': '14', 'gender': 'Male', 'relative_name_1': 'Luna', 'relative_relationship_1': 'dog', 'relative_name_2': 'Jack', 'relative_relationship_2': 'Father'}
+2024-12-29 00:11:50,672 - main - DEBUG - Added relative for row 4: Luna, dog
+2024-12-29 00:11:50,672 - main - DEBUG - Added relative for row 4: Jack, Father
+2024-12-29 00:11:50,673 - main - INFO - Person added to session: Rob
+2024-12-29 00:11:50,689 - main - INFO - Bulk import completed successfully. Total rows processed: 4
+2024-12-29 00:11:50,689 - main - DEBUG - Database session closed.
+2024-12-29 14:58:53,630 - main - INFO - Received request to create a new entry.
+2024-12-29 14:59:47,118 - main - INFO - Received request to create a new entry.
+2024-12-29 14:59:47,118 - main - DEBUG - Received data: {'name': 'Tilly', 'age': '65', 'gender': 'Female', 'relatives[0][name]': 'Pagie', 'relatives[0][relation_type]': 'Mom', 'relatives[1][name]': 'Sandra', 'relatives[1][relation_type]': 'Grandma'}
+2024-12-29 14:59:47,119 - main - DEBUG - Extracted main data: {'name': 'Tilly', 'age': '65', 'gender': 'Female'}
+2024-12-29 14:59:47,132 - main - INFO - Main object created with ID 29
+2024-12-29 14:59:47,132 - main - DEBUG - Parsed relative: index=0, field=name, value=Pagie
+2024-12-29 14:59:47,132 - main - DEBUG - Parsed relative: index=0, field=relation_type, value=Mom
+2024-12-29 14:59:47,134 - main - DEBUG - Parsed relative: index=1, field=name, value=Sandra
+2024-12-29 14:59:47,134 - main - DEBUG - Parsed relative: index=1, field=relation_type, value=Grandma
+2024-12-29 14:59:47,134 - main - DEBUG - Parsed relatives data: {0: {'name': 'Pagie', 'relation_type': 'Mom'}, 1: {'name': 'Sandra', 'relation_type': 'Grandma'}}
+2024-12-29 14:59:47,134 - main - INFO - Added relative object: {'name': 'Pagie', 'relation_type': 'Mom'}
+2024-12-29 14:59:47,134 - main - INFO - Added relative object: {'name': 'Sandra', 'relation_type': 'Grandma'}
+2024-12-29 14:59:47,143 - main - INFO - All changes committed to the database successfully.
+2024-12-29 14:59:47,144 - main - DEBUG - Database session closed.
+2024-12-29 15:00:27,016 - main - INFO - Received request to create a new entry.
+2024-12-29 15:00:27,016 - main - DEBUG - Received data: {'name': 'Billy', 'age': '10', 'gender': 'Male', 'relatives[0][name]': 'Mandy', 'relatives[0][relation_type]': 'Friend', 'relatives[1][name]': 'Grim', 'relatives[1][relation_type]': 'Reaper'}
+2024-12-29 15:00:27,022 - main - DEBUG - Extracted main data: {'name': 'Billy', 'age': '10', 'gender': 'Male'}
+2024-12-29 15:00:27,035 - main - INFO - Main object created with ID 30
+2024-12-29 15:00:27,036 - main - DEBUG - Parsed relative: index=0, field=name, value=Mandy
+2024-12-29 15:00:27,036 - main - DEBUG - Parsed relative: index=0, field=relation_type, value=Friend
+2024-12-29 15:00:27,036 - main - DEBUG - Parsed relative: index=1, field=name, value=Grim
+2024-12-29 15:00:27,036 - main - DEBUG - Parsed relative: index=1, field=relation_type, value=Reaper
+2024-12-29 15:00:27,036 - main - DEBUG - Parsed relatives data: {0: {'name': 'Mandy', 'relation_type': 'Friend'}, 1: {'name': 'Grim', 'relation_type': 'Reaper'}}
+2024-12-29 15:00:27,036 - main - INFO - Added relative object: {'name': 'Mandy', 'relation_type': 'Friend'}
+2024-12-29 15:00:27,037 - main - INFO - Added relative object: {'name': 'Grim', 'relation_type': 'Reaper'}
+2024-12-29 15:00:27,046 - main - INFO - All changes committed to the database successfully.
+2024-12-29 15:00:27,046 - main - DEBUG - Database session closed.
+2024-12-29 15:01:45,349 - main - INFO - Received request to create a new entry.
+2024-12-29 15:01:45,350 - main - DEBUG - Received data: {'name': 'Billy', 'age': '10', 'gender': 'Male', 'relatives[0][name]': 'Mandy', 'relatives[0][relation_type]': 'Friend', 'relatives[1][name]': 'Grim', 'relatives[1][relation_type]': 'Reaper'}
+2024-12-29 15:01:45,351 - main - DEBUG - Extracted main data: {'name': 'Billy', 'age': '10', 'gender': 'Male'}
+2024-12-29 15:01:45,361 - main - INFO - Main object created with ID 31
+2024-12-29 15:01:45,361 - main - DEBUG - Parsed relative: index=0, field=name, value=Mandy
+2024-12-29 15:01:45,361 - main - DEBUG - Parsed relative: index=0, field=relation_type, value=Friend
+2024-12-29 15:01:45,362 - main - DEBUG - Parsed relative: index=1, field=name, value=Grim
+2024-12-29 15:01:45,362 - main - DEBUG - Parsed relative: index=1, field=relation_type, value=Reaper
+2024-12-29 15:01:45,362 - main - DEBUG - Parsed relatives data: {0: {'name': 'Mandy', 'relation_type': 'Friend'}, 1: {'name': 'Grim', 'relation_type': 'Reaper'}}
+2024-12-29 15:01:45,362 - main - INFO - Added relative object: {'name': 'Mandy', 'relation_type': 'Friend'}
+2024-12-29 15:01:45,363 - main - INFO - Added relative object: {'name': 'Grim', 'relation_type': 'Reaper'}
+2024-12-29 15:01:45,372 - main - INFO - All changes committed to the database successfully.
+2024-12-29 15:01:45,373 - main - DEBUG - Database session closed.
+2024-12-29 15:09:04,861 - main - ERROR - HTTP Exception: Invalid JSON format: Expecting value: line 1 column 1 (char 0)
+2024-12-29 15:09:04,861 - main - DEBUG - Database session closed.
+2024-12-29 15:10:54,798 - main - INFO - Received request to create a new entry.
+2024-12-29 15:10:54,798 - main - DEBUG - Main data extracted: {'name': 'Mandy', 'age': '50', 'gender': 'Female'}
+2024-12-29 15:10:54,805 - main - INFO - Main object created successfully with ID 32
+2024-12-29 15:10:54,805 - main - DEBUG - Parsed relatives: {0: {'name': 'Billy', 'relation_type': 'Friend'}}
+2024-12-29 15:10:54,805 - main - INFO - Relative object added: {'name': 'Billy', 'relation_type': 'Friend'}
+2024-12-29 15:10:54,810 - main - INFO - All changes committed to the database successfully.
+2024-12-29 15:10:54,810 - main - DEBUG - Database session closed.
+2024-12-29 15:31:51,735 - main - INFO - Received request to fetch row with ID 2.
+2024-12-29 15:31:51,745 - main - INFO - Successfully fetched row with ID 2. Data: {'id': 2, 'name': 'Ana', 'age': 12, 'gender': 'Male'}
+2024-12-29 15:31:51,745 - main - DEBUG - Session closed after fetching row with ID 2.
+2024-12-29 15:34:44,277 - main - INFO - Received request to fetch row with ID 2.
+2024-12-29 15:34:44,278 - main - INFO - Successfully fetched row with ID 2. Data: {'id': 2, 'name': 'Ana', 'age': 12, 'gender': 'Male'}
+2024-12-29 15:34:44,278 - main - DEBUG - Session closed after fetching row with ID 2.
+2024-12-29 15:34:56,421 - main - INFO - Received request to fetch row with ID 32.
+2024-12-29 15:34:56,422 - main - INFO - Successfully fetched row with ID 32. Data: {'id': 32, 'name': 'Mandy', 'age': 50, 'gender': 'Female'}
+2024-12-29 15:34:56,422 - main - DEBUG - Session closed after fetching row with ID 32.
+2024-12-29 15:44:29,739 - main - INFO - Fetching data for model: Person, row ID: 1
+2024-12-29 15:44:29,743 - main - INFO - Successfully fetched row data: {'id': 1, 'name': 'Pablo George Porras', 'age': 55, 'gender': 'Male', 'relatives': []}
+2024-12-29 15:44:35,495 - main - INFO - Fetching data for model: Person, row ID: 32
+2024-12-29 15:44:35,497 - main - INFO - Successfully fetched row data: {'id': 32, 'name': 'Mandy', 'age': 50, 'gender': 'Female', 'relatives': [{'id': 36, 'person_id': 32, 'name': 'Billy', 'relation_type': 'Friend'}]}
+2024-12-29 15:45:15,504 - main - INFO - Received request to create a new entry.
+2024-12-29 15:45:15,505 - main - DEBUG - Main data extracted: {'name': 'Pab', 'age': '30', 'gender': 'Male'}
+2024-12-29 15:45:15,515 - main - INFO - Main object created successfully with ID 33
+2024-12-29 15:45:15,515 - main - DEBUG - Parsed relatives: {0: {'name': 'Ana V Sanchez Sanchez', 'relation_type': 'Wife'}}
+2024-12-29 15:45:15,515 - main - INFO - Relative object added: {'name': 'Ana V Sanchez Sanchez', 'relation_type': 'Wife'}
+2024-12-29 15:45:15,520 - main - INFO - All changes committed to the database successfully.
+2024-12-29 15:45:15,520 - main - DEBUG - Database session closed.
+2024-12-29 15:45:22,427 - main - INFO - Fetching data for model: Person, row ID: 33
+2024-12-29 15:45:22,429 - main - INFO - Successfully fetched row data: {'id': 33, 'name': 'Pab', 'age': 30, 'gender': 'Male', 'relatives': [{'id': 37, 'person_id': 33, 'name': 'Ana V Sanchez Sanchez', 'relation_type': 'Wife'}]}
+2024-12-29 15:49:43,990 - main - INFO - Fetching data for model: Person, row ID: 33
+2024-12-29 15:49:43,991 - main - INFO - Successfully fetched row data: {'id': 33, 'name': 'Pab', 'age': 30, 'gender': 'Male', 'relatives': [{'id': 37, 'person_id': 33, 'name': 'Ana V Sanchez Sanchez', 'relation_type': 'Wife'}]}
+2024-12-29 15:49:54,917 - main - INFO - Received request to update row with ID 33. Data: {'name': 'Pab', 'age': '30', 'gender': 'Male', 'relatives[0][name]': 'Ana V Sanchez Sanchez', 'relatives[0][relation_type]': 'Wife', 'relatives[1][name]': 'Peterson Eugena Kay', 'relatives[1][relation_type]': 'Mom'}
+2024-12-29 15:49:54,918 - main - DEBUG - Updating field 'name' to 'Pab'.
+2024-12-29 15:49:54,918 - main - DEBUG - Updating field 'age' to '30'.
+2024-12-29 15:49:54,919 - main - DEBUG - Updating field 'gender' to 'Male'.
+2024-12-29 15:49:54,920 - main - INFO - Successfully updated row with ID 33.
+2024-12-29 15:49:54,920 - main - DEBUG - Session closed after updating row with ID 33.
+2024-12-29 15:50:04,423 - main - INFO - Fetching data for model: Person, row ID: 33
+2024-12-29 15:50:04,425 - main - INFO - Successfully fetched row data: {'id': 33, 'name': 'Pab', 'age': 30, 'gender': 'Male', 'relatives': [{'id': 37, 'person_id': 33, 'name': 'Ana V Sanchez Sanchez', 'relation_type': 'Wife'}]}
+2024-12-29 15:50:19,821 - main - INFO - Fetching data for model: Person, row ID: 33
+2024-12-29 15:50:19,823 - main - INFO - Successfully fetched row data: {'id': 33, 'name': 'Pab', 'age': 30, 'gender': 'Male', 'relatives': [{'id': 37, 'person_id': 33, 'name': 'Ana V Sanchez Sanchez', 'relation_type': 'Wife'}]}
+2024-12-29 15:50:30,264 - main - INFO - Received request to update row with ID 33. Data: {'name': 'Pab', 'age': '30', 'gender': 'Male', 'relatives[0][name]': 'Ana V Sanchez Sanchez', 'relatives[0][relation_type]': 'Wife', 'relatives[1][name]': 'Mom', 'relatives[1][relation_type]': 'Mom'}
+2024-12-29 15:50:30,265 - main - DEBUG - Updating field 'name' to 'Pab'.
+2024-12-29 15:50:30,265 - main - DEBUG - Updating field 'age' to '30'.
+2024-12-29 15:50:30,265 - main - DEBUG - Updating field 'gender' to 'Male'.
+2024-12-29 15:50:30,266 - main - INFO - Successfully updated row with ID 33.
+2024-12-29 15:50:30,266 - main - DEBUG - Session closed after updating row with ID 33.
+2024-12-29 15:50:57,850 - main - INFO - Fetching data for model: Person, row ID: 33
+2024-12-29 15:50:57,851 - main - INFO - Successfully fetched row data: {'id': 33, 'name': 'Pab', 'age': 30, 'gender': 'Male', 'relatives': [{'id': 37, 'person_id': 33, 'name': 'Ana V Sanchez Sanchez', 'relation_type': 'Wife'}]}
+2024-12-29 15:51:04,125 - main - INFO - Received request to update row with ID 33. Data: {'name': 'Pab', 'age': '26', 'gender': 'Male', 'relatives[0][name]': 'Ana V Sanchez Sanchez', 'relatives[0][relation_type]': 'Wife'}
+2024-12-29 15:51:04,127 - main - DEBUG - Updating field 'name' to 'Pab'.
+2024-12-29 15:51:04,127 - main - DEBUG - Updating field 'age' to '26'.
+2024-12-29 15:51:04,127 - main - DEBUG - Updating field 'gender' to 'Male'.
+2024-12-29 15:51:04,130 - main - INFO - Successfully updated row with ID 33.
+2024-12-29 15:51:04,130 - main - DEBUG - Session closed after updating row with ID 33.
+2024-12-29 15:51:10,992 - main - INFO - Fetching data for model: Person, row ID: 33
+2024-12-29 15:51:10,994 - main - INFO - Successfully fetched row data: {'id': 33, 'name': 'Pab', 'age': 26, 'gender': 'Male', 'relatives': [{'id': 37, 'person_id': 33, 'name': 'Ana V Sanchez Sanchez', 'relation_type': 'Wife'}]}
+2024-12-29 18:11:01,702 - main - INFO - Fetching data for model: Person, row ID: 33
+2024-12-29 18:11:01,707 - main - INFO - Successfully fetched row data: {'id': 33, 'name': 'Pab', 'age': 26, 'gender': 'Male', 'relatives': [{'id': 37, 'person_id': 33, 'name': 'Ana V Sanchez Sanchez', 'relation_type': 'Wife'}]}
+2024-12-29 18:11:09,409 - main - INFO - Received request to update row with ID 33. Data: {'name': 'Pab', 'age': '26', 'gender': 'Male', 'relationships': {'relatives': [{'name': 'Ana V Sanchez Sanchez', 'relation_type': 'Wife'}, {'name': 'Peterson Eugena Kay', 'relation_type': 'Mom'}]}}
+2024-12-29 18:11:09,410 - main - DEBUG - Updating field 'name' to 'Pab'.
+2024-12-29 18:11:09,410 - main - DEBUG - Updating field 'age' to '26'.
+2024-12-29 18:11:09,410 - main - DEBUG - Updating field 'gender' to 'Male'.
+2024-12-29 18:11:09,420 - main - INFO - Successfully updated row with ID 33.
+2024-12-29 18:11:09,420 - main - DEBUG - Session closed after updating row with ID 33.
+2024-12-29 18:11:14,257 - main - INFO - Fetching data for model: Person, row ID: 33
+2024-12-29 18:11:14,259 - main - INFO - Successfully fetched row data: {'id': 33, 'name': 'Pab', 'age': 26, 'gender': 'Male', 'relatives': [{'id': 38, 'person_id': 33, 'name': 'Ana V Sanchez Sanchez', 'relation_type': 'Wife'}, {'id': 39, 'person_id': 33, 'name': 'Peterson Eugena Kay', 'relation_type': 'Mom'}]}
+2024-12-29 18:11:29,307 - main - INFO - Fetching data for model: Person, row ID: 33
+2024-12-29 18:11:29,309 - main - INFO - Successfully fetched row data: {'id': 33, 'name': 'Pab', 'age': 26, 'gender': 'Male', 'relatives': [{'id': 38, 'person_id': 33, 'name': 'Ana V Sanchez Sanchez', 'relation_type': 'Wife'}, {'id': 39, 'person_id': 33, 'name': 'Peterson Eugena Kay', 'relation_type': 'Mom'}]}
+2024-12-29 23:02:56,455 - main - INFO - Fetching data for model: Person, row ID: 33
+2024-12-29 23:02:56,458 - main - INFO - Successfully fetched row data: {'id': 33, 'name': 'Pab', 'age': 26, 'gender': 'Male', 'relatives': [{'id': 38, 'person_id': 33, 'name': 'Ana V Sanchez Sanchez', 'relation_type': 'Wife'}, {'id': 39, 'person_id': 33, 'name': 'Peterson Eugena Kay', 'relation_type': 'Mom'}]}
+2024-12-29 23:08:28,584 - main - INFO - Fetching data for model: Person, row ID: 33
+2024-12-29 23:08:28,586 - main - INFO - Successfully fetched row data: {'id': 33, 'name': 'Pab', 'age': 26, 'gender': 'Male', 'relatives': [{'id': 38, 'person_id': 33, 'name': 'Ana V Sanchez Sanchez', 'relation_type': 'Wife'}, {'id': 39, 'person_id': 33, 'name': 'Peterson Eugena Kay', 'relation_type': 'Mom'}]}
+2024-12-29 23:21:50,078 - main - INFO - Received request to create a new entry.
+2024-12-29 23:21:50,078 - main - DEBUG - Main data extracted: {'name': 'Nevin', 'age': '30', 'gender': 'Male', 'relationships': {'relatives': [{'name': 'Paul', 'relation_type': 'Friend'}]}}
+2024-12-29 23:21:50,078 - main - ERROR - Error creating new entry: 'relationships' is an invalid keyword argument for Person
+Traceback (most recent call last):
+  File "C:\Users\pablo\projects\test_app\main.py", line 326, in create_new
+    main_object = Person(**main_data)
+                  ^^^^^^^^^^^^^^^^^^^
+  File "<string>", line 4, in __init__
+  File "c:\Users\pablo\projects\test_app\.venv\Lib\site-packages\sqlalchemy\orm\state.py", line 571, in _initialize_instance
+    with util.safe_reraise():
+  File "c:\Users\pablo\projects\test_app\.venv\Lib\site-packages\sqlalchemy\util\langhelpers.py", line 146, in __exit__
+    raise exc_value.with_traceback(exc_tb)
+  File "c:\Users\pablo\projects\test_app\.venv\Lib\site-packages\sqlalchemy\orm\state.py", line 569, in _initialize_instance
+    manager.original_init(*mixed[1:], **kwargs)
+  File "c:\Users\pablo\projects\test_app\.venv\Lib\site-packages\sqlalchemy\orm\decl_base.py", line 2177, in _declarative_constructor
+    raise TypeError(
+TypeError: 'relationships' is an invalid keyword argument for Person
+2024-12-29 23:21:50,084 - main - DEBUG - Database session closed.
+2024-12-29 23:21:52,172 - main - INFO - Received request to create a new entry.
+2024-12-29 23:21:52,172 - main - DEBUG - Main data extracted: {'name': 'Nevin', 'age': '30', 'gender': 'Male', 'relationships': {'relatives': [{'name': 'Paul', 'relation_type': 'Friend'}]}}
+2024-12-29 23:21:52,173 - main - ERROR - Error creating new entry: 'relationships' is an invalid keyword argument for Person
+Traceback (most recent call last):
+  File "C:\Users\pablo\projects\test_app\main.py", line 326, in create_new
+    main_object = Person(**main_data)
+                  ^^^^^^^^^^^^^^^^^^^
+  File "<string>", line 4, in __init__
+  File "c:\Users\pablo\projects\test_app\.venv\Lib\site-packages\sqlalchemy\orm\state.py", line 571, in _initialize_instance
+    with util.safe_reraise():
+  File "c:\Users\pablo\projects\test_app\.venv\Lib\site-packages\sqlalchemy\util\langhelpers.py", line 146, in __exit__
+    raise exc_value.with_traceback(exc_tb)
+  File "c:\Users\pablo\projects\test_app\.venv\Lib\site-packages\sqlalchemy\orm\state.py", line 569, in _initialize_instance
+    manager.original_init(*mixed[1:], **kwargs)
+  File "c:\Users\pablo\projects\test_app\.venv\Lib\site-packages\sqlalchemy\orm\decl_base.py", line 2177, in _declarative_constructor
+    raise TypeError(
+TypeError: 'relationships' is an invalid keyword argument for Person
+2024-12-29 23:21:52,174 - main - DEBUG - Database session closed.
+2024-12-29 23:23:48,640 - main - INFO - Received request to create a new entry.
+2024-12-29 23:23:48,640 - main - DEBUG - Main data extracted: {'name': 'Nevin', 'age': '30', 'gender': 'Male', 'relationships': {'relatives': [{'name': 'Paul', 'relation_type': 'Friend'}]}}
+2024-12-29 23:23:48,640 - main - ERROR - Error creating new entry: 'relationships' is an invalid keyword argument for Person
+Traceback (most recent call last):
+  File "C:\Users\pablo\projects\test_app\main.py", line 326, in create_new
+    main_object = Person(**main_data)
+                  ^^^^^^^^^^^^^^^^^^^
+  File "<string>", line 4, in __init__
+  File "c:\Users\pablo\projects\test_app\.venv\Lib\site-packages\sqlalchemy\orm\state.py", line 571, in _initialize_instance
+    with util.safe_reraise():
+  File "c:\Users\pablo\projects\test_app\.venv\Lib\site-packages\sqlalchemy\util\langhelpers.py", line 146, in __exit__
+    raise exc_value.with_traceback(exc_tb)
+  File "c:\Users\pablo\projects\test_app\.venv\Lib\site-packages\sqlalchemy\orm\state.py", line 569, in _initialize_instance
+    manager.original_init(*mixed[1:], **kwargs)
+  File "c:\Users\pablo\projects\test_app\.venv\Lib\site-packages\sqlalchemy\orm\decl_base.py", line 2177, in _declarative_constructor
+    raise TypeError(
+TypeError: 'relationships' is an invalid keyword argument for Person
+2024-12-29 23:23:48,642 - main - DEBUG - Database session closed.
+2024-12-29 23:24:19,063 - main - INFO - Received request to create a new entry.
+2024-12-29 23:24:19,063 - main - DEBUG - Main data extracted: {'name': 'Nevin', 'age': '30', 'gender': 'Male'}
+2024-12-29 23:24:19,071 - main - INFO - Added relative: {'name': 'Paul', 'relation_type': 'Friend'}
+2024-12-29 23:24:19,075 - main - INFO - All changes committed to the database successfully.
+2024-12-29 23:24:19,075 - main - DEBUG - Database session closed.
+2024-12-29 23:24:25,853 - main - INFO - Fetching data for model: Person, row ID: 34
+2024-12-29 23:24:25,857 - main - INFO - Successfully fetched row data: {'id': 34, 'name': 'Nevin', 'age': 30, 'gender': 'Male', 'relatives': [{'id': 40, 'person_id': 34, 'name': 'Paul', 'relation_type': 'Friend'}]}
+2024-12-30 09:26:52,312 - main - INFO - Fetching data for model: Person, row ID: 1
+2024-12-30 09:26:52,317 - main - INFO - Successfully fetched row data: {'id': 1, 'name': 'Pablo George Porras', 'age': 55, 'gender': 'Male', 'relatives': []}
+2024-12-30 09:27:05,752 - main - INFO - Fetching data for model: Person, row ID: 1
+2024-12-30 09:27:05,753 - main - INFO - Successfully fetched row data: {'id': 1, 'name': 'Pablo George Porras', 'age': 55, 'gender': 'Male', 'relatives': []}
+2024-12-30 09:27:17,039 - main - INFO - Fetching data for model: Person, row ID: 27
+2024-12-30 09:27:17,041 - main - INFO - Successfully fetched row data: {'id': 27, 'name': 'Rob', 'age': 14, 'gender': 'Male', 'relatives': [{'id': 26, 'person_id': 27, 'name': 'Luna', 'relation_type': 'dog'}, {'id': 27, 'person_id': 27, 'name': 'Jack', 'relation_type': 'Father'}]}
+2024-12-30 10:00:05,563 - main - INFO - Received request to create a new entry.
+2024-12-30 10:00:05,564 - main - DEBUG - Main data extracted: {'name': 'Pagie', 'age': '29', 'gender': 'Female'}
+2024-12-30 10:00:05,567 - main - INFO - Added relative: {'name': 'Paul', 'relation_type': 'Cuz'}
+2024-12-30 10:00:05,570 - main - INFO - All changes committed to the database successfully.
+2024-12-30 10:00:05,571 - main - DEBUG - Database session closed.
+2024-12-30 10:50:41,196 - main - INFO - Fetching data for model: Person, row ID: 1
+2024-12-30 10:50:41,199 - main - INFO - Successfully fetched row data: {'id': 1, 'name': 'Pablo George Porras', 'age': 55, 'gender': 'Male', 'relatives': []}
+2024-12-30 11:10:35,453 - main - INFO - Fetching data for model: Person, row ID: 1
+2024-12-30 11:10:35,454 - main - INFO - Successfully fetched row data: {'id': 1, 'name': 'Pablo George Porras', 'age': 55, 'gender': 'Male', 'relatives': []}
+2024-12-30 11:11:09,011 - main - INFO - Received request to update row with ID 1. Data: {'name': 'Pablo George Porras', 'age': '55', 'gender': 'Male', 'comment_text': '1', 'username': 'Pablo', 'relationships': {}}
+2024-12-30 11:11:09,012 - main - DEBUG - Updating field 'name' to 'Pablo George Porras'.
+2024-12-30 11:11:09,013 - main - DEBUG - Updating field 'age' to '55'.
+2024-12-30 11:11:09,013 - main - DEBUG - Updating field 'gender' to 'Male'.
+2024-12-30 11:11:09,014 - main - INFO - Successfully updated row with ID 1.
+2024-12-30 11:11:09,015 - main - DEBUG - Session closed after updating row with ID 1.
+2024-12-30 11:11:14,188 - main - INFO - Fetching data for model: Person, row ID: 1
+2024-12-30 11:11:14,190 - main - INFO - Successfully fetched row data: {'id': 1, 'name': 'Pablo George Porras', 'age': 55, 'gender': 'Male', 'relatives': []}
+2024-12-30 12:02:14,800 - main - INFO - Received request to create a new entry.
+2024-12-30 12:02:14,800 - main - DEBUG - Main data extracted: {'name': 'Pagie', 'age': '29', 'gender': 'Male', 'comment_text': 'TEST', 'username': 'Pablo'}
+2024-12-30 12:02:14,801 - main - ERROR - Error creating new entry: 'comment_text' is an invalid keyword argument for Person
+Traceback (most recent call last):
+  File "C:\Users\pablo\projects\test_app\main.py", line 335, in create_new
+    main_object = Person(**main_data)
+                  ^^^^^^^^^^^^^^^^^^^
+  File "<string>", line 4, in __init__
+  File "c:\Users\pablo\projects\test_app\.venv\Lib\site-packages\sqlalchemy\orm\state.py", line 571, in _initialize_instance
+    with util.safe_reraise():
+  File "c:\Users\pablo\projects\test_app\.venv\Lib\site-packages\sqlalchemy\util\langhelpers.py", line 146, in __exit__
+    raise exc_value.with_traceback(exc_tb)
+  File "c:\Users\pablo\projects\test_app\.venv\Lib\site-packages\sqlalchemy\orm\state.py", line 569, in _initialize_instance
+    manager.original_init(*mixed[1:], **kwargs)
+  File "c:\Users\pablo\projects\test_app\.venv\Lib\site-packages\sqlalchemy\orm\decl_base.py", line 2177, in _declarative_constructor
+    raise TypeError(
+TypeError: 'comment_text' is an invalid keyword argument for Person
+2024-12-30 12:02:14,806 - main - DEBUG - Database session closed.
+2024-12-30 12:02:20,013 - main - INFO - Received request to create a new entry.
+2024-12-30 12:02:20,014 - main - DEBUG - Main data extracted: {'name': 'Pagie', 'age': '29', 'gender': 'Male', 'comment_text': 'TEST', 'username': 'Pablo'}
+2024-12-30 12:02:20,014 - main - ERROR - Error creating new entry: 'comment_text' is an invalid keyword argument for Person
+Traceback (most recent call last):
+  File "C:\Users\pablo\projects\test_app\main.py", line 335, in create_new
+    main_object = Person(**main_data)
+                  ^^^^^^^^^^^^^^^^^^^
+  File "<string>", line 4, in __init__
+  File "c:\Users\pablo\projects\test_app\.venv\Lib\site-packages\sqlalchemy\orm\state.py", line 571, in _initialize_instance
+    with util.safe_reraise():
+  File "c:\Users\pablo\projects\test_app\.venv\Lib\site-packages\sqlalchemy\util\langhelpers.py", line 146, in __exit__
+    raise exc_value.with_traceback(exc_tb)
+  File "c:\Users\pablo\projects\test_app\.venv\Lib\site-packages\sqlalchemy\orm\state.py", line 569, in _initialize_instance
+    manager.original_init(*mixed[1:], **kwargs)
+  File "c:\Users\pablo\projects\test_app\.venv\Lib\site-packages\sqlalchemy\orm\decl_base.py", line 2177, in _declarative_constructor
+    raise TypeError(
+TypeError: 'comment_text' is an invalid keyword argument for Person
+2024-12-30 12:02:20,016 - main - DEBUG - Database session closed.
+2024-12-30 12:02:26,243 - main - INFO - Fetching data for model: Person, row ID: 1
+2024-12-30 12:02:26,251 - main - INFO - Successfully fetched row data: {'id': 1, 'name': 'Pablo George Porras', 'age': 55, 'gender': 'Male', 'relatives': [], 'comments': []}
+2024-12-30 12:02:28,850 - main - INFO - Received request to update row with ID 1. Data: {'name': 'Pablo George Porras', 'age': '55', 'gender': 'Male', 'comment_text': 'TEST', 'username': 'Pablo', 'relationships': {}}
+2024-12-30 12:02:28,851 - main - DEBUG - Updating field 'name' to 'Pablo George Porras'.
+2024-12-30 12:02:28,851 - main - DEBUG - Updating field 'age' to '55'.
+2024-12-30 12:02:28,852 - main - DEBUG - Updating field 'gender' to 'Male'.
+2024-12-30 12:02:28,854 - main - INFO - Successfully updated row with ID 1.
+2024-12-30 12:02:28,854 - main - DEBUG - Session closed after updating row with ID 1.
+2024-12-30 12:02:35,633 - main - INFO - Fetching data for model: Person, row ID: 1
+2024-12-30 12:02:35,636 - main - INFO - Successfully fetched row data: {'id': 1, 'name': 'Pablo George Porras', 'age': 55, 'gender': 'Male', 'relatives': [], 'comments': []}
+2024-12-30 13:00:58,771 - python_multipart.multipart - DEBUG - Calling on_part_begin with no data
+2024-12-30 13:00:58,772 - python_multipart.multipart - DEBUG - Calling on_header_field with data[42:61]
+2024-12-30 13:00:58,772 - python_multipart.multipart - DEBUG - Calling on_header_value with data[63:127]
+2024-12-30 13:00:58,772 - python_multipart.multipart - DEBUG - Calling on_header_end with no data
+2024-12-30 13:00:58,772 - python_multipart.multipart - DEBUG - Calling on_header_field with data[129:141]
+2024-12-30 13:00:58,773 - python_multipart.multipart - DEBUG - Calling on_header_value with data[143:151]
+2024-12-30 13:00:58,773 - python_multipart.multipart - DEBUG - Calling on_header_end with no data
+2024-12-30 13:00:58,773 - python_multipart.multipart - DEBUG - Calling on_headers_finished with no data
+2024-12-30 13:00:58,773 - python_multipart.multipart - DEBUG - Calling on_part_data with data[155:252]
+2024-12-30 13:00:58,773 - python_multipart.multipart - DEBUG - Calling on_part_end with no data
+2024-12-30 13:00:58,774 - python_multipart.multipart - DEBUG - Calling on_end with no data
+2024-12-30 13:00:58,774 - main - INFO - Received bulk import request. File name: bulk_import_template (10).csv
+2024-12-30 13:00:58,775 - main - INFO - Bulk import completed successfully. Total rows processed: 0
+2024-12-30 13:00:58,775 - main - DEBUG - Database session closed.
+2024-12-30 13:01:32,346 - python_multipart.multipart - DEBUG - Calling on_part_begin with no data
+2024-12-30 13:01:32,346 - python_multipart.multipart - DEBUG - Calling on_header_field with data[42:61]
+2024-12-30 13:01:32,346 - python_multipart.multipart - DEBUG - Calling on_header_value with data[63:126]
+2024-12-30 13:01:32,348 - python_multipart.multipart - DEBUG - Calling on_header_end with no data
+2024-12-30 13:01:32,348 - python_multipart.multipart - DEBUG - Calling on_header_field with data[128:140]
+2024-12-30 13:01:32,348 - python_multipart.multipart - DEBUG - Calling on_header_value with data[142:150]
+2024-12-30 13:01:32,348 - python_multipart.multipart - DEBUG - Calling on_header_end with no data
+2024-12-30 13:01:32,348 - python_multipart.multipart - DEBUG - Calling on_headers_finished with no data
+2024-12-30 13:01:32,348 - python_multipart.multipart - DEBUG - Calling on_part_data with data[154:391]
+2024-12-30 13:01:32,348 - python_multipart.multipart - DEBUG - Calling on_part_end with no data
+2024-12-30 13:01:32,348 - python_multipart.multipart - DEBUG - Calling on_end with no data
+2024-12-30 13:01:32,349 - main - INFO - Received bulk import request. File name: bulk_import_template (7).csv
+2024-12-30 13:01:32,349 - main - DEBUG - Processing row 1: {'name': 'Ana', 'age': '12', 'gender': 'Male', 'relative_name_1': 'Luna', 'relative_relationship_1': 'dog', 'relative_name_2': 'Jack', 'relative_relationship_2': 'Father'}
+2024-12-30 13:01:32,349 - main - DEBUG - Added relative for row 1: Luna, dog
+2024-12-30 13:01:32,349 - main - DEBUG - Added relative for row 1: Jack, Father
+2024-12-30 13:01:32,356 - main - INFO - Person added to session: Ana
+2024-12-30 13:01:32,357 - main - DEBUG - Processing row 2: {'name': 'Pablo', 'age': '13', 'gender': 'Male', 'relative_name_1': 'Luna', 'relative_relationship_1': 'dog', 'relative_name_2': 'Jack', 'relative_relationship_2': 'Father'}
+2024-12-30 13:01:32,357 - main - DEBUG - Added relative for row 2: Luna, dog
+2024-12-30 13:01:32,357 - main - DEBUG - Added relative for row 2: Jack, Father
+2024-12-30 13:01:32,358 - main - INFO - Person added to session: Pablo
+2024-12-30 13:01:32,358 - main - DEBUG - Processing row 3: {'name': 'Tommy', 'age': '13', 'gender': 'Male', 'relative_name_1': 'Luna', 'relative_relationship_1': 'dog', 'relative_name_2': 'Jack', 'relative_relationship_2': 'Father'}
+2024-12-30 13:01:32,358 - main - DEBUG - Added relative for row 3: Luna, dog
+2024-12-30 13:01:32,358 - main - DEBUG - Added relative for row 3: Jack, Father
+2024-12-30 13:01:32,359 - main - INFO - Person added to session: Tommy
+2024-12-30 13:01:32,359 - main - DEBUG - Processing row 4: {'name': 'Rob', 'age': '14', 'gender': 'Male', 'relative_name_1': 'Luna', 'relative_relationship_1': 'dog', 'relative_name_2': 'Jack', 'relative_relationship_2': 'Father'}
+2024-12-30 13:01:32,359 - main - DEBUG - Added relative for row 4: Luna, dog
+2024-12-30 13:01:32,359 - main - DEBUG - Added relative for row 4: Jack, Father
+2024-12-30 13:01:32,359 - main - INFO - Person added to session: Rob
+2024-12-30 13:01:32,367 - main - INFO - Bulk import completed successfully. Total rows processed: 4
+2024-12-30 13:01:32,369 - main - DEBUG - Database session closed.
+2024-12-30 13:04:38,467 - main - INFO - Fetching data for model: Person, row ID: 1
+2024-12-30 13:04:38,470 - main - INFO - Successfully fetched row data: {'id': 1, 'name': 'Pablo George Porras', 'age': 55, 'gender': 'Male', 'relatives': [], 'comments': []}
+2024-12-30 15:12:56,370 - main - INFO - Received request to create a new entry.
+2024-12-30 15:12:56,372 - main - DEBUG - Main data extracted: {'name': 'Ana V Sanchez Sanchez', 'age': '15', 'gender': 'Male'}
+2024-12-30 15:12:56,379 - main - INFO - Added relative: {'name': 'Pablo George Porras', 'relation_type': 'Dad'}
+2024-12-30 15:12:56,393 - main - INFO - All changes committed to the database successfully.
+2024-12-30 15:12:56,394 - main - DEBUG - Database session closed.
+2024-12-30 15:14:36,658 - main - INFO - Fetching data for model: Person, row ID: 40
+2024-12-30 15:14:36,671 - main - INFO - Successfully fetched row data: {'id': 40, 'name': 'Ana V Sanchez Sanchez', 'age': 15, 'gender': 'Male', 'relatives': [{'id': 50, 'person_id': 40, 'name': 'Pablo George Porras', 'relation_type': 'Dad'}], 'comments': []}
+2024-12-30 15:14:44,865 - main - INFO - Fetching data for model: Person, row ID: 40
+2024-12-30 15:14:44,870 - main - INFO - Successfully fetched row data: {'id': 40, 'name': 'Ana V Sanchez Sanchez', 'age': 15, 'gender': 'Male', 'relatives': [{'id': 50, 'person_id': 40, 'name': 'Pablo George Porras', 'relation_type': 'Dad'}], 'comments': []}
+2024-12-30 15:17:55,163 - main - INFO - Fetching data for model: Person, row ID: 1
+2024-12-30 15:17:55,176 - main - INFO - Successfully fetched row data: {'id': 1, 'name': 'Pablo George Porras', 'age': 55, 'gender': 'Male', 'relatives': [], 'comments': []}
+2024-12-30 15:18:01,901 - main - INFO - Fetching data for model: Person, row ID: 1
+2024-12-30 15:18:01,903 - main - INFO - Successfully fetched row data: {'id': 1, 'name': 'Pablo George Porras', 'age': 55, 'gender': 'Male', 'relatives': [], 'comments': []}
+2024-12-30 15:19:10,516 - main - INFO - Fetching data for model: Person, row ID: 1
+2024-12-30 15:19:10,520 - main - INFO - Successfully fetched row data: {'id': 1, 'name': 'Pablo George Porras', 'age': 55, 'gender': 'Male', 'relatives': [], 'comments': []}
+2024-12-30 15:24:58,198 - main - INFO - Fetching data for model: Person, row ID: 1
+2024-12-30 15:24:58,203 - main - INFO - Successfully fetched row data: {'id': 1, 'name': 'Pablo George Porras', 'age': 55, 'gender': 'Male', 'relatives': [], 'comments': []}
+2024-12-30 15:27:08,069 - main - INFO - Fetching data for model: Person, row ID: 1
+2024-12-30 15:27:08,085 - main - INFO - Successfully fetched row data: {'id': 1, 'name': 'Pablo George Porras', 'age': 55, 'gender': 'Male', 'relatives': [], 'comments': []}
+2024-12-30 15:28:33,594 - main - INFO - Fetching data for model: Person, row ID: 1
+2024-12-30 15:28:33,596 - main - INFO - Successfully fetched row data: {'id': 1, 'name': 'Pablo George Porras', 'age': 55, 'gender': 'Male', 'relatives': [], 'comments': []}
+2024-12-30 15:32:34,658 - main - INFO - Fetching data for model: Person, row ID: 1
+2024-12-30 15:32:34,661 - main - INFO - Successfully fetched row data: {'id': 1, 'name': 'Pablo George Porras', 'age': 55, 'gender': 'Male', 'relatives': [], 'comments': []}
+2024-12-30 15:33:29,399 - main - INFO - Fetching data for model: Person, row ID: 1
+2024-12-30 15:33:29,412 - main - INFO - Successfully fetched row data: {'id': 1, 'name': 'Pablo George Porras', 'age': 55, 'gender': 'Male', 'relatives': [], 'comments': []}
+2024-12-30 15:33:39,255 - main - INFO - Fetching data for model: Person, row ID: 1
+2024-12-30 15:33:39,257 - main - INFO - Successfully fetched row data: {'id': 1, 'name': 'Pablo George Porras', 'age': 55, 'gender': 'Male', 'relatives': [], 'comments': []}
+2024-12-30 15:45:58,319 - main - INFO - POST /persons/1/comments called
+2024-12-30 15:45:58,320 - main - DEBUG - Received data: person_id=1, comment=comment_text='test' username='test'
+2024-12-30 15:45:58,339 - main - INFO - Comment added successfully for person_id: 1, comment_id: 1
+2024-12-30 15:46:10,073 - main - INFO - POST /persons/1/comments called
+2024-12-30 15:46:10,073 - main - DEBUG - Received data: person_id=1, comment=comment_text='WHOOOT' username='Pablo'
+2024-12-30 15:46:10,083 - main - INFO - Comment added successfully for person_id: 1, comment_id: 2
+2024-12-30 15:48:31,765 - main - INFO - Fetching data for model: Person, row ID: 22
+2024-12-30 15:48:31,777 - main - INFO - Successfully fetched row data: {'id': 22, 'name': 'Ana V Sanchez Sanchez', 'age': 45, 'gender': 'Male', 'relatives': [{'id': 17, 'person_id': 22, 'name': 'Luna', 'relation_type': 'Dog'}], 'comments': []}
+2024-12-30 17:32:45,290 - main - INFO - Fetching data for model: Person, row ID: 1
+2024-12-30 17:32:45,294 - main - INFO - Successfully fetched row data: {'id': 1, 'name': 'Pablo George Porras', 'age': 55, 'gender': 'Male', 'relatives': [], 'comments': [{'id': 1, 'person_id': 1, 'comment_text': 'test', 'username': 'test', 'timestamp': datetime.datetime(2024, 12, 30, 22, 45, 58, 327876)}, {'id': 2, 'person_id': 1, 'comment_text': 'WHOOOT', 'username': 'Pablo', 'timestamp': datetime.datetime(2024, 12, 30, 22, 46, 10, 74334)}]}
+2024-12-30 17:34:23,393 - main - INFO - GET /persons/1/comments called
+2024-12-30 17:34:23,395 - main - DEBUG - Fetching comments for person_id: 1
+2024-12-30 17:34:23,398 - main - DEBUG - Fetched 2 comments for person_id: 1
+2024-12-30 17:34:23,400 - main - INFO - Fetching data for model: Person, row ID: 1
+2024-12-30 17:34:23,408 - main - INFO - Successfully fetched row data: {'id': 1, 'name': 'Pablo George Porras', 'age': 55, 'gender': 'Male', 'relatives': [], 'comments': [{'id': 1, 'person_id': 1, 'comment_text': 'test', 'username': 'test', 'timestamp': datetime.datetime(2024, 12, 30, 22, 45, 58, 327876)}, {'id': 2, 'person_id': 1, 'comment_text': 'WHOOOT', 'username': 'Pablo', 'timestamp': datetime.datetime(2024, 12, 30, 22, 46, 10, 74334)}]}
+2024-12-30 17:37:27,543 - main - INFO - GET /persons/1/comments called
+2024-12-30 17:37:27,543 - main - DEBUG - Fetching comments for person_id: 1
+2024-12-30 17:37:27,545 - main - DEBUG - Fetched 2 comments for person_id: 1
+2024-12-30 17:37:27,547 - main - INFO - Fetching data for model: Person, row ID: 1
+2024-12-30 17:37:27,549 - main - INFO - Successfully fetched row data: {'id': 1, 'name': 'Pablo George Porras', 'age': 55, 'gender': 'Male', 'relatives': [], 'comments': [{'id': 1, 'person_id': 1, 'comment_text': 'test', 'username': 'test', 'timestamp': datetime.datetime(2024, 12, 30, 22, 45, 58, 327876)}, {'id': 2, 'person_id': 1, 'comment_text': 'WHOOOT', 'username': 'Pablo', 'timestamp': datetime.datetime(2024, 12, 30, 22, 46, 10, 74334)}]}
+2024-12-30 17:37:35,757 - main - INFO - Fetching data for model: Person, row ID: 1
+2024-12-30 17:37:35,760 - main - INFO - Successfully fetched row data: {'id': 1, 'name': 'Pablo George Porras', 'age': 55, 'gender': 'Male', 'relatives': [], 'comments': [{'id': 1, 'person_id': 1, 'comment_text': 'test', 'username': 'test', 'timestamp': datetime.datetime(2024, 12, 30, 22, 45, 58, 327876)}, {'id': 2, 'person_id': 1, 'comment_text': 'WHOOOT', 'username': 'Pablo', 'timestamp': datetime.datetime(2024, 12, 30, 22, 46, 10, 74334)}]}
+2024-12-30 17:37:47,193 - main - INFO - GET /persons/1/comments called
+2024-12-30 17:37:47,194 - main - DEBUG - Fetching comments for person_id: 1
+2024-12-30 17:37:47,195 - main - DEBUG - Fetched 2 comments for person_id: 1
+2024-12-30 17:37:47,196 - main - INFO - Fetching data for model: Person, row ID: 1
+2024-12-30 17:37:47,199 - main - INFO - Successfully fetched row data: {'id': 1, 'name': 'Pablo George Porras', 'age': 55, 'gender': 'Male', 'relatives': [], 'comments': [{'id': 1, 'person_id': 1, 'comment_text': 'test', 'username': 'test', 'timestamp': datetime.datetime(2024, 12, 30, 22, 45, 58, 327876)}, {'id': 2, 'person_id': 1, 'comment_text': 'WHOOOT', 'username': 'Pablo', 'timestamp': datetime.datetime(2024, 12, 30, 22, 46, 10, 74334)}]}
+2024-12-30 17:39:00,248 - main - INFO - Fetching data for model: Person, row ID: 1
+2024-12-30 17:39:00,251 - main - INFO - Successfully fetched row data: {'id': 1, 'name': 'Pablo George Porras', 'age': 55, 'gender': 'Male', 'relatives': [], 'comments': [{'id': 1, 'person_id': 1, 'comment_text': 'test', 'username': 'test', 'timestamp': datetime.datetime(2024, 12, 30, 22, 45, 58, 327876)}, {'id': 2, 'person_id': 1, 'comment_text': 'WHOOOT', 'username': 'Pablo', 'timestamp': datetime.datetime(2024, 12, 30, 22, 46, 10, 74334)}]}
+2024-12-30 17:41:24,231 - main - INFO - Fetching data for model: Person, row ID: 3
+2024-12-30 17:41:24,236 - main - INFO - Successfully fetched row data: {'id': 3, 'name': 'Pablo', 'age': 13, 'gender': 'Male', 'relatives': [], 'comments': []}
+2024-12-30 18:44:19,261 - main - INFO - Fetching data for model: Person, row ID: 3
+2024-12-30 18:44:19,268 - main - INFO - Successfully fetched row data: {'id': 3, 'name': 'Pablo', 'age': 13, 'gender': 'Male', 'relatives': [], 'comments': []}
+2024-12-30 18:47:04,058 - main - INFO - Fetching data for model: Person, row ID: 1
+2024-12-30 18:47:04,058 - main - INFO - Successfully fetched row data: {'id': 1, 'name': 'Pablo George Porras', 'age': 55, 'gender': 'Male', 'relatives': [], 'comments': [{'id': 1, 'person_id': 1, 'comment_text': 'test', 'username': 'test', 'timestamp': datetime.datetime(2024, 12, 30, 22, 45, 58, 327876)}, {'id': 2, 'person_id': 1, 'comment_text': 'WHOOOT', 'username': 'Pablo', 'timestamp': datetime.datetime(2024, 12, 30, 22, 46, 10, 74334)}]}
+2024-12-30 18:47:10,477 - main - INFO - POST /persons/1/comments called
+2024-12-30 18:47:10,477 - main - DEBUG - Received data: person_id=1, comment=comment_text='test' username='test'
+2024-12-30 18:47:10,494 - main - INFO - Comment added successfully for person_id: 1, comment_id: 3
+2024-12-30 18:47:16,194 - main - INFO - POST /persons/1/comments called
+2024-12-30 18:47:16,194 - main - DEBUG - Received data: person_id=1, comment=comment_text='gesg' username='gseg'
+2024-12-30 18:47:16,208 - main - INFO - Comment added successfully for person_id: 1, comment_id: 4
+2024-12-30 23:14:25,185 - main - INFO - Received request to create a new entry.
+2024-12-30 23:14:25,193 - main - DEBUG - Main data extracted: {'name': 'Zuriel', 'age': '39', 'gender': 'Male'}
+2024-12-30 23:14:25,231 - main - INFO - Added relative: {'name': 'Pablo', 'relation_type': 'Friend'}
+2024-12-30 23:14:25,232 - main - INFO - Added relative: {'name': 'Ana V Sanchez Sanchez', 'relation_type': 'Frin'}
+2024-12-30 23:14:25,241 - main - INFO - All changes committed to the database successfully.
+2024-12-30 23:14:25,241 - main - DEBUG - Database session closed.
+2024-12-31 12:00:25,352 - main - INFO - Fetching data for model: Person, row ID: 1
+2024-12-31 12:00:25,382 - main - INFO - Successfully fetched row data: {'id': 1, 'name': 'Pablo George Porras', 'age': 55, 'gender': 'Male', 'relatives': [], 'comments': [{'id': 1, 'person_id': 1, 'comment_text': 'test', 'username': 'test', 'timestamp': datetime.datetime(2024, 12, 30, 22, 45, 58, 327876)}, {'id': 2, 'person_id': 1, 'comment_text': 'WHOOOT', 'username': 'Pablo', 'timestamp': datetime.datetime(2024, 12, 30, 22, 46, 10, 74334)}, {'id': 3, 'person_id': 1, 'comment_text': 'test', 'username': 'test', 'timestamp': datetime.datetime(2024, 12, 31, 1, 47, 10, 490505)}, {'id': 4, 'person_id': 1, 'comment_text': 'gesg', 'username': 'gseg', 'timestamp': datetime.datetime(2024, 12, 31, 1, 47, 16, 194456)}]}

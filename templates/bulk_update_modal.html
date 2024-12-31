@@ -1,0 +1,64 @@
+<!-- Bulk Import Upload Modal -->
+<div class="modal fade" id="uploadBulkModal" tabindex="-1" aria-labelledby="uploadBulkModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="uploadBulkModalLabel">Upload Bulk Import File</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <!-- File Upload Form -->
+                <form id="uploadBulkForm">
+                    <div class="mb-3">
+                        <label for="bulkFile" class="form-label">Select CSV File</label>
+                        <input type="file" class="form-control" id="bulkFile" name="file" accept=".csv" required>
+                    </div>
+                    <div class="modal-footer">
+                        <!-- Download Template Button -->
+                        <a href="/bulk-import-template" class="btn btn-secondary" download>Download Template</a>
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                        <button type="submit" class="btn btn-primary">Upload</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+    // Bulk Import Form Submission
+    document.getElementById("uploadBulkForm").addEventListener("submit", async function (event) {
+        event.preventDefault();
+
+        const fileInput = document.getElementById("bulkFile");
+        const file = fileInput.files[0];
+
+        if (!file) {
+            alert("Please select a CSV file to upload.");
+            return;
+        }
+
+        const formData = new FormData();
+        formData.append("file", file);
+
+        try {
+            const response = await fetch("/bulk-import", {
+                method: "POST",
+                body: formData,
+            });
+
+            if (response.ok) {
+                const result = await response.json();
+                // Close modal and refresh the table
+                const modalElement = document.getElementById("uploadBulkModal");
+                const modalInstance = bootstrap.Modal.getInstance(modalElement);
+                modalInstance.hide();
+                location.reload();
+            } else {
+                alert(`Bulk import failed: ${response.statusText}`);
+            }
+        } catch (error) {
+            console.error("Error uploading bulk import file:", error);
+            alert("An error occurred while uploading the file.");
+        }
+    });
+</script>

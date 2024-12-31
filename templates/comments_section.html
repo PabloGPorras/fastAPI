@@ -1,0 +1,83 @@
+<div id="comments-container" style="display: none;">
+    <h5>Comments</h5>
+    <p>Debug: person_id = <span id="debug-person-id"></span></p>
+
+    <!-- Comments List -->
+    <ul id="comments-list" class="list-group mb-3">
+        <!-- Existing comments will be dynamically populated here -->
+    </ul>
+
+    <!-- Add Comment Form -->
+    <form id="addCommentForm">
+        <div class="mb-3">
+            <label for="commentText" class="form-label">Add a Comment</label>
+            <textarea class="form-control" id="commentText" name="comment_text" rows="2" required></textarea>
+        </div>
+        <div class="mb-3">
+            <label for="commentUsername" class="form-label">Your Name</label>
+            <input type="text" class="form-control" id="commentUsername" name="username" required>
+        </div>
+        <button type="submit" class="btn btn-primary">Submit Comment</button>
+    </form>
+</div>
+
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const commentsContainer = document.getElementById("comments-container");
+        const debugPersonId = document.getElementById("debug-person-id");
+        const addCommentForm = document.getElementById("addCommentForm");
+        const commentsList = document.getElementById("comments-list");
+
+        function showComments(personId) {
+            debugPersonId.textContent = personId;
+            addCommentForm.setAttribute("action", `/persons/${personId}/comments`);
+            commentsContainer.style.display = "block";
+        }
+
+        document.getElementById("viewUpdateButton").addEventListener("click", function () {
+            const personId = "1"; // Replace with dynamic logic
+            showComments(personId);
+        });
+
+        addCommentForm.addEventListener("submit", async function (event) {
+            event.preventDefault();
+
+            const commentData = {
+                comment_text: document.getElementById("commentText").value.trim(),
+                username: document.getElementById("commentUsername").value.trim(),
+            };
+
+            try {
+                const response = await fetch(addCommentForm.action, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify(commentData),
+                });
+
+                if (!response.ok) {
+                    throw new Error(`Failed to submit comment: ${response.statusText}`);
+                }
+
+                const newComment = await response.json();
+
+                const newCommentItem = document.createElement("li");
+                newCommentItem.classList.add("list-group-item");
+                newCommentItem.innerHTML = `<strong>${newComment.username}</strong> <em>(${new Date(
+                    newComment.timestamp
+                ).toLocaleString()})</em>: ${newComment.comment_text}`;
+                commentsList.appendChild(newCommentItem);
+
+                addCommentForm.reset();
+            } catch (error) {
+                console.error("Error submitting comment:", error);
+                alert("Failed to add comment.");
+            }
+        });
+    });
+
+
+
+</script>

@@ -4,6 +4,21 @@ from sqlalchemy.orm import sessionmaker
 from sqlalchemy.orm import relationship
 Base = declarative_base()
 
+from sqlalchemy import Column, Integer, String, ForeignKey, Text, DateTime
+from sqlalchemy.orm import relationship
+from datetime import datetime
+
+class Comment(Base):
+    __tablename__ = "comments"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    person_id = Column(Integer, ForeignKey("persons.id", ondelete="CASCADE"), nullable=False)
+    comment_text = Column(Text, nullable=False)
+    username = Column(String(50), nullable=False)
+    timestamp = Column(DateTime, default=datetime.utcnow, nullable=False)
+
+    # Define relationship to Person
+    person = relationship("Person", back_populates="comments")
 
 class Person(Base):
     __tablename__ = "persons"
@@ -14,6 +29,10 @@ class Person(Base):
 
     # Define the relationship to Relative
     relatives = relationship("Relative", back_populates="person", cascade="all, delete-orphan")
+    
+    # Define the relationship to Comment
+    comments = relationship("Comment", back_populates="person", cascade="all, delete-orphan")
+    
     # Predefined options for the gender field
     gender_options = ["Male", "Female", "Other"]
 

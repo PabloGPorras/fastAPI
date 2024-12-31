@@ -1,0 +1,50 @@
+{% for field in form_fields %}
+<div class="mb-3">
+    <label for="{{ field.name }}" class="form-label">{{ field.name|capitalize }}</label>
+    {% if field.options %}
+    <!-- Dropdown for predefined options -->
+    <select class="form-select" id="{{ field.name }}" name="{{ field.name }}" required>
+        {% for option in field.options %}
+        <option value="{{ option }}">{{ option }}</option>
+        {% endfor %}
+    </select>
+    {% elif "INTEGER" in field.type %}
+    <!-- Number input -->
+    <input type="number" class="form-control" id="{{ field.name }}" name="{{ field.name }}"
+        required>
+    {% else %}
+    <!-- Text input -->
+    <input type="text" class="form-control" id="{{ field.name }}" name="{{ field.name }}"
+        required>
+    {% endif %}
+</div>
+{% endfor %}
+
+<!-- Dynamically generate relationship subtables -->
+{% for relationship in relationships if relationship.name != "comments" %}
+<h5>{{ relationship.name|capitalize }}</h5>
+<div id="{{ relationship.name }}-container" class="relationship-container">
+    <!-- Subtable header -->
+    <table class="table">
+        <thead>
+            <tr>
+                {% for field in relationship.fields if field.name not in ["id", "person_id"]
+                %}
+                <th>{{ field.name|capitalize }}</th>
+                {% endfor %}
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            <!-- Rows will be dynamically added here -->
+        </tbody>
+    </table>
+    <button type="button" class="btn btn-secondary btn-sm mt-2 add-row-btn"
+        data-relationship="{{ relationship.name }}">Add {{ relationship.name|capitalize
+        }}</button>
+</div>
+{% endfor %}
+<div class="modal-footer">
+    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+    <button type="submit" class="btn btn-primary">Save</button>
+</div>

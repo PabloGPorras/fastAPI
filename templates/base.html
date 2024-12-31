@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+
+    <title>{% block title %}My App{% endblock %}</title>
+    <style>
+        #manage-columns-menu {
+            position: absolute;
+            background: white;
+            box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+            border-radius: 5px;
+            z-index: 1000;
+        }
+
+        .selected-row {
+            background-color: #d3e4f7 !important;
+        }
+
+        .filter-icon {
+            font-size: 18px;
+            position: relative;
+            cursor: pointer;
+        }
+
+        .filter-icon::after {
+            content: '';
+            display: none;
+            position: absolute;
+            top: -4px;
+            right: -4px;
+            width: 8px;
+            height: 8px;
+            background-color: #007bff;
+            /* Blue indicator for active filters */
+            border-radius: 50%;
+        }
+
+        .filter-icon.active::after {
+            display: block;
+        }
+
+        .sort-icon {
+            margin-left: 5px;
+            cursor: pointer;
+            color: gray;
+            /* Default color */
+        }
+
+        .sort-icon.active {
+            color: #007bff;
+            /* Active sort color */
+        }
+
+        .filter-menu {
+            display: none;
+            position: absolute;
+            background: white;
+            border: 1px solid #ccc;
+            padding: 10px;
+            z-index: 10;
+        }
+
+        .filter-menu.show {
+            display: block;
+        }
+
+        .dropdown-item.disabled {
+            pointer-events: none;
+            opacity: 0.65;
+        }
+
+
+
+
+        body {
+            display: flex;
+        }
+
+        #sidebar {
+            min-width: 60px;
+            /* Collapsed width */
+            max-width: 200px;
+            /* Expanded width */
+            transition: all 0.3s;
+        }
+
+        #sidebar.collapsed {
+            width: 60px;
+        }
+
+        #sidebar .nav-link {
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        #sidebar .nav-link i {
+            margin-right: 10px;
+        }
+
+        #sidebar.collapsed .nav-link span {
+            display: none;
+            /* Hide text when collapsed */
+        }
+
+        #sidebar-toggler {
+            cursor: pointer;
+        }
+
+        body.dark-mode {
+            background-color: #121212;
+            color: #ffffff;
+        }
+
+        body.dark-mode a.nav-link {
+            color: #ffffff;
+        }
+
+        body.dark-mode #sidebar {
+            background-color: #1e1e1e;
+            border-color: #2e2e2e;
+        }
+
+        body.dark-mode .btn {
+            background-color: #444444;
+            color: #ffffff;
+        }
+
+        body.dark-mode .btn:hover {
+            background-color: #555555;
+        }
+
+
+
+        /* Center the icon when collapsed */
+        #sidebar.collapsed #darkModeToggle i {
+            margin: auto;
+            /* Center icon */
+        }
+
+        /* Hide text when sidebar is collapsed */
+        #sidebar.collapsed .nav-link span {
+            display: none;
+        }
+
+
+        /* Align the toggle button */
+        #darkModeToggle {
+            display: flex;
+            align-items: center;
+        }
+
+        /* Light Mode Sidebar */
+        #sidebar {
+            background-color: #f8f9fa;
+            /* Light background */
+            color: #212529;
+            /* Dark text */
+            border-right: 1px solid #dee2e6;
+            /* Optional border */
+        }
+
+        #sidebar .nav-link {
+            color: #212529;
+            /* Light mode link text */
+        }
+
+        #sidebar .nav-link:hover {
+            background-color: #e9ecef;
+            /* Hover effect for light mode */
+        }
+
+        /* Dark Mode Sidebar */
+        body.dark-mode #sidebar {
+            background-color: #1e1e1e;
+            /* Dark background */
+            color: #f8f9fa;
+            /* Light text */
+            border-right: 1px solid #444444;
+            /* Optional border */
+        }
+
+        body.dark-mode #sidebar .nav-link {
+            color: #f8f9fa;
+            /* Light text for links */
+        }
+
+        body.dark-mode #sidebar .nav-link:hover {
+            background-color: #333333;
+            /* Hover effect for links in dark mode */
+        }
+    </style>
+
+</head>
+
+<body>
+    <div class="d-flex">
+        <!-- Sidebar -->
+        <nav class="border-end vh-100 d-flex flex-column align-items-center" id="sidebar">
+            <div class="p-3 w-100">
+                <button id="sidebar-toggler" class="btn btn-light w-100">
+                    <i class="fas fa-bars"></i>
+                </button>
+            </div>
+            <ul class="nav flex-column w-100">
+                <li class="nav-item">
+                    <a href="/" class="nav-link text-dark">
+                        <i class="fas fa-home"></i>
+                        <span>Home</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="/settings" class="nav-link text-dark">
+                        <i class="fas fa-cogs"></i>
+                        <span>Settings</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="/admin" class="nav-link text-dark">
+                        <i class="fas fa-user-shield"></i>
+                        <span>Admin</span>
+                    </a>
+                </li>
+            </ul>
+
+            <!-- Dark Mode Toggle Button -->
+            <div class="mt-auto p-3">
+                <a id="darkModeToggle" href="#" class="nav-link text-dark">
+                    <i class="fas fa-moon"></i>
+                    <span>Dark Mode</span>
+                </a>
+            </div>
+        </nav>
+
+
+        <!-- Main Content -->
+        <div class="flex-grow-1 p-3">
+            {% block content %}{% endblock %}
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script id="model-data" type="application/json">
+        {{ {"model_name": model_name, "relationships": relationships} | tojson | safe }}
+    </script>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const darkModeToggle = document.getElementById("darkModeToggle");
+
+            if (!darkModeToggle) {
+                console.error("Dark mode toggle button not found");
+                return;
+            }
+
+            function applyTheme(theme) {
+                const icon = darkModeToggle.querySelector("i");
+                const text = darkModeToggle.querySelector("span");
+                const sidebar = document.getElementById("sidebar");
+                const links = sidebar.querySelectorAll(".nav-link"); // Sidebar links
+
+                if (!icon || !text || !sidebar) {
+                    console.error("Dark mode toggle elements not found");
+                    return;
+                }
+
+                if (theme === "dark") {
+                    sidebar.classList.remove("bg-light");
+                    sidebar.classList.add("bg-dark", "text-white"); // Add dark mode classes
+                    links.forEach(link => {
+                        link.classList.remove("text-dark");
+                        link.classList.add("text-white"); // Update link text color
+                    });
+                    icon.className = "fas fa-sun"; // Switch to sun icon
+                    text.textContent = "Light Mode"; // Update text
+                    localStorage.setItem("theme", "dark");
+                    document.body.setAttribute("data-bs-theme", theme);
+
+                } else {
+                    sidebar.classList.remove("bg-dark", "text-white");
+                    sidebar.classList.add("bg-light"); // Add light mode class
+                    links.forEach(link => {
+                        link.classList.remove("text-white");
+                        link.classList.add("text-dark"); // Update link text color
+                    });
+                    icon.className = "fas fa-moon"; // Switch to moon icon
+                    text.textContent = "Dark Mode"; // Update text
+                    localStorage.setItem("theme", "light");
+                    document.body.setAttribute("data-bs-theme", theme);
+                }
+            }
+
+            const savedTheme = localStorage.getItem("theme") || "light";
+            applyTheme(savedTheme);
+
+            darkModeToggle.addEventListener("click", (event) => {
+                event.preventDefault();
+                const currentTheme = document.body.getAttribute("data-bs-theme") || "light";
+                const newTheme = currentTheme === "light" ? "dark" : "light";
+                applyTheme(newTheme);
+            });
+
+            const sidebar = document.getElementById("sidebar");
+            const sidebarToggler = document.getElementById("sidebar-toggler");
+
+            sidebarToggler.addEventListener("click", () => {
+                sidebar.classList.toggle("collapsed");
+            });
+        });
+
+    </script>
+</body>
+
+</html>
