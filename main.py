@@ -1,17 +1,19 @@
 import csv
 import io
+import json
 from typing import List
 from fastapi import Body, FastAPI, File, Form, HTTPException, Request, Response, UploadFile
-from fastapi.responses import StreamingResponse
+from fastapi.responses import JSONResponse, StreamingResponse
 from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy import create_engine, inspect
-from example_model import Comment, Person, Relative
+from example_model import Comment, Person, Relative, RmsRequest, Base
 from fastapi.middleware.cors import CORSMiddleware
 import logging
 import sys
+
 
 # Configure logging
 logging.basicConfig(
@@ -29,7 +31,7 @@ app = FastAPI()
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["http://127.0.0.1:8000"],  # Adjust as needed
-    allow_credentials=True,
+    allow_credentials=True,  # Enable cookies
     allow_methods=["*"],
     allow_headers=["*"],
 )
@@ -48,62 +50,103 @@ templates.env.globals['getattr'] = getattr
 # Static files for CSS/JS
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
-@app.get("/")
-async def get_table(request: Request):
+
+
+from sqlalchemy.ext.declarative import DeclarativeMeta
+
+def get_model_by_tablename(tablename: str) -> DeclarativeMeta:
+    """Fetch the SQLAlchemy model class by its table name."""
+    for mapper in Base.registry.mappers:
+        cls = mapper.class_
+        if hasattr(cls, '__tablename__') and cls.__tablename__ == tablename:
+            return cls
+    return None
+
+@app.get("/{model_name}")
+async def get_table(model_name: str, request: Request, response: Response):
+    logger.info(f"Fetching data for model: {model_name}")
     session = SessionLocal()
-    rows = session.query(Person).all()
-    session.close()
 
-    # Define action options
-    actions = [
-        {"label": "Create New", "endpoint": "/create-new"},
-        {"label": "Export Selected", "endpoint": "/export"},
-        {"label": "Delete Selected", "endpoint": "/delete"},
-    ]
+    try:
+        # Resolve the model dynamically
+        model = get_model_by_tablename(model_name)
+        if not model:
+            logger.warning(f"Model '{model_name}' not found.")
+            raise HTTPException(status_code=404, detail="Model not found")
 
-    # Extract model metadata dynamically
-    columns = []
-    form_fields = []
-    relationships = []
+        # Fetch rows from the resolved model
+        rows = session.query(model).all()
 
-    mapper = inspect(Person)
-
-    # Extract column data for the main model
-    for column in mapper.columns:
-        column_info = {
-            "name": column.name,
-            "type": str(column.type),
-            "options": getattr(Person, f"{column.name}_options", None),  # Predefined options
-        }
-        columns.append(column_info)
-        if column.name != "id":  # Exclude primary key
-            form_fields.append(column_info)
-
-    model_name = Person.__name__
-    # Extract relationship data dynamically
-    for rel in mapper.relationships:
-        relationships.append({
-            "name": rel.key,
-            "fields": [
-                {"name": col.name, "type": str(col.type)}
-                for col in rel.mapper.columns if col.name != "id"  # Exclude primary key
+        # Define action options
+        if model_name == "request":
+            actions = [
+                {"label": "Refresh", "endpoint": "/refresh"},
             ]
-        })
+        else:
+            actions = [
+                {"label": "Create New", "endpoint": "/create-new-modal"},
+                {"label": "Refresh", "endpoint": "/refresh"},
+            ]
 
-    return templates.TemplateResponse(
-        "dynamic_table_.html",
-        {
-            "request": request,
-            "rows": rows,
-            "columns": columns,
-            "actions": actions,
-            "form_fields": form_fields,
-            "relationships": relationships,
-            "model_name": model_name,
-            "person_id": rows[0].id if rows else None,  
+        # Extract the first action as the primary action
+        primary_action = actions.pop(0) if actions else None
 
-        },
-    )
+        # Add bulk import option if enabled
+        bulk_import_action = (
+            {"label": "Upload Bulk Import", "endpoint": "/bulk-import"}
+        )
+        
+        # Extract model metadata dynamically
+        columns = []
+        form_fields = []
+        relationships = []
+
+        mapper = inspect(model)
+
+        # Extract column data for the main model
+        for column in mapper.columns:
+            column_info = {
+                "name": column.name,
+                "type": str(column.type),
+                "options": getattr(model, f"{column.name}_options", None),  # Predefined options
+            }
+            columns.append(column_info)
+            if column.name != "id":  # Exclude primary key
+                form_fields.append(column_info)
+
+        # Extract relationship data dynamically
+        for rel in mapper.relationships:
+            relationships.append({
+                "name": rel.key,
+                "fields": [
+                    {"name": col.name, "type": str(col.type)}
+                    for col in rel.mapper.columns if col.name != "id"  # Exclude primary key
+                ]
+            })
+
+        return templates.TemplateResponse(
+            "dynamic_table_.html",
+            {
+                "request": request,
+                "rows": rows,
+                "columns": columns,
+                "actions": actions,
+                "form_fields": form_fields,
+                "relationships": relationships,
+                "model_name": model_name,
+                "request_id": rows[0].id if rows else None,  
+                "bulk_import_action": bulk_import_action,
+                "primary_action": primary_action,
+            }
+        )
+    except Exception as e:
+        logger.error(f"Error fetching table data for model '{model_name}': {str(e)}", exc_info=True)
+        raise HTTPException(status_code=500, detail="Internal Server Error")
+    finally:
+        session.close()
+        logger.debug(f"Session closed for model: {model_name}")
+
+
 
 
 @app.get("/settings")
@@ -151,22 +194,34 @@ async def get_row(model_name: str, row_id: int):
         session.close()
 
 
-@app.post("/update-row/{row_id}")
-async def update_row(row_id: int, data: dict):
-    logger.info(f"Received request to update row with ID {row_id}. Data: {data}")
+@app.post("/update-row/{model_name}/{row_id}")
+async def update_row(model_name: str, row_id: int, data: dict):
+    """
+    Update a row dynamically based on model name.
+    :param model_name: The name of the table/model to update.
+    :param row_id: The ID of the row to update.
+    :param data: The data to update, including relationships.
+    """
+    logger.info(f"Received request to update row in model '{model_name}' with ID {row_id}. Data: {data}")
     session = SessionLocal()
 
     try:
+        # Get the model class based on the provided model name
+        model = get_model_by_tablename(model_name)
+        if not model:
+            logger.warning(f"Model '{model_name}' not found.")
+            raise HTTPException(status_code=404, detail="Model not found")
+
         # Fetch the main row
-        row = session.query(Person).filter_by(id=row_id).first()
+        row = session.query(model).filter_by(id=row_id).first()
         if not row:
-            logger.warning(f"Row with ID {row_id} not found.")
+            logger.warning(f"Row with ID {row_id} not found in model '{model_name}'.")
             raise HTTPException(status_code=404, detail="Row not found")
 
         # Update main fields
         for key, value in data.items():
             if key != "relationships" and hasattr(row, key):
-                logger.debug(f"Updating field '{key}' to '{value}'.")
+                logger.debug(f"Updating field '{key}' to '{value}' in model '{model_name}'.")
                 setattr(row, key, value)
 
         # Update relationships
@@ -176,9 +231,13 @@ async def update_row(row_id: int, data: dict):
                 related_attribute = getattr(row, relationship_name)
                 related_model = related_attribute[0].__class__ if related_attribute else None
 
+                if not related_model:
+                    logger.warning(f"Relationship model for '{relationship_name}' not found in '{model_name}'.")
+                    continue
+
                 # Clear existing relationships
-                for related_row in related_attribute:
-                    session.delete(related_row)
+                while len(related_attribute) > 0:
+                    session.delete(related_attribute.pop())
 
                 # Add updated relationships
                 for related_object in related_objects:
@@ -186,15 +245,15 @@ async def update_row(row_id: int, data: dict):
                     related_attribute.append(new_related_row)
 
         session.commit()
-        logger.info(f"Successfully updated row with ID {row_id}.")
+        logger.info(f"Successfully updated row with ID {row_id} in model '{model_name}'.")
         return {"message": "Row updated successfully"}
     except Exception as e:
         session.rollback()
-        logger.error(f"Error updating row with ID {row_id}: {str(e)}", exc_info=True)
+        logger.error(f"Error updating row with ID {row_id} in model '{model_name}': {str(e)}", exc_info=True)
         raise HTTPException(status_code=500, detail="Internal Server Error")
     finally:
         session.close()
-        logger.debug(f"Session closed after updating row with ID {row_id}.")
+        logger.debug(f"Session closed after updating row with ID {row_id} in model '{model_name}'.")
 
 
 
@@ -314,40 +373,49 @@ async def bulk_import(file: UploadFile):
         logger.debug("Database session closed.")
 
         
-@app.post("/create-new")
-async def create_new(data: dict):
-    logger.info("Received request to create a new entry.")
+@app.post("/create-new/{model_name}")
+async def create_new(model_name: str, data: dict):
+    logger.info(f"Received request to create a new entry for model: {model_name}.")
     session = SessionLocal()
     try:
-        # Extract main fields
-        main_data = {key: value for key, value in data.items() if key != "relationships"}
-        logger.debug(f"Main data extracted: {main_data}")
+        # Resolve the model dynamically
+        model = get_model_by_tablename(model_name)
+        if not model:
+            logger.warning(f"Model '{model_name}' not found.")
+            raise HTTPException(status_code=404, detail="Model not found")
 
-        # Create the main Person object
-        main_object = Person(**main_data)
+        # Extract main fields (excluding relationships)
+        relationships_data = data.pop("relationships", {})
+        logger.debug(f"Main data extracted: {data}, Relationships: {relationships_data}")
+
+        # Create the main object
+        main_object = model(**data)
         session.add(main_object)
-        session.flush()  # Ensure `main_object.id` is available for relationships
+        session.flush()  # Ensure the `id` is available for relationships
 
-        # Handle relationships if present
-        relationships = data.get("relationships", {})
-        for relationship_name, related_objects in relationships.items():
-            if relationship_name == "relatives":  # Adjust if you have multiple relationships
-                for related_object in related_objects:
-                    relative = Relative(person_id=main_object.id, **related_object)
-                    session.add(relative)
-                    logger.info(f"Added relative: {related_object}")
+        # Handle relationships dynamically if present
+        for relationship_name, related_objects in relationships_data.items():
+            if hasattr(main_object, relationship_name):
+                relationship_attribute = getattr(main_object, relationship_name)
+                related_model = relationship_attribute[0].__class__ if relationship_attribute else None
+
+                if related_model:
+                    for related_object in related_objects:
+                        related_instance = related_model(**related_object)
+                        relationship_attribute.append(related_instance)
 
         # Commit all changes
         session.commit()
-        logger.info("All changes committed to the database successfully.")
-        return {"message": "Entry created successfully"}
+        logger.info(f"All changes committed to the database successfully for model: {model_name}.")
+        return {"message": f"Entry created successfully for model '{model_name}'."}
     except Exception as e:
         session.rollback()
-        logger.error(f"Error creating new entry: {e}", exc_info=True)
+        logger.error(f"Error creating new entry for model '{model_name}': {e}", exc_info=True)
         raise HTTPException(status_code=500, detail=str(e))
     finally:
         session.close()
         logger.debug("Database session closed.")
+
 
 
 @app.get("/persons/{person_id}/comments")

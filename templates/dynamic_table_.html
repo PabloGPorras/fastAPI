@@ -11,11 +11,13 @@
 
         <!-- Create New Button Group -->
         <div class="btn-group">
-            <!-- Primary Button triggers the modal -->
-            <button id="primary-action-btn" class="btn btn-success btn-sm" data-bs-toggle="modal"
-                data-bs-target="#createNewModal">
-                Create New
+            <!-- Primary Action Button -->
+            {% if primary_action %}
+            <button id="primary-action-btn" class="btn btn-success btn-sm"
+                data-endpoint="{{ primary_action.endpoint }}">
+                {{ primary_action.label }}
             </button>
+            {% endif %}
             <!-- Dropdown for additional actions -->
             <button type="button" class="btn btn-success btn-sm dropdown-toggle dropdown-toggle-split"
                 data-bs-toggle="dropdown" aria-expanded="false">
@@ -41,11 +43,13 @@
                 </li>
 
                 <!-- Bulk Import Upload -->
+                {% if bulk_import_action %}
                 <li>
                     <button class="dropdown-item" data-bs-toggle="modal" data-bs-target="#uploadBulkModal">
-                        Upload Bulk Import
+                        {{ bulk_import_action.label }}
                     </button>
                 </li>
+                {% endif %}
             </ul>
 
         </div>
@@ -140,8 +144,8 @@
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title" id="createNewModalLabel">Create New Entry</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
+
             <!-- Details Form -->
             <form id="detailsForm">
                 <div class="modal-body">
@@ -166,7 +170,7 @@
                         <!-- Details Tab -->
                         <div class="tab-pane fade show active" id="details-tab-pane" role="tabpanel"
                             aria-labelledby="details-tab">
-                            {% include "dynamic_form.html" %}
+                            {% include "request_details_form.html" %}
                         </div>
                     </div>
                 </div>
@@ -179,7 +183,7 @@
                 <div class="tab-content">
                     <!-- Comments Tab -->
                     <div class="tab-pane fade" id="comments-tab-pane" role="tabpanel" aria-labelledby="comments-tab">
-                        {% include "comments_section.html" with context %}
+                        {% include "comments_form.html" with context %}
                     </div>
                 </div>
             </form>
@@ -193,10 +197,14 @@
 <!-- Bulk Import Upload Modal -->
 {% include "bulk_update_modal.html" %}
 
-<!-- Place this near the modal or at the end of the body -->
+
+<script id="props-data" type="application/json">
+    {{ {"form_fields": form_fields, "relationships": relationships, "model_name": model_name} | tojson | safe }}
+</script>
+<!-- Place this near the modal or at the end of the body
 <script id="relationships-data" type="application/json">
         {{ relationships | tojson | safe }}
-    </script>
+    </script> -->
 <script>
     // Run this on page load to initialize the dropdown state
     updateDropdownActions();
@@ -209,15 +217,6 @@
             .join(" "); // Join the words with a space
     }
 
-
-    // const relatives = [];
-    // document.querySelectorAll("#relatives-container tbody tr").forEach(row => {
-    //     const relative = {
-    //         name: row.querySelector("input[name*='name']").value,
-    //         relationship: row.querySelector("input[name*='relation_type']").value
-    //     };
-    //     relatives.push(relative);
-    // });
 
     document.addEventListener("keydown", function (event) {
         const isCtrlPressed = event.ctrlKey || event.metaKey; // For macOS, `metaKey` is Cmd
@@ -246,23 +245,69 @@
     });
 
 
+
+
+
     document.getElementById("primary-action-btn").addEventListener("click", function () {
-        // Reset the form
-        const form = document.getElementById("detailsForm");
-        form.reset();
+        // Get the endpoint from the button's data attribute
+        const endpoint = this.getAttribute("data-endpoint");
 
-        // Clear relationship tables
-        document.querySelectorAll(".relationship-container tbody").forEach(container => {
-            container.innerHTML = ""; // Clear all rows in relationship subtables
-        });
+        if (endpoint === "/create-new-modal") {
+            // Handle "Create New" logic
+            console.log("Primary action: Create New");
 
-        // Reset modal title and button
-        const modalTitle = document.getElementById("createNewModalLabel");
-        const saveButton = document.querySelector("#createNewModal .btn-primary");
-        modalTitle.textContent = "Create New Entry";
-        saveButton.textContent = "Save";
-        saveButton.removeAttribute("data-id");
+            // Reset the form
+            const form = document.getElementById("detailsForm");
+            form.reset();
+
+            // Clear relationship tables
+            document.querySelectorAll(".relationship-container tbody").forEach(container => {
+                container.innerHTML = ""; // Clear all rows in relationship subtables
+            });
+
+            // Reset modal title and button
+            const modalTitle = document.getElementById("createNewModalLabel");
+            const saveButton = document.querySelector("#createNewModal .btn-primary");
+            modalTitle.textContent = "Create New Entry";
+            saveButton.textContent = "Save";
+            saveButton.removeAttribute("data-id");
+
+            // Show the modal
+            const modal = new bootstrap.Modal(document.getElementById("createNewModal"));
+            modal.show();
+        } else if (endpoint === "/refresh") {
+            // Handle "Refresh" logic
+            console.log("Primary action: Refresh");
+
+            // Fetch updated data
+            fetch(endpoint)
+                .then(response => response.json())
+                .then(data => {
+                    // Assuming `data` contains updated rows
+                    console.log("Refreshed data:", data);
+
+                    // Replace table body with updated rows
+                    const tableBody = document.getElementById("tableBody");
+                    tableBody.innerHTML = ""; // Clear the table
+                    data.rows.forEach(row => {
+                        const rowElement = document.createElement("tr");
+                        rowElement.innerHTML = `
+                        <td>${row.id}</td>
+                        <td>${row.name}</td>
+                        <td>${row.status}</td>
+                        <!-- Add other columns as needed -->
+                    `;
+                        tableBody.appendChild(rowElement);
+                    });
+                })
+                .catch(error => {
+                    console.error("Error refreshing data:", error);
+                });
+        } else {
+            console.error("Unknown primary action endpoint:", endpoint);
+        }
     });
+
 
 
 
@@ -275,17 +320,17 @@
                 const container = document.querySelector(`#${relationship}-container tbody`);
                 const index = container.children.length;
 
-                // Retrieve relationships data from the JSON script tag
-                let relationshipData;
+                // Retrieve propsData data from the JSON script tag
+                let propsData;
                 try {
-                    relationshipData = JSON.parse(document.getElementById('relationships-data').textContent);
+                    propsData = JSON.parse(document.getElementById('props-data').textContent);
                 } catch (error) {
-                    console.error("Error parsing relationships data:", error);
+                    console.error("Error parsing propsData:", error);
                     return;
                 }
 
                 // Find the relationship configuration
-                const relationshipConfig = relationshipData.find(rel => rel.name === relationship);
+                const relationshipConfig = propsData.relationships.find(rel => rel.name === relationship);
                 if (!relationshipConfig || !relationshipConfig.fields) {
                     console.error(`No fields found for relationship: ${relationship}`);
                     return;
@@ -417,12 +462,32 @@
                 }
             });
 
-            // Add relationships to the form object
-            formObject["relationships"] = relationships;
+
+            // Determine the model name and row ID
+
+            let propsData;
+            try {
+                propsData = JSON.parse(document.getElementById('props-data').textContent);
+            } catch (error) {
+                console.error("Error parsing props data:", error);
+                return;
+            }
+
+
+            // Access the modelName directly from propsData
+            const modelName = propsData.model_name;
+            if (!modelName) {
+                console.error("Model name not found in props data.");
+                return;
+            }
+
+
+            const rowId = document.querySelector("#createNewModal .btn-primary").getAttribute("data-id");
 
             // Determine the URL (update or create new)
-            const rowId = document.querySelector("#createNewModal .btn-primary").getAttribute("data-id");
-            const url = rowId ? `/update-row/${rowId}` : "/create-new";
+            const url = rowId
+                ? `/update-row/${modelName}/${rowId}`
+                : `/create-new/${modelName}`;
 
             try {
                 const response = await fetch(url, {
@@ -435,13 +500,15 @@
                     alert("Operation successful!");
                     location.reload();
                 } else {
-                    alert(`Operation failed: ${response.statusText}`);
+                    const errorMessage = await response.text();
+                    alert(`Operation failed: ${response.status} - ${errorMessage}`);
                 }
             } catch (error) {
                 console.error("Error during the operation:", error);
                 alert("An error occurred while performing the operation.");
             }
         });
+
 
     });
 

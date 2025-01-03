@@ -688,3 +688,637 @@ TypeError: 'comment_text' is an invalid keyword argument for Person
 2024-12-30 23:14:25,241 - main - DEBUG - Database session closed.
 2024-12-31 12:00:25,352 - main - INFO - Fetching data for model: Person, row ID: 1
 2024-12-31 12:00:25,382 - main - INFO - Successfully fetched row data: {'id': 1, 'name': 'Pablo George Porras', 'age': 55, 'gender': 'Male', 'relatives': [], 'comments': [{'id': 1, 'person_id': 1, 'comment_text': 'test', 'username': 'test', 'timestamp': datetime.datetime(2024, 12, 30, 22, 45, 58, 327876)}, {'id': 2, 'person_id': 1, 'comment_text': 'WHOOOT', 'username': 'Pablo', 'timestamp': datetime.datetime(2024, 12, 30, 22, 46, 10, 74334)}, {'id': 3, 'person_id': 1, 'comment_text': 'test', 'username': 'test', 'timestamp': datetime.datetime(2024, 12, 31, 1, 47, 10, 490505)}, {'id': 4, 'person_id': 1, 'comment_text': 'gesg', 'username': 'gseg', 'timestamp': datetime.datetime(2024, 12, 31, 1, 47, 16, 194456)}]}
+2024-12-31 14:51:07,452 - main - INFO - Received request for /create-new-modal from 127.0.0.1
+2024-12-31 14:51:07,453 - main - WARNING - No cached data found for client: 127.0.0.1
+2024-12-31 14:51:52,156 - main - INFO - Received request for /create-new-modal from 127.0.0.1
+2024-12-31 14:51:52,157 - main - WARNING - No cached data found for client: 127.0.0.1
+2024-12-31 14:56:32,302 - main - INFO - Received request for /create-new-modal from 127.0.0.1
+2024-12-31 14:56:32,303 - main - WARNING - No cached data found for client: 127.0.0.1
+2024-12-31 15:23:01,161 - main - INFO - Received request to create a new entry.
+2024-12-31 15:23:01,162 - main - DEBUG - Main data extracted: {'requester': 'TEST', 'request_status': 'TEST', 'effort': 'BAU'}
+2024-12-31 15:23:01,167 - main - ERROR - Error creating new entry: 'requester' is an invalid keyword argument for Person
+Traceback (most recent call last):
+  File "C:\Users\pablo\projects\test_app\main.py", line 340, in create_new
+    main_object = Person(**main_data)
+                  ^^^^^^^^^^^^^^^^^^^
+  File "<string>", line 4, in __init__
+  File "c:\Users\pablo\projects\test_app\.venv\Lib\site-packages\sqlalchemy\orm\state.py", line 571, in _initialize_instance
+    with util.safe_reraise():
+  File "c:\Users\pablo\projects\test_app\.venv\Lib\site-packages\sqlalchemy\util\langhelpers.py", line 146, in __exit__
+    raise exc_value.with_traceback(exc_tb)
+  File "c:\Users\pablo\projects\test_app\.venv\Lib\site-packages\sqlalchemy\orm\state.py", line 569, in _initialize_instance
+    manager.original_init(*mixed[1:], **kwargs)
+  File "c:\Users\pablo\projects\test_app\.venv\Lib\site-packages\sqlalchemy\orm\decl_base.py", line 2177, in _declarative_constructor
+    raise TypeError(
+TypeError: 'requester' is an invalid keyword argument for Person
+2024-12-31 15:23:01,171 - main - DEBUG - Database session closed.
+2024-12-31 15:31:59,654 - main - INFO - Fetching data for model: RmsRequest
+2024-12-31 15:31:59,654 - main - ERROR - Error fetching table data for model 'RmsRequest': type object 'Base' has no attribute '_decl_class_registry'
+Traceback (most recent call last):
+  File "C:\Users\pablo\projects\test_app\main.py", line 62, in get_table
+    model = get_model_by_tablename(model_name)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\pablo\projects\test_app\example_model.py", line 16, in get_model_by_tablename
+    for cls in Base._decl_class_registry.values():
+               ^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: type object 'Base' has no attribute '_decl_class_registry'
+2024-12-31 15:31:59,655 - main - DEBUG - Session closed for model: RmsRequest
+2024-12-31 15:32:13,370 - main - INFO - Fetching data for model: rmsrequest
+2024-12-31 15:32:13,370 - main - ERROR - Error fetching table data for model 'rmsrequest': type object 'Base' has no attribute '_decl_class_registry'
+Traceback (most recent call last):
+  File "C:\Users\pablo\projects\test_app\main.py", line 62, in get_table
+    model = get_model_by_tablename(model_name)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\pablo\projects\test_app\example_model.py", line 16, in get_model_by_tablename
+    for cls in Base._decl_class_registry.values():
+               ^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: type object 'Base' has no attribute '_decl_class_registry'
+2024-12-31 15:32:13,372 - main - DEBUG - Session closed for model: rmsrequest
+2024-12-31 15:33:12,685 - main - INFO - Fetching data for model: rms_request
+2024-12-31 15:33:12,685 - main - ERROR - Error fetching table data for model 'rms_request': type object 'Base' has no attribute '_decl_class_registry'
+Traceback (most recent call last):
+  File "C:\Users\pablo\projects\test_app\main.py", line 62, in get_table
+    model = get_model_by_tablename(model_name)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\pablo\projects\test_app\example_model.py", line 16, in get_model_by_tablename
+    for cls in Base._decl_class_registry.values():
+               ^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: type object 'Base' has no attribute '_decl_class_registry'
+2024-12-31 15:33:12,686 - main - DEBUG - Session closed for model: rms_request
+2024-12-31 15:33:38,509 - main - INFO - Fetching data for model: request
+2024-12-31 15:33:38,510 - main - ERROR - Error fetching table data for model 'request': type object 'Base' has no attribute '_decl_class_registry'
+Traceback (most recent call last):
+  File "C:\Users\pablo\projects\test_app\main.py", line 62, in get_table
+    model = get_model_by_tablename(model_name)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\pablo\projects\test_app\example_model.py", line 16, in get_model_by_tablename
+    for cls in Base._decl_class_registry.values():
+               ^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: type object 'Base' has no attribute '_decl_class_registry'
+2024-12-31 15:33:38,510 - main - DEBUG - Session closed for model: request
+2024-12-31 15:35:44,621 - main - INFO - Fetching data for model: request
+2024-12-31 15:35:44,621 - main - ERROR - Error fetching table data for model 'request': type object 'Base' has no attribute '_decl_class_registry'
+Traceback (most recent call last):
+  File "C:\Users\pablo\projects\test_app\main.py", line 60, in get_table
+    model = get_model_by_tablename(model_name)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\pablo\projects\test_app\example_model.py", line 16, in get_model_by_tablename
+    for cls in Base._decl_class_registry.values():
+               ^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: type object 'Base' has no attribute '_decl_class_registry'
+2024-12-31 15:35:44,623 - main - DEBUG - Session closed for model: request
+2024-12-31 15:38:17,621 - main - INFO - Fetching data for model: request
+2024-12-31 15:38:17,621 - main - ERROR - Error fetching table data for model 'request': module 'fastapi.logger' has no attribute 'debug'
+Traceback (most recent call last):
+  File "C:\Users\pablo\projects\test_app\main.py", line 60, in get_table
+    model = get_model_by_tablename(model_name)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\pablo\projects\test_app\example_model.py", line 16, in get_model_by_tablename
+    logger.debug(f"Resolving model for table: {tablename}")
+    ^^^^^^^^^^^^
+AttributeError: module 'fastapi.logger' has no attribute 'debug'
+2024-12-31 15:38:17,622 - main - DEBUG - Session closed for model: request
+2024-12-31 15:39:07,728 - main - INFO - Fetching data for model: request
+2024-12-31 15:39:07,728 - main - ERROR - Error fetching table data for model 'request': module 'fastapi.logger' has no attribute 'debug'
+Traceback (most recent call last):
+  File "C:\Users\pablo\projects\test_app\main.py", line 60, in get_table
+    model = get_model_by_tablename(model_name)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\pablo\projects\test_app\example_model.py", line 16, in get_model_by_tablename
+    logger.debug(f"Resolving model for table: {tablename}")
+    ^^^^^^^^^^^^
+AttributeError: module 'fastapi.logger' has no attribute 'debug'
+2024-12-31 15:39:07,729 - main - DEBUG - Session closed for model: request
+2024-12-31 15:40:18,879 - main - INFO - Fetching data for model: request
+2024-12-31 15:40:18,880 - main - DEBUG - Resolving model for table: request
+2024-12-31 15:40:18,880 - main - ERROR - Error fetching table data for model 'request': type object 'Base' has no attribute '_decl_class_registry'
+Traceback (most recent call last):
+  File "C:\Users\pablo\projects\test_app\main.py", line 60, in get_table
+    model = get_model_by_tablename(model_name)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\pablo\projects\test_app\example_model.py", line 19, in get_model_by_tablename
+    for cls_name, cls in Base._decl_class_registry.items():
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: type object 'Base' has no attribute '_decl_class_registry'
+2024-12-31 15:40:18,881 - main - DEBUG - Session closed for model: request
+2024-12-31 15:44:38,983 - main - INFO - Fetching data for model: request
+2024-12-31 15:44:38,983 - main - ERROR - Error fetching table data for model 'request': type object 'Base' has no attribute '_decl_class_registry'
+Traceback (most recent call last):
+  File "C:\Users\pablo\projects\test_app\main.py", line 71, in get_table
+    model = get_model_by_tablename(model_name)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\pablo\projects\test_app\main.py", line 59, in get_model_by_tablename
+    for cls in Base._decl_class_registry.values():
+               ^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: type object 'Base' has no attribute '_decl_class_registry'
+2024-12-31 15:44:38,985 - main - DEBUG - Session closed for model: request
+2024-12-31 15:45:06,149 - main - INFO - Fetching data for model: request
+2024-12-31 15:45:06,150 - main - ERROR - Error fetching table data for model 'request': type object 'Base' has no attribute '_decl_class_registry'
+Traceback (most recent call last):
+  File "C:\Users\pablo\projects\test_app\main.py", line 71, in get_table
+    model = get_model_by_tablename(model_name)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\pablo\projects\test_app\main.py", line 59, in get_model_by_tablename
+    for cls in Base._decl_class_registry.values():
+               ^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: type object 'Base' has no attribute '_decl_class_registry'
+2024-12-31 15:45:06,151 - main - DEBUG - Session closed for model: request
+2024-12-31 15:46:34,495 - main - INFO - Fetching data for model: request
+2024-12-31 15:46:34,523 - main - DEBUG - Session closed for model: request
+2024-12-31 15:46:43,270 - main - INFO - Fetching data for model: person
+2024-12-31 15:46:43,272 - main - WARNING - Model 'person' not found.
+2024-12-31 15:46:43,272 - main - ERROR - Error fetching table data for model 'person': 404: Model not found
+Traceback (most recent call last):
+  File "C:\Users\pablo\projects\test_app\main.py", line 75, in get_table
+    raise HTTPException(status_code=404, detail="Model not found")
+fastapi.exceptions.HTTPException: 404: Model not found
+2024-12-31 15:46:43,273 - main - DEBUG - Session closed for model: person
+2024-12-31 15:46:55,805 - main - INFO - Fetching data for model: persons
+2024-12-31 15:46:55,807 - main - DEBUG - Session closed for model: persons
+2024-12-31 15:47:04,066 - main - INFO - Fetching data for model: request
+2024-12-31 15:47:04,068 - main - DEBUG - Session closed for model: request
+2024-12-31 19:29:24,788 - main - INFO - Fetching data for model: request
+2024-12-31 19:29:24,790 - main - DEBUG - Session closed for model: request
+2024-12-31 19:30:20,600 - main - INFO - Received request to create a new entry.
+2024-12-31 19:30:20,600 - main - DEBUG - Main data extracted: {'requester': 'TEST', 'request_status': 'TEST', 'effort': 'BAU'}
+2024-12-31 19:30:20,600 - main - ERROR - Error creating new entry: 'requester' is an invalid keyword argument for Person
+Traceback (most recent call last):
+  File "C:\Users\pablo\projects\test_app\main.py", line 381, in create_new
+    main_object = Person(**main_data)
+                  ^^^^^^^^^^^^^^^^^^^
+  File "<string>", line 4, in __init__
+  File "c:\Users\pablo\projects\test_app\.venv\Lib\site-packages\sqlalchemy\orm\state.py", line 571, in _initialize_instance
+    with util.safe_reraise():
+  File "c:\Users\pablo\projects\test_app\.venv\Lib\site-packages\sqlalchemy\util\langhelpers.py", line 146, in __exit__
+    raise exc_value.with_traceback(exc_tb)
+  File "c:\Users\pablo\projects\test_app\.venv\Lib\site-packages\sqlalchemy\orm\state.py", line 569, in _initialize_instance
+    manager.original_init(*mixed[1:], **kwargs)
+  File "c:\Users\pablo\projects\test_app\.venv\Lib\site-packages\sqlalchemy\orm\decl_base.py", line 2177, in _declarative_constructor
+    raise TypeError(
+TypeError: 'requester' is an invalid keyword argument for Person
+2024-12-31 19:30:20,603 - main - DEBUG - Database session closed.
+2025-01-01 12:30:50,447 - main - INFO - Fetching data for model: request
+2025-01-01 12:30:50,488 - main - DEBUG - Session closed for model: request
+2025-01-01 12:36:09,672 - main - INFO - Fetching data for model: request
+2025-01-01 12:36:09,711 - main - DEBUG - Session closed for model: request
+2025-01-01 12:36:14,585 - main - INFO - Received request to create a new entry for model: null.
+2025-01-01 12:36:14,585 - main - WARNING - Model 'null' not found.
+2025-01-01 12:36:14,585 - main - ERROR - Error creating new entry for model 'null': 404: Model not found
+Traceback (most recent call last):
+  File "C:\Users\pablo\projects\test_app\main.py", line 380, in create_new
+    raise HTTPException(status_code=404, detail="Model not found")
+fastapi.exceptions.HTTPException: 404: Model not found
+2025-01-01 12:36:14,588 - main - DEBUG - Database session closed.
+2025-01-01 12:43:24,301 - main - INFO - Fetching data for model: request
+2025-01-01 12:43:24,324 - main - DEBUG - Session closed for model: request
+2025-01-01 12:48:20,624 - main - INFO - Fetching data for model: request
+2025-01-01 12:48:20,642 - main - DEBUG - Session closed for model: request
+2025-01-01 12:48:24,673 - main - INFO - Received request to create a new entry for model: request.
+2025-01-01 12:48:24,675 - main - DEBUG - Main data extracted: {'requester': 'TEST', 'request_status': 'TEST', 'effort': 'BAU'}, Relationships: {}
+2025-01-01 12:48:24,684 - main - INFO - All changes committed to the database successfully for model: request.
+2025-01-01 12:48:24,684 - main - DEBUG - Database session closed.
+2025-01-01 12:48:25,931 - main - INFO - Fetching data for model: request
+2025-01-01 12:48:25,939 - main - DEBUG - Session closed for model: request
+2025-01-01 12:48:31,884 - main - INFO - Fetching data for model: persons
+2025-01-01 12:48:31,889 - main - DEBUG - Session closed for model: persons
+2025-01-01 12:48:39,242 - main - INFO - Received request to create a new entry for model: persons.
+2025-01-01 12:48:39,242 - main - DEBUG - Main data extracted: {'name': 'Ana V Sanchez Sanchez', 'age': '15', 'gender': 'Other'}, Relationships: {}
+2025-01-01 12:48:39,251 - main - INFO - All changes committed to the database successfully for model: persons.
+2025-01-01 12:48:39,251 - main - DEBUG - Database session closed.
+2025-01-01 12:48:40,392 - main - INFO - Fetching data for model: persons
+2025-01-01 12:48:40,392 - main - DEBUG - Session closed for model: persons
+2025-01-01 19:36:04,550 - main - INFO - Fetching data for model: persons
+2025-01-01 19:36:04,575 - main - DEBUG - Session closed for model: persons
+2025-01-01 19:36:47,485 - main - INFO - Fetching data for model: persons
+2025-01-01 19:36:47,500 - main - DEBUG - Session closed for model: persons
+2025-01-01 19:37:45,610 - main - INFO - Fetching data for model: persons
+2025-01-01 19:37:45,626 - main - DEBUG - Session closed for model: persons
+2025-01-01 19:38:04,469 - main - INFO - Fetching data for model: persons
+2025-01-01 19:38:04,473 - main - DEBUG - Session closed for model: persons
+2025-01-01 19:38:52,516 - main - INFO - Fetching data for model: persons
+2025-01-01 19:38:52,533 - main - DEBUG - Session closed for model: persons
+2025-01-01 19:40:57,616 - main - INFO - Fetching data for model: persons
+2025-01-01 19:40:57,635 - main - DEBUG - Session closed for model: persons
+2025-01-01 19:41:19,177 - main - INFO - Fetching data for model: persons
+2025-01-01 19:41:19,193 - main - DEBUG - Session closed for model: persons
+2025-01-01 19:41:48,851 - main - INFO - Fetching data for model: persons
+2025-01-01 19:41:48,867 - main - DEBUG - Session closed for model: persons
+2025-01-01 19:43:33,699 - main - INFO - Fetching data for model: reqiest
+2025-01-01 19:43:33,701 - main - WARNING - Model 'reqiest' not found.
+2025-01-01 19:43:33,701 - main - ERROR - Error fetching table data for model 'reqiest': 404: Model not found
+Traceback (most recent call last):
+  File "C:\Users\pablo\projects\test_app\main.py", line 75, in get_table
+    raise HTTPException(status_code=404, detail="Model not found")
+fastapi.exceptions.HTTPException: 404: Model not found
+2025-01-01 19:43:33,702 - main - DEBUG - Session closed for model: reqiest
+2025-01-01 19:43:37,557 - main - INFO - Fetching data for model: request
+2025-01-01 19:43:37,572 - main - DEBUG - Session closed for model: request
+2025-01-01 19:53:23,635 - main - INFO - Fetching data for model: request
+2025-01-01 19:53:23,641 - main - DEBUG - Session closed for model: request
+2025-01-01 19:54:00,102 - main - INFO - Fetching data for model: request
+2025-01-01 19:54:00,109 - main - DEBUG - Session closed for model: request
+2025-01-01 19:54:06,450 - main - INFO - Fetching data for model: request
+2025-01-01 19:54:06,452 - main - DEBUG - Session closed for model: request
+2025-01-01 19:54:26,028 - main - INFO - Fetching data for model: request
+2025-01-01 19:54:26,033 - main - DEBUG - Session closed for model: request
+2025-01-01 19:54:30,846 - main - INFO - Fetching data for model: request
+2025-01-01 19:54:30,849 - main - DEBUG - Session closed for model: request
+2025-01-01 19:54:32,107 - main - INFO - Fetching data for model: request
+2025-01-01 19:54:32,109 - main - DEBUG - Session closed for model: request
+2025-01-01 19:55:04,097 - main - INFO - Fetching data for model: request
+2025-01-01 19:55:04,104 - main - DEBUG - Session closed for model: request
+2025-01-01 19:57:21,431 - main - INFO - Fetching data for model: request
+2025-01-01 19:57:21,437 - main - DEBUG - Session closed for model: request
+2025-01-01 20:23:20,323 - main - INFO - Fetching data for model: request
+2025-01-01 20:23:20,330 - main - DEBUG - Session closed for model: request
+2025-01-01 20:23:51,593 - main - INFO - Fetching data for model: request
+2025-01-01 20:23:51,599 - main - DEBUG - Session closed for model: request
+2025-01-01 20:25:06,303 - main - INFO - Fetching data for model: request
+2025-01-01 20:25:06,306 - main - DEBUG - Session closed for model: request
+2025-01-01 21:04:52,501 - main - INFO - Fetching data for model: request
+2025-01-01 21:04:52,512 - main - DEBUG - Session closed for model: request
+2025-01-01 21:05:23,352 - main - INFO - Fetching data for model: request
+2025-01-01 21:05:23,362 - main - DEBUG - Session closed for model: request
+2025-01-01 21:08:58,380 - main - INFO - Fetching data for model: request
+2025-01-01 21:08:58,386 - main - DEBUG - Session closed for model: request
+2025-01-01 21:09:00,133 - main - INFO - Fetching data for model: persons
+2025-01-01 21:09:00,136 - main - DEBUG - Session closed for model: persons
+2025-01-01 21:09:03,258 - main - INFO - Fetching data for model: request
+2025-01-01 21:09:03,260 - main - DEBUG - Session closed for model: request
+2025-01-01 21:13:28,262 - main - INFO - Fetching data for model: request
+2025-01-01 21:13:28,274 - main - ERROR - Error fetching table data for model 'request': (sqlite3.OperationalError) no such column: request.request_type
+[SQL: SELECT request.id AS request_id, request.requester AS request_requester, request.request_type AS request_request_type, request.request_status AS request_request_status, request.effort AS request_effort 
+FROM request]
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+Traceback (most recent call last):
+  File "c:\Users\pablo\projects\test_app\.venv\Lib\site-packages\sqlalchemy\engine\base.py", line 1967, in _exec_single_context
+    self.dialect.do_execute(
+  File "c:\Users\pablo\projects\test_app\.venv\Lib\site-packages\sqlalchemy\engine\default.py", line 941, in do_execute
+    cursor.execute(statement, parameters)
+sqlite3.OperationalError: no such column: request.request_type
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Users\pablo\projects\test_app\main.py", line 78, in get_table
+    rows = session.query(model).all()
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "c:\Users\pablo\projects\test_app\.venv\Lib\site-packages\sqlalchemy\orm\query.py", line 2673, in all
+    return self._iter().all()  # type: ignore
+           ^^^^^^^^^^^^
+  File "c:\Users\pablo\projects\test_app\.venv\Lib\site-packages\sqlalchemy\orm\query.py", line 2827, in _iter
+    result: Union[ScalarResult[_T], Result[_T]] = self.session.execute(
+                                                  ^^^^^^^^^^^^^^^^^^^^^
+  File "c:\Users\pablo\projects\test_app\.venv\Lib\site-packages\sqlalchemy\orm\session.py", line 2362, in execute
+    return self._execute_internal(
+           ^^^^^^^^^^^^^^^^^^^^^^^
+  File "c:\Users\pablo\projects\test_app\.venv\Lib\site-packages\sqlalchemy\orm\session.py", line 2247, in _execute_internal
+    result: Result[Any] = compile_state_cls.orm_execute_statement(
+                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "c:\Users\pablo\projects\test_app\.venv\Lib\site-packages\sqlalchemy\orm\context.py", line 305, in orm_execute_statement
+    result = conn.execute(
+             ^^^^^^^^^^^^^
+  File "c:\Users\pablo\projects\test_app\.venv\Lib\site-packages\sqlalchemy\engine\base.py", line 1418, in execute
+    return meth(
+           ^^^^^
+  File "c:\Users\pablo\projects\test_app\.venv\Lib\site-packages\sqlalchemy\sql\elements.py", line 515, in _execute_on_connection
+    return connection._execute_clauseelement(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "c:\Users\pablo\projects\test_app\.venv\Lib\site-packages\sqlalchemy\engine\base.py", line 1640, in _execute_clauseelement
+    ret = self._execute_context(
+          ^^^^^^^^^^^^^^^^^^^^^^
+  File "c:\Users\pablo\projects\test_app\.venv\Lib\site-packages\sqlalchemy\engine\base.py", line 1846, in _execute_context
+    return self._exec_single_context(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "c:\Users\pablo\projects\test_app\.venv\Lib\site-packages\sqlalchemy\engine\base.py", line 1986, in _exec_single_context
+    self._handle_dbapi_exception(
+  File "c:\Users\pablo\projects\test_app\.venv\Lib\site-packages\sqlalchemy\engine\base.py", line 2355, in _handle_dbapi_exception
+    raise sqlalchemy_exception.with_traceback(exc_info[2]) from e
+  File "c:\Users\pablo\projects\test_app\.venv\Lib\site-packages\sqlalchemy\engine\base.py", line 1967, in _exec_single_context
+    self.dialect.do_execute(
+  File "c:\Users\pablo\projects\test_app\.venv\Lib\site-packages\sqlalchemy\engine\default.py", line 941, in do_execute
+    cursor.execute(statement, parameters)
+sqlalchemy.exc.OperationalError: (sqlite3.OperationalError) no such column: request.request_type
+[SQL: SELECT request.id AS request_id, request.requester AS request_requester, request.request_type AS request_request_type, request.request_status AS request_request_status, request.effort AS request_effort 
+FROM request]
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+2025-01-01 21:13:28,295 - main - DEBUG - Session closed for model: request
+2025-01-01 21:13:40,490 - main - INFO - Fetching data for model: request
+2025-01-01 21:13:40,501 - main - ERROR - Error fetching table data for model 'request': (sqlite3.OperationalError) no such column: request.request_type
+[SQL: SELECT request.id AS request_id, request.requester AS request_requester, request.request_type AS request_request_type, request.request_status AS request_request_status, request.effort AS request_effort 
+FROM request]
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+Traceback (most recent call last):
+  File "c:\Users\pablo\projects\test_app\.venv\Lib\site-packages\sqlalchemy\engine\base.py", line 1967, in _exec_single_context
+    self.dialect.do_execute(
+  File "c:\Users\pablo\projects\test_app\.venv\Lib\site-packages\sqlalchemy\engine\default.py", line 941, in do_execute
+    cursor.execute(statement, parameters)
+sqlite3.OperationalError: no such column: request.request_type
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Users\pablo\projects\test_app\main.py", line 78, in get_table
+    rows = session.query(model).all()
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "c:\Users\pablo\projects\test_app\.venv\Lib\site-packages\sqlalchemy\orm\query.py", line 2673, in all
+    return self._iter().all()  # type: ignore
+           ^^^^^^^^^^^^
+  File "c:\Users\pablo\projects\test_app\.venv\Lib\site-packages\sqlalchemy\orm\query.py", line 2827, in _iter
+    result: Union[ScalarResult[_T], Result[_T]] = self.session.execute(
+                                                  ^^^^^^^^^^^^^^^^^^^^^
+  File "c:\Users\pablo\projects\test_app\.venv\Lib\site-packages\sqlalchemy\orm\session.py", line 2362, in execute
+    return self._execute_internal(
+           ^^^^^^^^^^^^^^^^^^^^^^^
+  File "c:\Users\pablo\projects\test_app\.venv\Lib\site-packages\sqlalchemy\orm\session.py", line 2247, in _execute_internal
+    result: Result[Any] = compile_state_cls.orm_execute_statement(
+                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "c:\Users\pablo\projects\test_app\.venv\Lib\site-packages\sqlalchemy\orm\context.py", line 305, in orm_execute_statement
+    result = conn.execute(
+             ^^^^^^^^^^^^^
+  File "c:\Users\pablo\projects\test_app\.venv\Lib\site-packages\sqlalchemy\engine\base.py", line 1418, in execute
+    return meth(
+           ^^^^^
+  File "c:\Users\pablo\projects\test_app\.venv\Lib\site-packages\sqlalchemy\sql\elements.py", line 515, in _execute_on_connection
+    return connection._execute_clauseelement(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "c:\Users\pablo\projects\test_app\.venv\Lib\site-packages\sqlalchemy\engine\base.py", line 1640, in _execute_clauseelement
+    ret = self._execute_context(
+          ^^^^^^^^^^^^^^^^^^^^^^
+  File "c:\Users\pablo\projects\test_app\.venv\Lib\site-packages\sqlalchemy\engine\base.py", line 1846, in _execute_context
+    return self._exec_single_context(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "c:\Users\pablo\projects\test_app\.venv\Lib\site-packages\sqlalchemy\engine\base.py", line 1986, in _exec_single_context
+    self._handle_dbapi_exception(
+  File "c:\Users\pablo\projects\test_app\.venv\Lib\site-packages\sqlalchemy\engine\base.py", line 2355, in _handle_dbapi_exception
+    raise sqlalchemy_exception.with_traceback(exc_info[2]) from e
+  File "c:\Users\pablo\projects\test_app\.venv\Lib\site-packages\sqlalchemy\engine\base.py", line 1967, in _exec_single_context
+    self.dialect.do_execute(
+  File "c:\Users\pablo\projects\test_app\.venv\Lib\site-packages\sqlalchemy\engine\default.py", line 941, in do_execute
+    cursor.execute(statement, parameters)
+sqlalchemy.exc.OperationalError: (sqlite3.OperationalError) no such column: request.request_type
+[SQL: SELECT request.id AS request_id, request.requester AS request_requester, request.request_type AS request_request_type, request.request_status AS request_request_status, request.effort AS request_effort 
+FROM request]
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+2025-01-01 21:13:40,511 - main - DEBUG - Session closed for model: request
+2025-01-01 21:18:47,261 - main - INFO - Fetching data for model: request
+2025-01-01 21:18:47,317 - main - DEBUG - Session closed for model: request
+2025-01-01 21:18:54,129 - main - INFO - Fetching data for model: persons
+2025-01-01 21:18:54,132 - main - DEBUG - Session closed for model: persons
+2025-01-01 21:19:00,166 - main - INFO - Fetching data for model: request
+2025-01-01 21:19:00,170 - main - DEBUG - Session closed for model: request
+2025-01-01 21:19:06,508 - main - INFO - Fetching data for model: settings
+2025-01-01 21:19:06,508 - main - WARNING - Model 'settings' not found.
+2025-01-01 21:19:06,508 - main - ERROR - Error fetching table data for model 'settings': 404: Model not found
+Traceback (most recent call last):
+  File "C:\Users\pablo\projects\test_app\main.py", line 75, in get_table
+    raise HTTPException(status_code=404, detail="Model not found")
+fastapi.exceptions.HTTPException: 404: Model not found
+2025-01-01 21:19:06,510 - main - DEBUG - Session closed for model: settings
+2025-01-01 21:27:13,426 - main - INFO - Fetching data for model: request
+2025-01-01 21:27:13,438 - main - DEBUG - Session closed for model: request
+2025-01-01 21:27:15,276 - main - INFO - Fetching data for model: persons
+2025-01-01 21:27:15,279 - main - DEBUG - Session closed for model: persons
+2025-01-02 08:47:11,149 - main - INFO - Fetching data for model: persons
+2025-01-02 08:47:11,164 - main - DEBUG - Session closed for model: persons
+2025-01-02 08:47:16,754 - main - INFO - Fetching data for model: persons
+2025-01-02 08:47:16,756 - main - DEBUG - Session closed for model: persons
+2025-01-02 08:47:28,332 - main - INFO - Fetching data for model: persons
+2025-01-02 08:47:28,336 - main - DEBUG - Session closed for model: persons
+2025-01-02 12:06:11,952 - main - INFO - Fetching data for model: admin
+2025-01-02 12:06:11,952 - main - WARNING - Model 'admin' not found.
+2025-01-02 12:06:11,952 - main - ERROR - Error fetching table data for model 'admin': 404: Model not found
+Traceback (most recent call last):
+  File "C:\Users\pablo\projects\test_app\main.py", line 87, in get_table
+    raise HTTPException(status_code=404, detail="Model not found")
+fastapi.exceptions.HTTPException: 404: Model not found
+2025-01-02 12:06:11,953 - main - DEBUG - Session closed for model: admin
+2025-01-02 13:09:17,906 - main - INFO - Fetching data for model: request
+2025-01-02 13:09:17,906 - main - WARNING - Model 'request' not found.
+2025-01-02 13:09:17,906 - main - ERROR - Error fetching table data for model 'request': 404: Model not found
+Traceback (most recent call last):
+  File "C:\Users\pablo\projects\test_app\main.py", line 76, in get_table
+    raise HTTPException(status_code=404, detail="Model not found")
+fastapi.exceptions.HTTPException: 404: Model not found
+2025-01-02 13:09:17,906 - main - DEBUG - Session closed for model: request
+2025-01-02 13:09:20,625 - main - INFO - Fetching data for model: requests
+2025-01-02 13:09:20,625 - main - WARNING - Model 'requests' not found.
+2025-01-02 13:09:20,625 - main - ERROR - Error fetching table data for model 'requests': 404: Model not found
+Traceback (most recent call last):
+  File "C:\Users\pablo\projects\test_app\main.py", line 76, in get_table
+    raise HTTPException(status_code=404, detail="Model not found")
+fastapi.exceptions.HTTPException: 404: Model not found
+2025-01-02 13:09:20,625 - main - DEBUG - Session closed for model: requests
+2025-01-02 13:09:24,714 - main - INFO - Fetching data for model: persons
+2025-01-02 13:09:24,714 - main - WARNING - Model 'persons' not found.
+2025-01-02 13:09:24,714 - main - ERROR - Error fetching table data for model 'persons': 404: Model not found
+Traceback (most recent call last):
+  File "C:\Users\pablo\projects\test_app\main.py", line 76, in get_table
+    raise HTTPException(status_code=404, detail="Model not found")
+fastapi.exceptions.HTTPException: 404: Model not found
+2025-01-02 13:09:24,716 - main - DEBUG - Session closed for model: persons
+2025-01-02 13:10:05,274 - main - INFO - Fetching data for model: persons
+2025-01-02 13:10:05,274 - main - WARNING - Model 'persons' not found.
+2025-01-02 13:10:05,274 - main - ERROR - Error fetching table data for model 'persons': 404: Model not found
+Traceback (most recent call last):
+  File "C:\Users\pablo\projects\test_app\main.py", line 75, in get_table
+    raise HTTPException(status_code=404, detail="Model not found")
+fastapi.exceptions.HTTPException: 404: Model not found
+2025-01-02 13:10:05,278 - main - DEBUG - Session closed for model: persons
+2025-01-02 13:11:14,050 - main - INFO - Fetching data for model: persons
+2025-01-02 13:11:14,051 - main - WARNING - Model 'persons' not found.
+2025-01-02 13:11:14,051 - main - ERROR - Error fetching table data for model 'persons': 404: Model not found
+Traceback (most recent call last):
+  File "C:\Users\pablo\projects\test_app\main.py", line 75, in get_table
+    raise HTTPException(status_code=404, detail="Model not found")
+fastapi.exceptions.HTTPException: 404: Model not found
+2025-01-02 13:11:14,054 - main - DEBUG - Session closed for model: persons
+2025-01-02 13:12:23,908 - main - INFO - Fetching data for model: persons
+2025-01-02 13:12:23,908 - main - WARNING - Model 'persons' not found.
+2025-01-02 13:12:23,908 - main - ERROR - Error fetching table data for model 'persons': 404: Model not found
+Traceback (most recent call last):
+  File "C:\Users\pablo\projects\test_app\main.py", line 75, in get_table
+    raise HTTPException(status_code=404, detail="Model not found")
+fastapi.exceptions.HTTPException: 404: Model not found
+2025-01-02 13:12:23,908 - main - DEBUG - Session closed for model: persons
+2025-01-02 13:12:25,224 - main - INFO - Fetching data for model: persons
+2025-01-02 13:12:25,224 - main - WARNING - Model 'persons' not found.
+2025-01-02 13:12:25,224 - main - ERROR - Error fetching table data for model 'persons': 404: Model not found
+Traceback (most recent call last):
+  File "C:\Users\pablo\projects\test_app\main.py", line 75, in get_table
+    raise HTTPException(status_code=404, detail="Model not found")
+fastapi.exceptions.HTTPException: 404: Model not found
+2025-01-02 13:12:25,226 - main - DEBUG - Session closed for model: persons
+2025-01-02 13:13:15,222 - main - INFO - Fetching data for model: request
+2025-01-02 13:13:15,222 - main - WARNING - Model 'request' not found.
+2025-01-02 13:13:15,222 - main - ERROR - Error fetching table data for model 'request': 404: Model not found
+Traceback (most recent call last):
+  File "C:\Users\pablo\projects\test_app\main.py", line 75, in get_table
+    raise HTTPException(status_code=404, detail="Model not found")
+fastapi.exceptions.HTTPException: 404: Model not found
+2025-01-02 13:13:15,222 - main - DEBUG - Session closed for model: request
+2025-01-02 13:15:42,055 - main - INFO - Fetching data for model: request
+2025-01-02 13:15:42,059 - main - ERROR - Error fetching table data for model 'request': Mapper 'Mapper[Application(applications)]' has no property 'business_units'.  If this property was indicated from other mappers or configure events, ensure registry.configure() has been called.
+Traceback (most recent call last):
+  File "c:\Users\pablo\projects\test_app\.venv\Lib\site-packages\sqlalchemy\orm\mapper.py", line 2520, in get_property
+    return self._props[key]
+           ~~~~~~~~~~~^^^^^
+KeyError: 'business_units'
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Users\pablo\projects\test_app\main.py", line 78, in get_table
+    rows = session.query(model).all()
+           ^^^^^^^^^^^^^^^^^^^^
+  File "c:\Users\pablo\projects\test_app\.venv\Lib\site-packages\sqlalchemy\orm\session.py", line 2952, in query
+    return self._query_cls(entities, self, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "c:\Users\pablo\projects\test_app\.venv\Lib\site-packages\sqlalchemy\orm\query.py", line 275, in __init__
+    self._set_entities(entities)
+  File "c:\Users\pablo\projects\test_app\.venv\Lib\site-packages\sqlalchemy\orm\query.py", line 287, in _set_entities
+    self._raw_columns = [
+                        ^
+  File "c:\Users\pablo\projects\test_app\.venv\Lib\site-packages\sqlalchemy\orm\query.py", line 288, in <listcomp>
+    coercions.expect(
+  File "c:\Users\pablo\projects\test_app\.venv\Lib\site-packages\sqlalchemy\sql\coercions.py", line 388, in expect
+    insp._post_inspect
+  File "c:\Users\pablo\projects\test_app\.venv\Lib\site-packages\sqlalchemy\util\langhelpers.py", line 1253, in __get__
+    obj.__dict__[self.__name__] = result = self.fget(obj)
+                                           ^^^^^^^^^^^^^^
+  File "c:\Users\pablo\projects\test_app\.venv\Lib\site-packages\sqlalchemy\orm\mapper.py", line 2722, in _post_inspect
+    self._check_configure()
+  File "c:\Users\pablo\projects\test_app\.venv\Lib\site-packages\sqlalchemy\orm\mapper.py", line 2399, in _check_configure
+    _configure_registries({self.registry}, cascade=True)
+  File "c:\Users\pablo\projects\test_app\.venv\Lib\site-packages\sqlalchemy\orm\mapper.py", line 4215, in _configure_registries
+    _do_configure_registries(registries, cascade)
+  File "c:\Users\pablo\projects\test_app\.venv\Lib\site-packages\sqlalchemy\orm\mapper.py", line 4256, in _do_configure_registries
+    mapper._post_configure_properties()
+  File "c:\Users\pablo\projects\test_app\.venv\Lib\site-packages\sqlalchemy\orm\mapper.py", line 2416, in _post_configure_properties
+    prop.init()
+  File "c:\Users\pablo\projects\test_app\.venv\Lib\site-packages\sqlalchemy\orm\interfaces.py", line 589, in init
+    self.do_init()
+  File "c:\Users\pablo\projects\test_app\.venv\Lib\site-packages\sqlalchemy\orm\relationships.py", line 1647, in do_init
+    self._generate_backref()
+  File "c:\Users\pablo\projects\test_app\.venv\Lib\site-packages\sqlalchemy\orm\relationships.py", line 2133, in _generate_backref
+    self._add_reverse_property(self.back_populates)
+  File "c:\Users\pablo\projects\test_app\.venv\Lib\site-packages\sqlalchemy\orm\relationships.py", line 1578, in _add_reverse_property
+    other = self.mapper.get_property(key, _configure_mappers=False)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "c:\Users\pablo\projects\test_app\.venv\Lib\site-packages\sqlalchemy\orm\mapper.py", line 2522, in get_property
+    raise sa_exc.InvalidRequestError(
+sqlalchemy.exc.InvalidRequestError: Mapper 'Mapper[Application(applications)]' has no property 'business_units'.  If this property was indicated from other mappers or configure events, ensure registry.configure() has been called.
+2025-01-02 13:15:42,076 - main - DEBUG - Session closed for model: request
+2025-01-02 13:15:43,816 - main - INFO - Fetching data for model: requests
+2025-01-02 13:15:43,816 - main - WARNING - Model 'requests' not found.
+2025-01-02 13:15:43,816 - main - ERROR - Error fetching table data for model 'requests': 404: Model not found
+Traceback (most recent call last):
+  File "C:\Users\pablo\projects\test_app\main.py", line 75, in get_table
+    raise HTTPException(status_code=404, detail="Model not found")
+fastapi.exceptions.HTTPException: 404: Model not found
+2025-01-02 13:15:43,816 - main - DEBUG - Session closed for model: requests
+2025-01-02 13:15:48,563 - main - INFO - Fetching data for model: persons
+2025-01-02 13:15:48,565 - main - ERROR - Error fetching table data for model 'persons': One or more mappers failed to initialize - can't proceed with initialization of other mappers. Triggering mapper: 'Mapper[BusinessUnit(business_units)]'. Original exception was: Mapper 'Mapper[Application(applications)]' has no property 'business_units'.  If this property was indicated from other mappers or configure events, ensure registry.configure() has been called.
+Traceback (most recent call last):
+  File "C:\Users\pablo\projects\test_app\main.py", line 78, in get_table
+    rows = session.query(model).all()
+           ^^^^^^^^^^^^^^^^^^^^
+  File "c:\Users\pablo\projects\test_app\.venv\Lib\site-packages\sqlalchemy\orm\session.py", line 2952, in query
+    return self._query_cls(entities, self, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "c:\Users\pablo\projects\test_app\.venv\Lib\site-packages\sqlalchemy\orm\query.py", line 275, in __init__
+    self._set_entities(entities)
+  File "c:\Users\pablo\projects\test_app\.venv\Lib\site-packages\sqlalchemy\orm\query.py", line 287, in _set_entities
+    self._raw_columns = [
+                        ^
+  File "c:\Users\pablo\projects\test_app\.venv\Lib\site-packages\sqlalchemy\orm\query.py", line 288, in <listcomp>
+    coercions.expect(
+  File "c:\Users\pablo\projects\test_app\.venv\Lib\site-packages\sqlalchemy\sql\coercions.py", line 388, in expect
+    insp._post_inspect
+  File "c:\Users\pablo\projects\test_app\.venv\Lib\site-packages\sqlalchemy\util\langhelpers.py", line 1253, in __get__
+    obj.__dict__[self.__name__] = result = self.fget(obj)
+                                           ^^^^^^^^^^^^^^
+  File "c:\Users\pablo\projects\test_app\.venv\Lib\site-packages\sqlalchemy\orm\mapper.py", line 2722, in _post_inspect
+    self._check_configure()
+  File "c:\Users\pablo\projects\test_app\.venv\Lib\site-packages\sqlalchemy\orm\mapper.py", line 2399, in _check_configure
+    _configure_registries({self.registry}, cascade=True)
+  File "c:\Users\pablo\projects\test_app\.venv\Lib\site-packages\sqlalchemy\orm\mapper.py", line 4215, in _configure_registries
+    _do_configure_registries(registries, cascade)
+  File "c:\Users\pablo\projects\test_app\.venv\Lib\site-packages\sqlalchemy\orm\mapper.py", line 4252, in _do_configure_registries
+    raise e
+sqlalchemy.exc.InvalidRequestError: One or more mappers failed to initialize - can't proceed with initialization of other mappers. Triggering mapper: 'Mapper[BusinessUnit(business_units)]'. Original exception was: Mapper 'Mapper[Application(applications)]' has no property 'business_units'.  If this property was indicated from other mappers or configure events, ensure registry.configure() has been called.
+2025-01-02 13:15:48,567 - main - DEBUG - Session closed for model: persons
+2025-01-02 13:16:25,379 - main - INFO - Fetching data for model: persons
+2025-01-02 13:16:25,387 - main - ERROR - Error fetching table data for model 'persons': Mapper 'Mapper[Application(applications)]' has no property 'business_units'.  If this property was indicated from other mappers or configure events, ensure registry.configure() has been called.
+Traceback (most recent call last):
+  File "c:\Users\pablo\projects\test_app\.venv\Lib\site-packages\sqlalchemy\orm\mapper.py", line 2520, in get_property
+    return self._props[key]
+           ~~~~~~~~~~~^^^^^
+KeyError: 'business_units'
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Users\pablo\projects\test_app\main.py", line 78, in get_table
+    rows = session.query(model).all()
+           ^^^^^^^^^^^^^^^^^^^^
+  File "c:\Users\pablo\projects\test_app\.venv\Lib\site-packages\sqlalchemy\orm\session.py", line 2952, in query
+    return self._query_cls(entities, self, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "c:\Users\pablo\projects\test_app\.venv\Lib\site-packages\sqlalchemy\orm\query.py", line 275, in __init__
+    self._set_entities(entities)
+  File "c:\Users\pablo\projects\test_app\.venv\Lib\site-packages\sqlalchemy\orm\query.py", line 287, in _set_entities
+    self._raw_columns = [
+                        ^
+  File "c:\Users\pablo\projects\test_app\.venv\Lib\site-packages\sqlalchemy\orm\query.py", line 288, in <listcomp>
+    coercions.expect(
+  File "c:\Users\pablo\projects\test_app\.venv\Lib\site-packages\sqlalchemy\sql\coercions.py", line 388, in expect
+    insp._post_inspect
+  File "c:\Users\pablo\projects\test_app\.venv\Lib\site-packages\sqlalchemy\util\langhelpers.py", line 1253, in __get__
+    obj.__dict__[self.__name__] = result = self.fget(obj)
+                                           ^^^^^^^^^^^^^^
+  File "c:\Users\pablo\projects\test_app\.venv\Lib\site-packages\sqlalchemy\orm\mapper.py", line 2722, in _post_inspect
+    self._check_configure()
+  File "c:\Users\pablo\projects\test_app\.venv\Lib\site-packages\sqlalchemy\orm\mapper.py", line 2399, in _check_configure
+    _configure_registries({self.registry}, cascade=True)
+  File "c:\Users\pablo\projects\test_app\.venv\Lib\site-packages\sqlalchemy\orm\mapper.py", line 4215, in _configure_registries
+    _do_configure_registries(registries, cascade)
+  File "c:\Users\pablo\projects\test_app\.venv\Lib\site-packages\sqlalchemy\orm\mapper.py", line 4256, in _do_configure_registries
+    mapper._post_configure_properties()
+  File "c:\Users\pablo\projects\test_app\.venv\Lib\site-packages\sqlalchemy\orm\mapper.py", line 2416, in _post_configure_properties
+    prop.init()
+  File "c:\Users\pablo\projects\test_app\.venv\Lib\site-packages\sqlalchemy\orm\interfaces.py", line 589, in init
+    self.do_init()
+  File "c:\Users\pablo\projects\test_app\.venv\Lib\site-packages\sqlalchemy\orm\relationships.py", line 1647, in do_init
+    self._generate_backref()
+  File "c:\Users\pablo\projects\test_app\.venv\Lib\site-packages\sqlalchemy\orm\relationships.py", line 2133, in _generate_backref
+    self._add_reverse_property(self.back_populates)
+  File "c:\Users\pablo\projects\test_app\.venv\Lib\site-packages\sqlalchemy\orm\relationships.py", line 1578, in _add_reverse_property
+    other = self.mapper.get_property(key, _configure_mappers=False)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "c:\Users\pablo\projects\test_app\.venv\Lib\site-packages\sqlalchemy\orm\mapper.py", line 2522, in get_property
+    raise sa_exc.InvalidRequestError(
+sqlalchemy.exc.InvalidRequestError: Mapper 'Mapper[Application(applications)]' has no property 'business_units'.  If this property was indicated from other mappers or configure events, ensure registry.configure() has been called.
+2025-01-02 13:16:25,396 - main - DEBUG - Session closed for model: persons
+2025-01-02 13:17:26,699 - main - INFO - Fetching data for model: persons
+2025-01-02 13:17:26,744 - main - DEBUG - Session closed for model: persons
+2025-01-02 13:17:31,605 - main - INFO - Fetching data for model: users
+2025-01-02 13:17:31,605 - main - DEBUG - Session closed for model: users
+2025-01-03 14:06:51,370 - main - INFO - Fetching data for model: persons
+2025-01-03 14:06:51,420 - main - DEBUG - Session closed for model: persons
+2025-01-03 14:06:54,622 - main - INFO - Fetching data for model: request
+2025-01-03 14:06:54,625 - main - DEBUG - Session closed for model: request
+2025-01-03 14:07:16,066 - main - INFO - Fetching data for model: request
+2025-01-03 14:07:16,070 - main - DEBUG - Session closed for model: request
+2025-01-03 14:07:19,024 - main - INFO - Fetching data for model: request
+2025-01-03 14:07:19,026 - main - DEBUG - Session closed for model: request
+2025-01-03 14:07:20,224 - main - INFO - Fetching data for model: request
+2025-01-03 14:07:20,226 - main - DEBUG - Session closed for model: request
+2025-01-03 14:21:01,242 - main - INFO - Fetching data for model: rule_request
+2025-01-03 14:21:01,292 - main - DEBUG - Session closed for model: rule_request
+2025-01-03 14:22:18,602 - main - INFO - Received request to create a new entry for model: rule_request.
+2025-01-03 14:22:18,602 - main - DEBUG - Main data extracted: {'rule_name': 'TEST', 'rule_id': '23111', 'rule_version': '1'}, Relationships: {}
+2025-01-03 14:22:18,612 - main - INFO - All changes committed to the database successfully for model: rule_request.
+2025-01-03 14:22:18,613 - main - DEBUG - Database session closed.
+2025-01-03 14:22:19,715 - main - INFO - Fetching data for model: rule_request
+2025-01-03 14:22:19,717 - main - DEBUG - Session closed for model: rule_request

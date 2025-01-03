@@ -195,6 +195,42 @@
             background-color: #333333;
             /* Hover effect for links in dark mode */
         }
+
+
+        /* Sub-side menu light mode */
+        .sub-side-menu {
+            background-color: #ffffff;
+            /* Light background */
+            color: #212529;
+            /* Dark text */
+            border: 1px solid #dee2e6;
+            /* Light border */
+        }
+
+        /* Sub-side menu dark mode */
+        body.dark-mode .sub-side-menu {
+            background-color: #2b2b2b;
+            /* Darker background for better contrast */
+            color: #f8f9fa;
+            /* Light text */
+            border: 1px solid #444444;
+            /* Subtle dark border */
+        }
+
+        /* Sub-side menu hover effects */
+        .sub-side-menu a.nav-link:hover {
+            background-color: #e9ecef;
+            /* Light hover for light mode */
+            color: #212529;
+            /* Ensure dark text visibility */
+        }
+
+        body.dark-mode .sub-side-menu a.nav-link:hover {
+            background-color: #444444;
+            /* Slightly lighter background for hover in dark mode */
+            color: #ffffff;
+            /* Ensure text remains visible */
+        }
     </style>
 
 </head>
@@ -210,7 +246,7 @@
             </div>
             <ul class="nav flex-column w-100">
                 <li class="nav-item">
-                    <a href="/" class="nav-link text-dark">
+                    <a href="/request" class="nav-link text-dark">
                         <i class="fas fa-home"></i>
                         <span>Home</span>
                     </a>
@@ -226,6 +262,28 @@
                         <i class="fas fa-user-shield"></i>
                         <span>Admin</span>
                     </a>
+                </li>
+
+                <!-- Create New Button with Sub-side Menu -->
+                <li class="nav-item position-relative">
+                    <a href="#" class="nav-link text-dark" id="createNewBtn">
+                        <i class="fas fa-plus-circle"></i>
+                        <span>Create New</span>
+                    </a>
+                    <div class="sub-side-menu" id="createNewSubMenu"
+                        style="display: none; position: absolute; top: 0; left: 100%; min-width: 200px; z-index: 10;">
+                        <ul class="list-unstyled m-0 p-2">
+                            <li class="mb-2">
+                                <a href="/persons" class="nav-link text-dark">Person</a>
+                            </li>
+                            <li class="mb-2">
+                                <a href="/request" class="nav-link text-dark">Request</a>
+                            </li>
+                            <li>
+                                <a href="/other-model" class="nav-link text-dark">Other Model</a>
+                            </li>
+                        </ul>
+                    </div>
                 </li>
             </ul>
 
@@ -253,6 +311,29 @@
 
     <script>
         document.addEventListener("DOMContentLoaded", function () {
+            const createNewBtn = document.getElementById("createNewBtn");
+            const createNewSubMenu = document.getElementById("createNewSubMenu");
+
+            // Toggle the visibility of the sub-side menu
+            createNewBtn.addEventListener("mouseenter", function () {
+                createNewSubMenu.style.display = "block";
+            });
+
+            // Hide the sub-menu when the mouse leaves the parent list item
+            createNewBtn.parentElement.addEventListener("mouseleave", function () {
+                createNewSubMenu.style.display = "none";
+            });
+
+            // Handle sub-menu item clicks
+            document.querySelectorAll(".create-item").forEach(item => {
+                item.addEventListener("click", function (e) {
+                    e.preventDefault();
+                    const itemType = this.getAttribute("data-item");
+                    alert(`Creating a new ${itemType}!`);
+                    // You can add logic to open a specific modal or redirect to a creation form
+                });
+            });
+
             const darkModeToggle = document.getElementById("darkModeToggle");
 
             if (!darkModeToggle) {
@@ -266,32 +347,45 @@
                 const sidebar = document.getElementById("sidebar");
                 const links = sidebar.querySelectorAll(".nav-link"); // Sidebar links
 
-                if (!icon || !text || !sidebar) {
-                    console.error("Dark mode toggle elements not found");
-                    return;
-                }
-
                 if (theme === "dark") {
                     sidebar.classList.remove("bg-light");
-                    sidebar.classList.add("bg-dark", "text-white"); // Add dark mode classes
+                    sidebar.classList.add("bg-dark", "text-white");
                     links.forEach(link => {
                         link.classList.remove("text-dark");
-                        link.classList.add("text-white"); // Update link text color
+                        link.classList.add("text-white");
                     });
+
+                    // Update sub-side menu for dark mode
+                    const subSideMenus = document.querySelectorAll(".sub-side-menu");
+                    subSideMenus.forEach(menu => {
+                        menu.style.backgroundColor = "#333333";
+                        menu.style.color = "#f8f9fa";
+                        menu.style.border = "1px solid #444444";
+                    });
+
                     icon.className = "fas fa-sun"; // Switch to sun icon
-                    text.textContent = "Light Mode"; // Update text
+                    text.textContent = "Light Mode";
                     localStorage.setItem("theme", "dark");
                     document.body.setAttribute("data-bs-theme", theme);
 
                 } else {
                     sidebar.classList.remove("bg-dark", "text-white");
-                    sidebar.classList.add("bg-light"); // Add light mode class
+                    sidebar.classList.add("bg-light");
                     links.forEach(link => {
                         link.classList.remove("text-white");
-                        link.classList.add("text-dark"); // Update link text color
+                        link.classList.add("text-dark");
                     });
+
+                    // Update sub-side menu for light mode
+                    const subSideMenus = document.querySelectorAll(".sub-side-menu");
+                    subSideMenus.forEach(menu => {
+                        menu.style.backgroundColor = "#ffffff";
+                        menu.style.color = "#212529";
+                        menu.style.border = "1px solid #dee2e6";
+                    });
+
                     icon.className = "fas fa-moon"; // Switch to moon icon
-                    text.textContent = "Dark Mode"; // Update text
+                    text.textContent = "Dark Mode";
                     localStorage.setItem("theme", "light");
                     document.body.setAttribute("data-bs-theme", theme);
                 }
