@@ -3,58 +3,26 @@
 {% block title %}Dynamic Table{% endblock %}
 
 {% block content %}
+<style>
+    /* Prevent table headers from wrapping */
+    th {
+        white-space: nowrap;
+        /* Prevent wrapping */
+        text-align: center;
+        /* Optional: Center align the text */
+        vertical-align: middle;
+        /* Optional: Center align vertically */
+    }
+</style>
+
 <div class="container mt-5">
     <h2>Dynamic Table with Sorting and Filtering</h2>
     <div class="mb-3 d-flex gap-2">
         <!-- Manage Columns Button -->
-        <button id="manage-columns-btn" class="btn btn-primary btn-sm">Manage Columns</button>
+        {% include "manage_columns_button.html" %}
 
-        <!-- Create New Button Group -->
-        <div class="btn-group">
-            <!-- Primary Action Button -->
-            {% if primary_action %}
-            <button id="primary-action-btn" class="btn btn-success btn-sm"
-                data-endpoint="{{ primary_action.endpoint }}">
-                {{ primary_action.label }}
-            </button>
-            {% endif %}
-            <!-- Dropdown for additional actions -->
-            <button type="button" class="btn btn-success btn-sm dropdown-toggle dropdown-toggle-split"
-                data-bs-toggle="dropdown" aria-expanded="false">
-                <span class="visually-hidden">Toggle Dropdown</span>
-            </button>
-            <ul class="dropdown-menu">
-                {% for action in actions[1:] %}
-                <li>
-                    <button class="dropdown-item requires-selection action-item" data-endpoint="{{ action.endpoint }}">
-                        {{ action.label }}
-                    </button>
-                </li>
-                {% endfor %}
-                <li>
-                    <button class="dropdown-item requires-selection" id="viewUpdateButton" data-bs-toggle="modal"
-                        data-bs-target="#createNewModal">
-                        View/Update
-                    </button>
-                </li>
-
-                <li>
-                    <hr class="dropdown-divider">
-                </li>
-
-                <!-- Bulk Import Upload -->
-                {% if bulk_import_action %}
-                <li>
-                    <button class="dropdown-item" data-bs-toggle="modal" data-bs-target="#uploadBulkModal">
-                        {{ bulk_import_action.label }}
-                    </button>
-                </li>
-                {% endif %}
-            </ul>
-
-        </div>
+        {% include "header_action_button.html" %}
     </div>
-
     <div id="manage-columns-menu" class="border p-2"
         style="display: none; max-height: 200px; overflow-y: auto; width: 250px;">
         <form>
@@ -69,44 +37,10 @@
     </div>
     <!-- Table -->
     <table class="table table-bordered">
-        <thead>
-            <tr>
-                <!-- Blank Header for the First Column -->
-                <th></th>
-                {% for column in columns %}
-                <th class="{{ column.name }}-column">
-                    {{ column.name|capitalize }}
-                    <button class="btn btn-link sort-btn" data-column="{{ column.name }}" data-order="asc">
-                        <span id="sort-{{ column.name }}" class="sort-icon">⬆</span>
-                    </button>
-                    <span class="filter-icon" data-column="{{ column.name }}" id="filter-icon-{{ column.name }}"
-                        title="Filter">🔍</span>
-                    <div class="filter-menu" id="filter-{{ column.name }}">
-                        {% if column.options %}
-                        <select class="form-select form-select-sm filter-select mb-2" data-column="{{ column.name }}"
-                            multiple>
-                            {% for option in column.options %}
-                            <option value="{{ option }}">{{ option }}</option>
-                            {% endfor %}
-                        </select>
-                        {% else %}
-                        <input type="text" class="form-control form-control-sm filter-input mb-2"
-                            data-column="{{ column.name }}" placeholder="Filter {{ column.name|capitalize }}">
-                        {% endif %}
-                        <div class="d-flex justify-content-between">
-                            <button class="btn btn-primary btn-sm apply-filter-btn"
-                                data-column="{{ column.name }}">Apply</button>
-                            <button class="btn btn-secondary btn-sm clear-filter-btn"
-                                data-column="{{ column.name }}">Clear</button>
-                        </div>
-                    </div>
-                </th>
-                {% endfor %}
-            </tr>
-        </thead>
+        {% include "table_headers.html" %}
         <tbody id="tableBody">
             {% for row in rows %}
-            <tr data-id="{{ row.id }}">
+            <tr data-id="{{ row.get('id', 'N/A') }}" data-model-name="{{ model_name }}">
                 <!-- Button Group in the First Column -->
                 <td>
                     <div class="btn-group">
@@ -118,32 +52,32 @@
                         <!-- Dropdown Menu -->
                         <ul class="dropdown-menu">
                             <li>
-                                <button class="dropdown-item view-btn" data-id="{{ row.id }}">View</button>
-                            </li>
-                            <li>
-                                <button class="dropdown-item edit-btn" data-id="{{ row.id }}">Edit</button>
-                            </li>
-                            <li>
-                                <button class="dropdown-item delete-btn" data-id="{{ row.id }}">Delete</button>
+                                <button class="dropdown-item view-btn"
+                                    data-id="{{ row.get('id', 'N/A') }}">View</button>
                             </li>
                         </ul>
                     </div>
                 </td>
-                <!-- Other Columns -->
+
+
+                <!-- Dynamic Row Data -->
                 {% for column in columns %}
-                <td class="{{ column.name }}-column">{{ getattr(row, column.name) }}</td>
+                <td class="{{ column.name }}-column">
+                    {{ row.get(column.name, "N/A") }}
+                </td>
                 {% endfor %}
             </tr>
             {% endfor %}
         </tbody>
     </table>
+
 </div>
 
 <div class="modal fade" id="createNewModal" tabindex="-1" aria-labelledby="createNewModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="createNewModalLabel">Create New Entry</h5>
+                <h5 class="modal-title" id="createNewModalLabel">Request Details</h5>
             </div>
 
             <!-- Details Form -->
@@ -156,13 +90,11 @@
                                 data-bs-target="#details-tab-pane" type="button" role="tab"
                                 aria-controls="details-tab-pane" aria-selected="true">Details</button>
                         </li>
-                        {% if not is_new %}
                         <li class="nav-item" role="presentation">
                             <button class="nav-link" id="comments-tab" data-bs-toggle="tab"
                                 data-bs-target="#comments-tab-pane" type="button" role="tab"
                                 aria-controls="comments-tab-pane" aria-selected="false">Comments</button>
                         </li>
-                        {% endif %}
                     </ul>
 
                     <!-- Tab Content -->
@@ -172,26 +104,19 @@
                             aria-labelledby="details-tab">
                             {% include "request_details_form.html" %}
                         </div>
+
+                        <!-- Comments Tab -->
+                        <div class="tab-pane fade" id="comments-tab-pane" role="tabpanel"
+                            aria-labelledby="comments-tab">
+                            {% include "comments_form.html" %}
+                        </div>
                     </div>
                 </div>
             </form>
-
-            <!-- Comments Form -->
-            {% if not is_new %}
-            <form id="addCommentForm" hx-post="/persons/{{ person_id }}/comments" hx-swap="beforeend"
-                hx-target="#comments-list">
-                <div class="tab-content">
-                    <!-- Comments Tab -->
-                    <div class="tab-pane fade" id="comments-tab-pane" role="tabpanel" aria-labelledby="comments-tab">
-                        {% include "comments_form.html" with context %}
-                    </div>
-                </div>
-            </form>
-            {% endif %}
-
         </div>
     </div>
 </div>
+
 
 
 <!-- Bulk Import Upload Modal -->
@@ -201,10 +126,7 @@
 <script id="props-data" type="application/json">
     {{ {"form_fields": form_fields, "relationships": relationships, "model_name": model_name} | tojson | safe }}
 </script>
-<!-- Place this near the modal or at the end of the body
-<script id="relationships-data" type="application/json">
-        {{ relationships | tojson | safe }}
-    </script> -->
+
 <script>
     // Run this on page load to initialize the dropdown state
     updateDropdownActions();
@@ -244,288 +166,118 @@
         }
     });
 
+    // Function to load comments
+    async function loadComments(requestId) {
+        // Current user ID (replace this with your actual user identification logic)
+        const currentUserId = "User123";
 
+        const commentsList = document.getElementById("comments-list");
+        commentsList.innerHTML = ""; // Clear previous comments
 
+        try {
+            const response = await fetch(`/requests/${requestId}/comments`);
+            if (!response.ok) {
+                throw new Error("Failed to load comments.");
+            }
 
+            const comments = await response.json();
+            comments.forEach(comment => {
+                const commentItem = document.createElement("div");
+                commentItem.classList.add("comment-item");
 
-    document.getElementById("primary-action-btn").addEventListener("click", function () {
-        // Get the endpoint from the button's data attribute
-        const endpoint = this.getAttribute("data-endpoint");
+                // Determine alignment based on user
+                if (comment.username === currentUserId) {
+                    commentItem.classList.add("right");
+                } else {
+                    commentItem.classList.add("left");
+                }
 
-        if (endpoint === "/create-new-modal") {
-            // Handle "Create New" logic
-            console.log("Primary action: Create New");
+                // Add content to the comment item
+                commentItem.innerHTML = `
+                    <div class="timestamp">${new Date(comment.timestamp).toLocaleString()}</div>
+                    <div class="user-info">User ID: ${comment.username}</div>
+                    <div class="comment-text">${comment.comment_text}</div>
+                `;
 
-            // Reset the form
-            const form = document.getElementById("detailsForm");
-            form.reset();
-
-            // Clear relationship tables
-            document.querySelectorAll(".relationship-container tbody").forEach(container => {
-                container.innerHTML = ""; // Clear all rows in relationship subtables
+                commentsList.appendChild(commentItem);
             });
-
-            // Reset modal title and button
-            const modalTitle = document.getElementById("createNewModalLabel");
-            const saveButton = document.querySelector("#createNewModal .btn-primary");
-            modalTitle.textContent = "Create New Entry";
-            saveButton.textContent = "Save";
-            saveButton.removeAttribute("data-id");
-
-            // Show the modal
-            const modal = new bootstrap.Modal(document.getElementById("createNewModal"));
-            modal.show();
-        } else if (endpoint === "/refresh") {
-            // Handle "Refresh" logic
-            console.log("Primary action: Refresh");
-
-            // Fetch updated data
-            fetch(endpoint)
-                .then(response => response.json())
-                .then(data => {
-                    // Assuming `data` contains updated rows
-                    console.log("Refreshed data:", data);
-
-                    // Replace table body with updated rows
-                    const tableBody = document.getElementById("tableBody");
-                    tableBody.innerHTML = ""; // Clear the table
-                    data.rows.forEach(row => {
-                        const rowElement = document.createElement("tr");
-                        rowElement.innerHTML = `
-                        <td>${row.id}</td>
-                        <td>${row.name}</td>
-                        <td>${row.status}</td>
-                        <!-- Add other columns as needed -->
-                    `;
-                        tableBody.appendChild(rowElement);
-                    });
-                })
-                .catch(error => {
-                    console.error("Error refreshing data:", error);
-                });
-        } else {
-            console.error("Unknown primary action endpoint:", endpoint);
+        } catch (error) {
+            console.error("Error loading comments:", error);
+            alert("Failed to load comments.");
         }
-    });
-
-
-
+    }
 
 
     document.addEventListener("DOMContentLoaded", function () {
-        // Add a single event listener for the "Add Relatives" button
-        document.querySelectorAll(".add-row-btn").forEach(button => {
-            button.addEventListener("click", function () {
-                const relationship = this.dataset.relationship;
-                const container = document.querySelector(`#${relationship}-container tbody`);
-                const index = container.children.length;
 
-                // Retrieve propsData data from the JSON script tag
-                let propsData;
-                try {
-                    propsData = JSON.parse(document.getElementById('props-data').textContent);
-                } catch (error) {
-                    console.error("Error parsing propsData:", error);
+
+
+        document.querySelectorAll(".view-btn").forEach(button => {
+            button.addEventListener("click", async function () {
+                const id = this.getAttribute("data-id");
+                const row = this.closest("tr");
+                const modelName = row.getAttribute("data-model-name");
+
+                // Find the "request_type" column value from the row
+                const requestTypeElement = row.querySelector(".request_type-column");
+                const requestType = requestTypeElement ? requestTypeElement.textContent.trim() : null;
+
+                if (id === "N/A" || !modelName) {
+                    alert("Invalid row ID or model name.");
                     return;
                 }
 
-                // Find the relationship configuration
-                const relationshipConfig = propsData.relationships.find(rel => rel.name === relationship);
-                if (!relationshipConfig || !relationshipConfig.fields) {
-                    console.error(`No fields found for relationship: ${relationship}`);
-                    return;
-                }
-
-                // Generate a new row with fields excluding "id" and "person_id"
-                const row = document.createElement("tr");
-                row.innerHTML = relationshipConfig.fields
-                    .filter(field => field.name !== "id" && field.name !== "person_id") // Exclude unnecessary fields
-                    .map(field => `
-            <td>
-                <input type="${field.type.includes("INTEGER") ? "number" : "text"}" 
-                       class="form-control" 
-                       name="${relationship}[${index}][${field.name}]" 
-                       placeholder="${formatFieldName(field.name)}" 
-                       required>
-            </td>
-        `).join("") + `
-            <td>
-                <button type="button" class="btn btn-danger btn-sm remove-row-btn">Remove</button>
-            </td>
-        `;
-
-                // Append the new row to the table body
-                container.appendChild(row);
-            });
-        });
-
-        // Add a global event listener for dynamically created "Remove" buttons
-        document.body.addEventListener("click", function (event) {
-            if (event.target.classList.contains("remove-row-btn")) {
-                const row = event.target.closest("tr");
-                row.remove();
-            }
-        });
-
-        document.getElementById("viewUpdateButton").addEventListener("click", function () {
-            const selectedRows = document.querySelectorAll(".selected-row");
-
-            if (selectedRows.length !== 1) {
-                alert("Please select a single row to view/update.");
-                return;
-            }
-
-            const row = selectedRows[0]; // Get the selected row
-            const rowId = row.getAttribute("data-id"); // This is the person_id
-            const commentsContainer = document.getElementById("comments-container");
-            const addCommentForm = document.getElementById("addCommentForm");
-            const debugPersonId = document.getElementById("debug-person-id");
-
-            // Fetch model metadata
-            const modelData = JSON.parse(document.getElementById("model-data").textContent);
-            const modelName = modelData.model_name;
-
-            // Fetch the row data from the backend
-            fetch(`/get-row/${modelName}/${rowId}`)
-                .then(response => response.json())
-                .then(data => {
-                    // Populate the modal with main data
-                    for (const [key, value] of Object.entries(data)) {
-                        if (Array.isArray(value)) continue; // Skip relationships for now
-                        const input = document.getElementById(key);
-                        if (input) {
-                            input.value = value;
+                if (requestType) {
+                    // Navigate to the appropriate page if request type exists
+                    sessionStorage.setItem("filter_id", id);
+                    const url = `/${requestType.toLowerCase()}`;
+                    window.location.href = url;
+                } else {
+                    try {
+                        // Fetch details
+                        const response = await fetch(`/get-details/${modelName}/${id}`);
+                        if (!response.ok) {
+                            console.error("HTTP error:", response.status, response.statusText);
+                            alert("Failed to fetch details. Please try again.");
+                            return;
                         }
+
+                        const { data, relationships } = await response.json();
+                        populateDetailsForm(data, relationships);
+
+                        // Clear and enable the comments text field
+                        const commentInput = document.getElementById("commentText");
+                        commentInput.value = "";
+                        commentInput.removeAttribute("disabled");
+
+                        // Load comments
+                        await loadComments(id);
+
+                        // Update modal attributes for proper context
+                        const modal = document.getElementById("createNewModal");
+                        modal.setAttribute("data-model-name", modelName);
+                        modal.setAttribute("data-id", id);
+
+                        // Show the modal
+                        const bootstrapModal = new bootstrap.Modal(modal);
+                        bootstrapModal.show();
+                    } catch (error) {
+                        console.error("Error fetching details:", error);
+                        alert("An error occurred while fetching details.");
                     }
-
-                    // Dynamically populate relationships
-                    modelData.relationships.forEach(rel => {
-                        const container = document.querySelector(`#${rel.name}-container tbody`);
-                        if (container && data[rel.name]) {
-                            container.innerHTML = ""; // Clear existing rows
-                            data[rel.name].forEach((relatedRow, index) => {
-                                const row = document.createElement("tr");
-                                row.innerHTML = rel.fields
-                                    .filter(field => field.name !== "id" && field.name !== "person_id") // Exclude primary keys
-                                    .map(field => `
-                            <td>
-                                <input type="text" class="form-control" 
-                                       name="${rel.name}[${index}][${field.name}]" 
-                                       value="${relatedRow[field.name] || ''}" required>
-                            </td>
-                        `).join("") + `
-                            <td>
-                                <button type="button" class="btn btn-danger btn-sm remove-row-btn">Remove</button>
-                            </td>
-                        `;
-                                container.appendChild(row);
-                            });
-                        }
-                    });
-
-                    // Update the person_id in the comments section
-                    debugPersonId.textContent = rowId; // Update debug person ID display
-                    addCommentForm.setAttribute("action", `/persons/${rowId}/comments`); // Update the form action
-                    commentsContainer.style.display = "block"; // Ensure the comments container is visible
-
-                    // Update the modal title and action button
-                    const modalTitle = document.getElementById("createNewModalLabel");
-                    const saveButton = document.querySelector("#createNewModal .btn-primary");
-                    modalTitle.textContent = "View/Update Entry";
-                    saveButton.textContent = "Update";
-                    saveButton.setAttribute("data-id", rowId);
-                })
-                .catch(error => console.error("Error fetching row data:", error));
-        });
-
-
-
-        // Update functionality
-        document.getElementById("detailsForm").addEventListener("submit", async function (event) {
-            event.preventDefault();
-
-            const formData = new FormData(this);
-            const formObject = {};
-            const relationships = {};
-
-            // Convert main form data to an object
-            formData.forEach((value, key) => {
-                if (key.includes('[')) {
-                    // Handle relationship fields
-                    const [relationshipName, index, field] = key.match(/(\w+)\[(\d+)]\[(\w+)]/).slice(1);
-                    if (!relationships[relationshipName]) relationships[relationshipName] = [];
-                    if (!relationships[relationshipName][index]) relationships[relationshipName][index] = {};
-                    relationships[relationshipName][index][field] = value;
-                } else {
-                    // Handle main fields
-                    formObject[key] = value;
                 }
             });
-
-
-            // Determine the model name and row ID
-
-            let propsData;
-            try {
-                propsData = JSON.parse(document.getElementById('props-data').textContent);
-            } catch (error) {
-                console.error("Error parsing props data:", error);
-                return;
-            }
-
-
-            // Access the modelName directly from propsData
-            const modelName = propsData.model_name;
-            if (!modelName) {
-                console.error("Model name not found in props data.");
-                return;
-            }
-
-
-            const rowId = document.querySelector("#createNewModal .btn-primary").getAttribute("data-id");
-
-            // Determine the URL (update or create new)
-            const url = rowId
-                ? `/update-row/${modelName}/${rowId}`
-                : `/create-new/${modelName}`;
-
-            try {
-                const response = await fetch(url, {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify(formObject),
-                });
-
-                if (response.ok) {
-                    alert("Operation successful!");
-                    location.reload();
-                } else {
-                    const errorMessage = await response.text();
-                    alert(`Operation failed: ${response.status} - ${errorMessage}`);
-                }
-            } catch (error) {
-                console.error("Error during the operation:", error);
-                alert("An error occurred while performing the operation.");
-            }
         });
+
+
+
+
+
+
+
 
 
     });
-
-
-    // Function to update the state of dropdown items based on selected rows
-    function updateDropdownActions() {
-        const selectedRows = document.querySelectorAll(".selected-row");
-        const dropdownItems = document.querySelectorAll(".dropdown-item.requires-selection");
-
-        dropdownItems.forEach(item => {
-            if (selectedRows.length === 0) {
-                item.classList.add("disabled"); // Add the disabled class if no rows are selected
-            } else {
-                item.classList.remove("disabled"); // Remove the disabled class if rows are selected
-            }
-        });
-    }
 
 
 
@@ -563,203 +315,20 @@
         });
     });
 
-
-
-
-
-    // Manage Columns Menu Toggle
-    document.getElementById("manage-columns-btn").addEventListener("click", () => {
-        const menu = document.getElementById("manage-columns-menu");
-        menu.style.display = menu.style.display === "none" ? "block" : "none";
-    });
-
-    // Column Toggle Logic
-    document.querySelectorAll(".column-toggle").forEach(toggle => {
-        toggle.addEventListener("change", function () {
-            const column = this.dataset.column;
-            const th = document.querySelector(`th.${column}-column`);
-            const tds = document.querySelectorAll(`td.${column}-column`);
-
-            if (this.checked) {
-                th.style.display = ""; // Show column
-                tds.forEach(td => td.style.display = "");
-            } else {
-                th.style.display = "none"; // Hide column
-                tds.forEach(td => td.style.display = "none");
-            }
-        });
-    });
-
-
-    // Attach row selection logic to toggle row selection
     document.querySelectorAll("#tableBody tr").forEach(row => {
-        row.addEventListener("click", function () {
-            // Toggle the "selected-row" class
-            this.classList.toggle("selected-row");
+        row.addEventListener("click", function (event) {
+            // Prevent the checkbox click from toggling the row twice
+            if (event.target.classList.contains("row-checkbox")) return;
 
-            // Update the state of dropdown actions
-            updateDropdownActions();
-        });
-    });
-
-    // Prevent actions for disabled items
-    document.querySelectorAll(".dropdown-item.requires-selection").forEach(item => {
-        item.addEventListener("click", function (event) {
-            if (this.classList.contains("disabled")) {
-                event.preventDefault(); // Prevent action if the item is disabled
+            const checkbox = this.querySelector(".row-checkbox");
+            if (checkbox) {
+                checkbox.checked = !checkbox.checked; // Sync checkbox state
             }
+            this.classList.toggle("selected-row"); // Toggle row selection class
+            updateDropdownActions(); // Update actions for selected rows
         });
     });
 
 
-    // Show/hide filter menus
-    document.querySelectorAll(".filter-icon").forEach(icon => {
-        icon.addEventListener("click", function (event) {
-            event.stopPropagation();
-            const column = this.dataset.column;
-            const filterMenu = document.getElementById(`filter-${column}`);
-            document.querySelectorAll(".filter-menu").forEach(menu => {
-                if (menu !== filterMenu) {
-                    menu.classList.remove("show");
-                }
-            });
-            filterMenu.classList.toggle("show");
-        });
-    });
-
-    // Apply filter
-    document.querySelectorAll(".apply-filter-btn").forEach(button => {
-        button.addEventListener("click", function () {
-            const column = this.dataset.column;
-            const filterIcon = document.getElementById(`filter-icon-${column}`);
-            const filterMenu = document.getElementById(`filter-${column}`);
-            let selectedValues = [];
-
-            // Check if it's a multi-select or input filter
-            const select = filterMenu.querySelector(".filter-select");
-            const input = filterMenu.querySelector(".filter-input");
-
-            if (select) {
-                // Multi-select: Get selected options
-                selectedValues = Array.from(select.selectedOptions).map(option => option.value.toLowerCase());
-            } else if (input) {
-                // Input field: Get text value
-                selectedValues = [input.value.toLowerCase()];
-            }
-
-            document.querySelectorAll(`#tableBody .${column}-column`).forEach(cell => {
-                const row = cell.closest("tr");
-                const cellValue = cell.textContent.toLowerCase();
-
-                if (selectedValues.length > 0) {
-                    // For multi-select or input, check if the cell value matches any selected value
-                    if (selectedValues.some(value => cellValue.includes(value))) {
-                        row.style.display = ""; // Show matching rows
-                    } else {
-                        row.style.display = "none"; // Hide non-matching rows
-                    }
-                } else {
-                    row.style.display = ""; // Show all rows if no filter applied
-                }
-            });
-
-            // Toggle filter icon indicator
-            if (selectedValues.length > 0) {
-                filterIcon.classList.add("active");
-            } else {
-                filterIcon.classList.remove("active");
-            }
-
-            // Close the filter menu
-            filterMenu.classList.remove("show");
-        });
-    });
-
-
-    // Clear filter
-    document.querySelectorAll(".clear-filter-btn").forEach(button => {
-        button.addEventListener("click", function () {
-            const column = this.dataset.column;
-            const filterIcon = document.getElementById(`filter-icon-${column}`);
-            const filterMenu = document.getElementById(`filter-${column}`);
-
-            // Reset filters
-            const select = filterMenu.querySelector(".filter-select");
-            const input = filterMenu.querySelector(".filter-input");
-
-            if (select) {
-                select.selectedIndex = -1; // Clear selection
-            } else if (input) {
-                input.value = ""; // Clear input
-            }
-
-            // Show all rows
-            document.querySelectorAll(`#tableBody .${column}-column`).forEach(cell => {
-                const row = cell.closest("tr");
-                row.style.display = "";
-            });
-
-            // Remove filter icon indicator
-            filterIcon.classList.remove("active");
-
-            // Close the filter menu
-            filterMenu.classList.remove("show");
-        });
-    });
-
-    // Sorting
-    document.querySelectorAll(".sort-btn").forEach(button => {
-        button.addEventListener("click", function () {
-            const column = this.dataset.column;
-            const order = this.dataset.order;
-            const sortIcon = document.getElementById(`sort-${column}`);
-            const rows = Array.from(document.querySelectorAll("#tableBody tr"));
-
-            // Determine if the column contains numeric data
-            const isNumeric = rows.some(row => {
-                const value = row.querySelector(`.${column}-column`).textContent.trim();
-                return !isNaN(value) && value !== ""; // Check if value is numeric
-            });
-
-            rows.sort((a, b) => {
-                const aValue = a.querySelector(`.${column}-column`).textContent.trim();
-                const bValue = b.querySelector(`.${column}-column`).textContent.trim();
-
-                if (isNumeric) {
-                    // Parse as numbers for numeric columns
-                    return order === "asc" ? aValue - bValue : bValue - aValue;
-                } else {
-                    // Use localeCompare for text columns
-                    return order === "asc" ? aValue.localeCompare(bValue) : bValue.localeCompare(aValue);
-                }
-            });
-
-            rows.forEach(row => document.getElementById("tableBody").appendChild(row));
-            this.dataset.order = order === "asc" ? "desc" : "asc";
-
-            // Reset other sort icons
-            document.querySelectorAll(".sort-icon").forEach(icon => {
-                if (icon !== sortIcon) {
-                    icon.textContent = "⬆";
-                    icon.classList.remove("active");
-                }
-            });
-
-            // Update sort icon
-            if (order === "asc") {
-                sortIcon.textContent = "⬇";
-            } else {
-                sortIcon.textContent = "⬆";
-            }
-            sortIcon.classList.add("active");
-        });
-    });
-
-    // Close filter menus when clicking outside
-    document.addEventListener("click", function (event) {
-        if (!event.target.closest(".filter-icon") && !event.target.closest(".filter-menu")) {
-            document.querySelectorAll(".filter-menu").forEach(menu => menu.classList.remove("show"));
-        }
-    });
 </script>
 {% endblock %}

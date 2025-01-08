@@ -1,4 +1,92 @@
+<style>
+    .form-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 16px;
+    }
+
+    th {
+        text-align: left !important;
+    }
+
+    .relationship-container {
+        margin-bottom: 2rem;
+    }
+
+    .relationship-container .table th,
+    .relationship-container .table td {
+        vertical-align: middle;
+    }
+</style>
+
+<!-- Predefined Fields for "is_request" Models -->
+{% if is_request %}
+<div class="row g-3">
+    <!-- Organization -->
+    <div class="col-md-2">
+        <label for="organization" class="form-label">Organization</label>
+        <select class="form-select" id="organization" name="organization" required>
+            {% for option in RmsRequest.organization_options %}
+            <option value="{{ option }}">{{ option }}</option>
+            {% endfor %}
+        </select>
+    </div>
+
+    <!-- Sub Organization -->
+    <div class="col-md-2">
+        <label for="sub_organization" class="form-label">Sub Org</label>
+        <select class="form-select" id="sub_organization" name="sub_organization" required>
+            {% for option in RmsRequest.sub_organization_options %}
+            <option value="{{ option }}">{{ option }}</option>
+            {% endfor %}
+        </select>
+    </div>
+
+    <!-- Line of Business -->
+    <div class="col-md-2">
+        <label for="line_of_business" class="form-label">LOB</label>
+        <select class="form-select" id="line_of_business" name="line_of_business" required>
+            {% for option in RmsRequest.line_of_business_options %}
+            <option value="{{ option }}">{{ option }}</option>
+            {% endfor %}
+        </select>
+    </div>
+
+    <!-- Team -->
+    <div class="col-md-2">
+        <label for="team" class="form-label">Team</label>
+        <select class="form-select" id="team" name="team" required>
+            {% for option in RmsRequest.team_options %}
+            <option value="{{ option }}">{{ option }}</option>
+            {% endfor %}
+        </select>
+    </div>
+
+    <!-- Decision Engine -->
+    <div class="col-md-2">
+        <label for="decision_engine" class="form-label">Decision Engine</label>
+        <select class="form-select" id="decision_engine" name="decision_engine" required>
+            {% for option in RmsRequest.decision_engine_options %}
+            <option value="{{ option }}">{{ option }}</option>
+            {% endfor %}
+        </select>
+    </div>
+
+    <!-- Effort -->
+    <div class="col-md-2">
+        <label for="effort" class="form-label">Effort</label>
+        <select class="form-select" id="effort" name="effort" required>
+            {% for option in RmsRequest.effort_options %}
+            <option value="{{ option }}">{{ option }}</option>
+            {% endfor %}
+        </select>
+    </div>
+</div>
+{% endif %}
+
+<!-- Existing Form Fields -->
 {% for field in form_fields %}
+{% if field.name not in foreign_keys %}
 <div class="mb-3">
     <label for="{{ field.name }}" class="form-label">{{ field.name|capitalize }}</label>
     {% if field.options %}
@@ -9,57 +97,303 @@
         {% endfor %}
     </select>
     {% elif "INTEGER" in field.type %}
-    <!-- Number input -->
     <input type="number" class="form-control" id="{{ field.name }}" name="{{ field.name }}" required>
-    {% elif "DATE" in field.type %}
-    <!-- Date input -->
-    <input type="date" class="form-control" id="{{ field.name }}" name="{{ field.name }}" required>
-    {% elif "DATETIME" in field.type %}
-    <!-- DateTime input -->
-    <input type="datetime-local" class="form-control" id="{{ field.name }}" name="{{ field.name }}" required>
-    {% elif "TIME" in field.type %}
-    <!-- Time input -->
-    <input type="time" class="form-control" id="{{ field.name }}" name="{{ field.name }}" required>
     {% elif "BOOLEAN" in field.type %}
-    <!-- Boolean input -->
     <select class="form-select" id="{{ field.name }}" name="{{ field.name }}" required>
         <option value="true">True</option>
         <option value="false">False</option>
     </select>
-    {% elif "FLOAT" in field.type or "DECIMAL" in field.type %}
-    <!-- Float/Decimal input -->
-    <input type="number" class="form-control" id="{{ field.name }}" name="{{ field.name }}" step="0.01" required>
     {% else %}
-    <!-- Text input (default) -->
     <input type="text" class="form-control" id="{{ field.name }}" name="{{ field.name }}" required>
     {% endif %}
 </div>
+{% endif %}
 {% endfor %}
 
-<!-- Dynamically generate relationship subtables -->
-{% for relationship in relationships if relationship.name != "comments" %}
+<!-- Dynamically Generated Relationship Subtables -->
+{% for relationship in relationships if not relationship.info.get("exclude_from_form", False) %}
 <h5>{{ relationship.name|capitalize }}</h5>
 <div id="{{ relationship.name }}-container" class="relationship-container">
-    <!-- Subtable header -->
     <table class="table">
         <thead>
             <tr>
-                {% for field in relationship.fields if field.name not in ["id", "request_id"] %}
+                {% for field in relationship.fields %}
                 <th>{{ field.name|capitalize }}</th>
                 {% endfor %}
                 <th>Actions</th>
             </tr>
         </thead>
         <tbody>
-            <!-- Rows will be dynamically added here -->
+            <!-- Rows added dynamically -->
         </tbody>
     </table>
-    <button type="button" class="btn btn-secondary btn-sm mt-2 add-row-btn"
-        data-relationship="{{ relationship.name }}">Add {{ relationship.name|capitalize }}</button>
+
+    <!-- Predefined Options Dropdown -->
+    {% if predefined_options[relationship.name] %}
+    <div class="mt-2">
+        <label for="{{ relationship.name }}_options" class="form-label">{{ relationship.name|capitalize }}
+            Options</label>
+        <select class="form-select" id="{{ relationship.name }}_options">
+            {% for option in predefined_options[relationship.name] %}
+            <option value="{{ option.id }}">{{ option.name }}</option>
+            {% endfor %}
+        </select>
+        <button type="button" class="btn btn-secondary btn-sm mt-2 add-predefined-btn"
+            data-relationship="{{ relationship.name }}">
+            Add Selected {{ relationship.name|capitalize }}
+        </button>
+    </div>
+    {% else %}
+    <!-- Add button for user-defined relationships -->
+    <button type="button" class="btn btn-secondary btn-sm mt-2 add-row-btn" data-relationship="{{ relationship.name }}">
+        Add {{ relationship.name|capitalize }}
+    </button>
+    {% endif %}
 </div>
 {% endfor %}
+
+
+
 
 <div class="modal-footer">
     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
     <button type="submit" class="btn btn-primary">Save</button>
 </div>
+<script id="is-request-config" type="application/json">
+    {{ is_request | tojson }}
+</script>
+<script>
+function populateDetailsForm(data, relationships) {
+    console.log("Populating details form with data:", data);
+    console.log("Populating relationships with:", relationships);
+
+    const form = document.getElementById("detailsForm");
+    if (!form) {
+        console.error("Form with ID 'detailsForm' not found in DOM.");
+        return;
+    }
+
+    // Reset the form to clear any previous data
+    form.reset();
+
+    // Populate simple form fields
+    for (const [key, value] of Object.entries(data)) {
+        const input = form.querySelector(`[name="${key}"]`);
+        if (input) {
+            if (input.tagName === "SELECT") {
+                input.value = value ?? "";
+            } else {
+                input.value = value ?? "";
+            }
+        } else {
+            console.warn(`Field with name '${key}' not found in the form.`);
+        }
+    }
+
+    // Disable all form inputs, selects, and textareas
+    const inputs = form.querySelectorAll("input, select, textarea");
+    inputs.forEach(input => {
+        input.disabled = true;
+    });
+
+    // Hide or disable the "Save" button
+    const saveButton = form.querySelector(".btn-primary");
+    if (saveButton) {
+        saveButton.style.display = "none"; // Hide the Save button
+    }
+
+    // Disable "Add" buttons for relationships
+    document.querySelectorAll(".add-predefined-btn, .add-row-btn").forEach(button => {
+        button.style.display = "none";
+    });
+
+    // Populate relationship data
+    if (relationships) {
+        const propsData = JSON.parse(document.getElementById("props-data").textContent);
+
+        for (const [relKey, relValues] of Object.entries(relationships)) {
+            const container = document.querySelector(`#${relKey}-container tbody`);
+            if (!container) {
+                console.warn(`Relationship container for '${relKey}' not found.`);
+                continue;
+            }
+
+            // Clear existing rows
+            container.innerHTML = "";
+
+            // Get relationship configuration
+            const relationshipConfig = propsData.relationships.find(rel => rel.name === relKey);
+            if (!relationshipConfig || !relationshipConfig.fields) {
+                console.warn(`No configuration found for relationship '${relKey}'.`);
+                continue;
+            }
+
+            // Populate new rows
+            relValues.forEach(item => {
+                const row = document.createElement("tr");
+
+                // Create a table cell for each field defined in the relationship
+                relationshipConfig.fields.forEach(fieldInfo => {
+                    const fieldName = fieldInfo.name;
+                    const fieldValue = item[fieldName];
+
+                    const cell = document.createElement("td");
+                    cell.textContent = fieldValue ?? ""; // Handle empty or null values
+                    row.appendChild(cell);
+                });
+
+                // Add actions cell (empty in view mode)
+                const actionsCell = document.createElement("td");
+                // Hide actions in view mode
+                row.appendChild(actionsCell);
+
+                container.appendChild(row);
+            });
+        }
+    }
+}
+
+
+
+
+
+    document.addEventListener("DOMContentLoaded", function () {
+        // Utility function to capitalize a string
+        function capitalize(str) {
+            return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
+        }
+
+        // Handle Form Submission
+        document.getElementById("detailsForm").addEventListener("submit", async function (event) {
+            event.preventDefault();
+
+            const formData = new FormData(this);
+            const formObject = {};
+            const relationships = {};
+
+            // Convert form data into objects
+            formData.forEach((value, key) => {
+                if (key.includes('[')) {
+                    const matches = key.match(/(\w+)\[(\d+)]\[(\w+)]/);
+                    if (matches) {
+                        const [relationship, index, field] = matches.slice(1);
+                        if (!relationships[relationship]) relationships[relationship] = [];
+                        if (!relationships[relationship][index]) relationships[relationship][index] = {};
+                        relationships[relationship][index][field] = value;
+                    }
+                } else {
+                    formObject[key] = value;
+                }
+            });
+
+            const isRequest = JSON.parse(document.getElementById("is-request-config").textContent);
+            if (isRequest) {
+                formObject.organization = document.querySelector("#organization").value;
+                formObject.sub_organization = document.querySelector("#sub_organization").value;
+                formObject.line_of_business = document.querySelector("#line_of_business").value;
+            }
+
+            const rowId = document.querySelector("#createNewModal .btn-primary")?.getAttribute("data-id");
+            const modelName = JSON.parse(document.getElementById("props-data").textContent)?.model_name;
+
+            if (!modelName) {
+                console.error("Model name is not defined.");
+                return;
+            }
+
+            const url = rowId ? `/update-row/${modelName}/${rowId}` : `/create-new/${modelName}`;
+
+            try {
+                const response = await fetch(url, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ ...formObject, relationships }),
+                });
+
+                if (response.ok) {
+                    alert("Operation successful!");
+                    location.reload();
+                } else {
+                    const errorMessage = await response.text();
+                    alert(`Operation failed: ${response.status} - ${errorMessage}`);
+                }
+            } catch (error) {
+                console.error("Error during the operation:", error);
+                alert("An error occurred while performing the operation.");
+            }
+        });
+
+        // Add Predefined Options as Rows
+        document.querySelectorAll(".add-predefined-btn").forEach(button => {
+            button.addEventListener("click", function () {
+                const relationship = this.dataset.relationship;
+                const container = document.querySelector(`#${relationship}-container tbody`);
+                const dropdown = document.querySelector(`#${relationship}_options`);
+                const selectedValue = dropdown.value;
+                const selectedText = dropdown.options[dropdown.selectedIndex].text;
+
+                if (!selectedValue) return;
+
+                // Check for duplicates before adding
+                const existingRow = Array.from(container.children).some(row =>
+                    row.dataset.value === selectedValue
+                );
+                if (existingRow) {
+                    alert(`This ${relationship} is already added.`);
+                    return;
+                }
+
+                // Add new row
+                const row = document.createElement("tr");
+                row.dataset.value = selectedValue; // Store selected value for duplicate checks
+                row.innerHTML = `
+                <td>${selectedText}</td>
+                <td>
+                    <button type="button" class="btn btn-danger btn-sm remove-row-btn">Remove</button>
+                </td>
+            `;
+                container.appendChild(row);
+            });
+        });
+
+        // Add Row Button Click for User-Defined Relationships
+        document.querySelectorAll(".add-row-btn").forEach(button => {
+            button.addEventListener("click", function () {
+                const relationship = this.dataset.relationship;
+                const container = document.querySelector(`#${relationship}-container tbody`);
+                const index = container.children.length;
+
+                const propsData = JSON.parse(document.getElementById("props-data").textContent);
+                const relationshipConfig = propsData.relationships.find(rel => rel.name === relationship);
+
+                if (!relationshipConfig || !relationshipConfig.fields) return;
+
+                const row = document.createElement("tr");
+                row.innerHTML = relationshipConfig.fields
+                    .filter(field => field.name !== "id" && !field.name.endsWith("_id"))
+                    .map(field => `
+                    <td>
+                        <input type="${field.type.includes("INTEGER") ? "number" : "text"}"
+                               class="form-control"
+                               name="${relationship}[${index}][${field.name}]"
+                               placeholder="${capitalize(field.name.replace("_", " "))}"
+                               required>
+                    </td>
+                `).join("") + `
+                    <td>
+                        <button type="button" class="btn btn-danger btn-sm remove-row-btn">Remove</button>
+                    </td>`;
+                container.appendChild(row);
+            });
+        });
+
+        // Handle Row Removal
+        document.body.addEventListener("click", function (event) {
+            if (event.target.classList.contains("remove-row-btn")) {
+                event.target.closest("tr").remove();
+            }
+        });
+    });
+
+
+</script>

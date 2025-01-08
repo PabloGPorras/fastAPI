@@ -199,22 +199,32 @@
 
         /* Sub-side menu light mode */
         .sub-side-menu {
+            position: absolute;
+            top: 0;
+            left: 100%;
+            min-width: 200px;
+            z-index: 2000;
+            /* Ensure it is above other elements */
             background-color: #ffffff;
-            /* Light background */
-            color: #212529;
-            /* Dark text */
             border: 1px solid #dee2e6;
-            /* Light border */
+            display: none;
+            /* Hidden initially */
         }
 
         /* Sub-side menu dark mode */
         body.dark-mode .sub-side-menu {
             background-color: #2b2b2b;
-            /* Darker background for better contrast */
+            background-color: #2b2b2b;
+            /* Dark mode background */
             color: #f8f9fa;
-            /* Light text */
+            /* Dark mode text */
             border: 1px solid #444444;
-            /* Subtle dark border */
+            /* Dark mode border */
+        }
+
+        .sub-side-menu.show {
+            display: block;
+            /* Show the menu when triggered */
         }
 
         /* Sub-side menu hover effects */
@@ -230,6 +240,28 @@
             /* Slightly lighter background for hover in dark mode */
             color: #ffffff;
             /* Ensure text remains visible */
+        }
+
+
+        body {
+            display: flex;
+            height: 100vh;
+            /* Make the body take the full viewport height */
+            overflow: hidden;
+            /* Prevent scrolling on the body */
+        }
+
+        #sidebar {
+            overflow: visible;
+        }
+
+        .flex-grow-1 {
+            overflow-y: auto;
+            /* Enable vertical scrolling for the content area */
+            overflow-x: auto;
+            /* Enable horizontal scrolling for the table */
+            max-height: 100vh;
+            /* Prevent content from overflowing the viewport */
         }
     </style>
 
@@ -257,31 +289,52 @@
                         <span>Settings</span>
                     </a>
                 </li>
-                <li class="nav-item">
-                    <a href="/admin" class="nav-link text-dark">
+                <!-- Admin Button with Sub-side Menu -->
+                <li class="nav-item position-relative">
+                    <a href="#" class="nav-link text-dark" id="adminBtn">
                         <i class="fas fa-user-shield"></i>
                         <span>Admin</span>
                     </a>
+                    <div class="sub-side-menu" id="adminSubMenu">
+                        <ul class="list-unstyled m-0 p-2">
+                            <li class="mb-2">
+                                <a href="/users" class="nav-link text-dark">Users</a>
+                            </li>
+                            <li class="mb-2">
+                                <a href="/roles" class="nav-link text-dark">Roles</a>
+                            </li>
+                            <li class="mb-2">
+                                <a href="/organizations" class="nav-link text-dark">Organizations</a>
+                            </li>
+                            <li class="mb-2">
+                                <a href="/sub_organizations" class="nav-link text-dark">Sub_Organizations</a>
+                            </li>
+                            <li class="mb-2">
+                                <a href="/line_of_business" class="nav-link text-dark">Line of Business</a>
+                            </li>
+                            <li>
+                                <a href="/applications" class="nav-link text-dark">Applications</a>
+                            </li>
+                        </ul>
+                    </div>
                 </li>
 
-                <!-- Create New Button with Sub-side Menu -->
+                <!-- Create New Button with Dynamic Submenu -->
                 <li class="nav-item position-relative">
                     <a href="#" class="nav-link text-dark" id="createNewBtn">
                         <i class="fas fa-plus-circle"></i>
                         <span>Create New</span>
                     </a>
-                    <div class="sub-side-menu" id="createNewSubMenu"
-                        style="display: none; position: absolute; top: 0; left: 100%; min-width: 200px; z-index: 10;">
+                    <div class="sub-side-menu" id="createNewSubMenu">
                         <ul class="list-unstyled m-0 p-2">
+                            {% for model in is_request_models %}
                             <li class="mb-2">
-                                <a href="/persons" class="nav-link text-dark">Person</a>
+                                <a href="{{ model.url }}" class="nav-link text-dark create-item"
+                                    data-item="{{ model.name }}">
+                                    {{ model.name }}
+                                </a>
                             </li>
-                            <li class="mb-2">
-                                <a href="/request" class="nav-link text-dark">Request</a>
-                            </li>
-                            <li>
-                                <a href="/other-model" class="nav-link text-dark">Other Model</a>
-                            </li>
+                            {% endfor %}
                         </ul>
                     </div>
                 </li>
@@ -310,18 +363,31 @@
     </script>
 
     <script>
+        const adminBtn = document.getElementById("adminBtn");
+        const adminSubMenu = document.getElementById("adminSubMenu");
+
+        // Show the submenu on hover
+        adminBtn.addEventListener("mouseenter", function () {
+            adminSubMenu.classList.add("show");
+        });
+
+        // Hide the submenu when the mouse leaves the parent list item
+        adminBtn.parentElement.addEventListener("mouseleave", function () {
+            adminSubMenu.classList.remove("show");
+        });
+
         document.addEventListener("DOMContentLoaded", function () {
             const createNewBtn = document.getElementById("createNewBtn");
             const createNewSubMenu = document.getElementById("createNewSubMenu");
 
             // Toggle the visibility of the sub-side menu
             createNewBtn.addEventListener("mouseenter", function () {
-                createNewSubMenu.style.display = "block";
+                createNewSubMenu.classList.add("show");
             });
 
             // Hide the sub-menu when the mouse leaves the parent list item
             createNewBtn.parentElement.addEventListener("mouseleave", function () {
-                createNewSubMenu.style.display = "none";
+                createNewSubMenu.classList.remove("show");
             });
 
             // Handle sub-menu item clicks
@@ -329,8 +395,8 @@
                 item.addEventListener("click", function (e) {
                     e.preventDefault();
                     const itemType = this.getAttribute("data-item");
-                    alert(`Creating a new ${itemType}!`);
-                    // You can add logic to open a specific modal or redirect to a creation form
+                    // You can redirect or open a modal for creation here
+                    window.location.href = this.getAttribute("href");
                 });
             });
 

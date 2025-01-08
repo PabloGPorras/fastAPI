@@ -1,19 +1,21 @@
 import csv
 import io
 import json
-from typing import List
-from fastapi import Body, FastAPI, File, Form, HTTPException, Request, Response, UploadFile
-from fastapi.responses import JSONResponse, StreamingResponse
+from typing import List, Optional
+from fastapi import Body, Depends, FastAPI, File, Form, HTTPException, Request, Response, UploadFile
+from fastapi.responses import FileResponse, JSONResponse, StreamingResponse
 from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 from sqlalchemy.orm import sessionmaker
-from sqlalchemy import create_engine, inspect
-from example_model import Comment, Person, Relative, RmsRequest, Base
+from sqlalchemy import create_engine, func, inspect
+from example_model import Comment, Person, Relative, RmsRequest, Base, RmsRequestStatus, RuleRequest, StatusTransition, User
 from fastapi.middleware.cors import CORSMiddleware
 import logging
 import sys
-
+from sqlalchemy.orm import Session
+from sqlalchemy import event
+from datetime import datetime
 
 # Configure logging
 logging.basicConfig(
@@ -39,7 +41,8 @@ app.add_middleware(
 
 # Database setup
 engine = create_engine("sqlite:///example.db")
-SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+SessionLocal = sessionmaker(autocommit=False, autoflush=True, bind=engine)
+
 
 # Jinja2 templates setup
 templates = Jinja2Templates(directory="templates")
@@ -54,6 +57,11 @@ app.mount("/static", StaticFiles(directory="static"), name="static")
 
 from sqlalchemy.ext.declarative import DeclarativeMeta
 
+# Define the event listener
+from sqlalchemy import event
+from datetime import datetime
+
+
 def get_model_by_tablename(tablename: str) -> DeclarativeMeta:
     """Fetch the SQLAlchemy model class by its table name."""
     for mapper in Base.registry.mappers:
@@ -62,26 +70,125 @@ def get_model_by_tablename(tablename: str) -> DeclarativeMeta:
             return cls
     return None
 
+MODEL_PERMISSIONS = {
+    "users": "admin",
+    "roles": "admin",
+    "organizations": "admin",
+    "sub_organizations": "admin",
+    "line_of_business": "admin",
+    "applications": "admin",
+    "requests": "user",  # Example: Regular users can access 'requests'
+}
+
+def get_current_username(request: Request) -> str:
+    """
+    1) Check if any users exist in the database.
+       - If zero, skip requiring X-Username, treat as "admin".
+    2) Otherwise, require X-Username and raise 401 if missing.
+    """
+    session = SessionLocal()
+    try:
+        user_count = session.query(User).count()
+        if user_count == 0:
+            # No users in the DB => auto-ADMIN
+            return "admin"
+        else:
+            # Now we require the header
+            username = request.headers.get("X-Username")
+            if not username:
+                raise HTTPException(
+                    status_code=status.HTTP_401_UNAUTHORIZED,
+                    detail="No username header provided.",
+                )
+            return username
+    finally:
+        session.close()
+
+def get_user_roles(
+    username: str = Depends(get_current_username)
+) -> List[str]:
+    """
+    1. Check if the User table is empty.
+       - If yes, assume the user is "admin".
+    2. Otherwise, look up the user in the DB by username.
+       - If user not found, raise 401.
+       - Return the list of roles from many-to-many relationship (e.g. ["admin", "manager"]).
+    """
+    session: Session = SessionLocal()
+
+    try:
+        # 1) Check if any users exist at all
+        user_count = session.query(User).count()
+        if user_count == 0:
+            # No users in the database ⇒ treat the requesting user as "admin"
+            return ["admin"]
+
+        # 2) Users exist, so look up the requesting user
+        db_user = session.query(User).filter(User.username == username).one_or_none()
+        if not db_user:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="User not found in the database. Please register or use a valid username.",
+            )
+
+        # Return all roles for this user
+        user_roles: List[str] = [role.name for role in db_user.roles]
+        return user_roles
+
+    finally:
+        session.close()
+
+from fastapi import status
+
+    
+ADMIN_MODELS = {"users", "roles", "organizations", "sub_organizations", "line_of_business", "applications"}
+
+
 @app.get("/{model_name}")
-async def get_table(model_name: str, request: Request, response: Response):
+async def get_table(
+    model_name: str,
+    request: Request,
+    response: Response,
+    user_roles: str = Depends(get_user_roles),  # We'll get the role here
+):
+    # --- 1) Restrict certain models to admin role only ---
+    if model_name in ADMIN_MODELS and "admin" not in user_roles:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail=(
+                f"Admin role required to access '{model_name}'. "
+                f"Your roles: {user_roles}"
+            ),
+        )
+    if model_name == "favicon.ico":
+        return Response(status_code=404)  # Ignore favicon requests
+    
     logger.info(f"Fetching data for model: {model_name}")
     session = SessionLocal()
+
+    # Dynamically fetch models where is_request = True
+    models_with_is_request = []
+    for mapper in Base.registry.mappers:  # Loop through all registered mappers
+        cls = mapper.class_
+        if isinstance(cls, DeclarativeMeta):  # Ensure it's a valid SQLAlchemy model
+            if getattr(cls, "is_request", False):  # Check if `is_request` is True
+                models_with_is_request.append({
+                    "name": cls.__tablename__.replace("_", " ").capitalize(),
+                    "url": f"/{cls.__tablename__}"  # Generate the URL dynamically
+                })
 
     try:
         # Resolve the model dynamically
         model = get_model_by_tablename(model_name)
         if not model:
             logger.warning(f"Model '{model_name}' not found.")
-            raise HTTPException(status_code=404, detail="Model not found")
+            raise HTTPException(status_code=404, detail=f"Model not found {model_name}")
 
-        # Fetch rows from the resolved model
-        rows = session.query(model).all()
+        logger.debug(f"Model resolved: {model}")
 
         # Define action options
         if model_name == "request":
-            actions = [
-                {"label": "Refresh", "endpoint": "/refresh"},
-            ]
+            actions = [{"label": "Refresh", "endpoint": "/refresh"}]
         else:
             actions = [
                 {"label": "Create New", "endpoint": "/create-new-modal"},
@@ -92,27 +199,89 @@ async def get_table(model_name: str, request: Request, response: Response):
         primary_action = actions.pop(0) if actions else None
 
         # Add bulk import option if enabled
-        bulk_import_action = (
-            {"label": "Upload Bulk Import", "endpoint": "/bulk-import"}
-        )
-        
+        bulk_import_action = {"label": "Upload Bulk Import", "endpoint": "/bulk-import"}
+
+        # Query data based on the model name
+        if model_name == "request":
+            subquery = (
+                session.query(
+                    RmsRequestStatus.request_id,
+                    func.max(RmsRequestStatus.timestamp).label("latest_timestamp"),
+                )
+                .group_by(RmsRequestStatus.request_id)
+                .subquery()
+            )
+
+            rows = (
+                session.query(
+                    model,  # RmsRequest model
+                    RmsRequestStatus.status.label("request_status"),  # Explicitly fetch the status
+                )
+                .join(subquery, model.id == subquery.c.request_id)  # Join to find latest status
+                .join(
+                    RmsRequestStatus,
+                    (RmsRequestStatus.request_id == subquery.c.request_id)
+                    & (RmsRequestStatus.timestamp == subquery.c.latest_timestamp),
+                )
+                .all()
+            )
+            logger.debug(f'model_name == "request"')
+        else:
+            try:
+                subquery = (
+                    session.query(
+                        RmsRequestStatus.request_id,
+                        func.max(RmsRequestStatus.timestamp).label("latest_timestamp"),
+                    )
+                    .group_by(RmsRequestStatus.request_id)
+                    .subquery()
+                )
+
+                rows = (
+                    session.query(
+                        model,
+                        RmsRequestStatus.status.label("request_status"),
+                    )
+                    .join(RmsRequest, model.rms_request_id == RmsRequest.id)
+                    .join(subquery, RmsRequest.id == subquery.c.request_id)
+                    .join(
+                        RmsRequestStatus,
+                        (RmsRequestStatus.request_id == subquery.c.request_id)
+                        & (RmsRequestStatus.timestamp == subquery.c.latest_timestamp),
+                    )
+                    .all()
+            )
+                logger.debug(f"rows = session.query(model).all()")
+            except:
+                logger.debug(f"rows = session.query(model).all()")
+                rows = session.query(model).all()
+
+        logger.debug(f"Fetched rows: {rows}")
+
         # Extract model metadata dynamically
+        mapper = inspect(model)
+
         columns = []
         form_fields = []
         relationships = []
-
-        mapper = inspect(model)
+        predefined_options = {}
 
         # Extract column data for the main model
         for column in mapper.columns:
             column_info = {
                 "name": column.name,
                 "type": str(column.type),
-                "options": getattr(model, f"{column.name}_options", None),  # Predefined options
+                "options": getattr(model, f"{column.name}_options", None),
             }
             columns.append(column_info)
-            if column.name != "id":  # Exclude primary key
+            if column.name != "id":
                 form_fields.append(column_info)
+
+        logger.debug(f"Extracted columns: {columns}")
+
+        # Add a dynamic column for `request_status` if relevant
+        if getattr(model, "is_request", False):
+            columns.insert(1, {"name": "request_status", "type": "String", "options": None})
 
         # Extract relationship data dynamically
         for rel in mapper.relationships:
@@ -120,25 +289,94 @@ async def get_table(model_name: str, request: Request, response: Response):
                 "name": rel.key,
                 "fields": [
                     {"name": col.name, "type": str(col.type)}
-                    for col in rel.mapper.columns if col.name != "id"  # Exclude primary key
-                ]
+                    for col in rel.mapper.columns if col.name != "id"
+                ],
+                "info": rel.info  # Include the `info` attribute
             })
+
+            # Fetch predefined options for relationships
+            if rel.info.get("predefined_options", False):
+                related_model = rel.mapper.class_
+                predefined_options[rel.key] = [
+                    {"id": obj.id, "name": getattr(obj, "name", str(obj.id))}
+                    for obj in session.query(related_model).all()
+                ]
+
+        logger.debug(f"Predefined options: {predefined_options}")
+        logger.debug(f"Extracted relationships: {relationships}")
+
+        # Transform rows into a dictionary format with transitions
+        row_dicts = []
+        for row in rows:
+            try:
+                # Try to unpack as a two-item row (e.g., (RuleRequest, status))
+                model_obj, request_status = row
+                # We successfully unpacked => it's a joined query row
+                row_data = {}
+                for col in mapper.columns:
+                    val = getattr(model_obj, col.name, None)
+                    row_data[col.name] = val
+                row_data["request_status"] = request_status
+
+                # Fetch transitions based on the current request_status
+                transitions = model.request_status_config.get(request_status, {}).get("Next", [])
+                row_data["transitions"] = [{"next_status": next_status, "action_label": f"Change to {next_status}"} for next_status in transitions]
+
+            except (TypeError, ValueError):
+                # If unpack fails => we have a single model row (e.g., RmsRequest)
+                single_obj = row
+                row_data = {}
+                for col in mapper.columns:
+                    val = getattr(single_obj, col.name, None)
+                    row_data[col.name] = val
+
+                # Handle transitions for rows without explicit request_status
+                row_data["transitions"] = []
+
+            row_dicts.append(row_data)
+
+
+
+        # Identify foreign key fields (if any)
+        foreign_keys = [col.name for col in mapper.columns if col.foreign_keys]
+        logger.debug(f"Foreign keys: {foreign_keys}")
+
+        # Handle request_status_config only if applicable
+        if hasattr(model, "request_status_config"):
+            request_status_config = model.request_status_config
+        else:
+            request_status_config = None
+
+        # Handle is_request only if applicable
+        if hasattr(model, "is_request"):
+            is_request = model.is_request
+        else:
+            is_request = False
+
+
 
         return templates.TemplateResponse(
             "dynamic_table_.html",
             {
                 "request": request,
-                "rows": rows,
+                "rows": row_dicts,
                 "columns": columns,
                 "actions": actions,
                 "form_fields": form_fields,
                 "relationships": relationships,
                 "model_name": model_name,
-                "request_id": rows[0].id if rows else None,  
+                "model": model,
+                "RmsRequest": RmsRequest,
+                "foreign_keys": foreign_keys,
                 "bulk_import_action": bulk_import_action,
                 "primary_action": primary_action,
-            }
+                "request_status_config": request_status_config,
+                "is_request": is_request,
+                "predefined_options": predefined_options,  # Pass to template
+                "is_request_models": models_with_is_request,
+            },
         )
+
     except Exception as e:
         logger.error(f"Error fetching table data for model '{model_name}': {str(e)}", exc_info=True)
         raise HTTPException(status_code=500, detail="Internal Server Error")
@@ -147,15 +385,168 @@ async def get_table(model_name: str, request: Request, response: Response):
         logger.debug(f"Session closed for model: {model_name}")
 
 
+from sqlalchemy.orm import joinedload, subqueryload
+
+@app.get("/get-details/{model_name}/{item_id}")
+async def get_details(model_name: str, item_id: int):
+    logger.info(f"Fetching details for model: {model_name}, item_id: {item_id}")
+    session = SessionLocal()
+    try:
+        # Resolve the model dynamically
+        model = get_model_by_tablename(model_name)
+        if not model:
+            logger.warning(f"Model '{model_name}' not found.")
+            raise HTTPException(status_code=404, detail=f"Model '{model_name}' not found.")
+
+        # Query the specific item with eager loading for relationships
+        item = (
+            session.query(model)
+            .options(joinedload("*"))  # Eagerly load all relationships
+            .filter(model.id == item_id)
+            .one_or_none()
+        )
+        if not item:
+            logger.warning(f"Item with id {item_id} not found in model '{model_name}'.")
+            raise HTTPException(status_code=404, detail="Item not found")
+
+        logger.debug(f"Fetched item: {item}")
+
+        # Fetch relationships dynamically
+        relationships = {}
+        for relationship in inspect(model).relationships:
+            related_items = getattr(item, relationship.key)
+            relationships[relationship.key] = [
+                {col.name: getattr(related_item, col.name) for col in relationship.mapper.columns}
+                for related_item in (related_items if isinstance(related_items, list) else [related_items])
+                if related_item
+            ]
+
+        logger.debug(f"Fetched relationships for item {item_id}: {relationships}")
+
+        # Prepare the response data
+        data = {col.name: getattr(item, col.name) for col in inspect(model).columns}
+        logger.debug(f"Item data: {data}")
+
+        response = {
+            "data": data,
+            "relationships": relationships,
+        }
+        logger.info(f"Response prepared for model '{model_name}', item_id {item_id}: {response}")
+
+        return response
+
+    except Exception as e:
+        logger.error(f"Error fetching details for model '{model_name}', item_id {item_id}: {str(e)}", exc_info=True)
+        raise HTTPException(status_code=500, detail="Internal Server Error")
+
+    finally:
+        session.close()
+        logger.debug(f"Database session closed for model: {model_name}, item_id: {item_id}")
+
+
+
+@app.post("/bulk-update-status")
+def bulk_update_status(payload: dict):
+    import logging
+    logger = logging.getLogger("bulk_update_status")
+
+    session = SessionLocal()
+
+    try:
+        ids = payload.get("ids", [])
+        current_statuses = payload.get("currentStatuses", [])
+        next_status = payload.get("nextStatus")
+        request_status_config = payload.get("request_status_config", {})
+
+        logger.info("Bulk status update request received.")
+        logger.debug(f"Payload received: {payload}")
+
+        if not ids or not next_status:
+            logger.error(f"Invalid payload: {payload}")
+            raise HTTPException(status_code=400, detail="Invalid request data")
+
+        if not request_status_config:
+            logger.error("Request status configuration is missing.")
+            raise HTTPException(status_code=400, detail="Request status configuration is missing.")
+
+        # Fetch the latest status for the provided request IDs
+        subquery = (
+            session.query(
+                RmsRequestStatus.request_id,
+                func.max(RmsRequestStatus.timestamp).label("latest_timestamp"),
+            )
+            .filter(RmsRequestStatus.request_id.in_(ids))
+            .group_by(RmsRequestStatus.request_id)
+            .subquery()
+        )
+
+        rows = (
+            session.query(RmsRequest, RmsRequestStatus.status)
+            .join(subquery, RmsRequest.id == subquery.c.request_id)
+            .join(
+                RmsRequestStatus,
+                (RmsRequestStatus.request_id == subquery.c.request_id)
+                & (RmsRequestStatus.timestamp == subquery.c.latest_timestamp),
+            )
+            .all()
+        )
+
+        logger.debug(f"Fetched rows: {[{'id': r.id, 'status': s} for r, s in rows]}")
+
+        updated_count = 0
+
+        for (request, current_status), expected_status in zip(rows, current_statuses):
+            logger.debug(f"Processing request ID: {request.id}, Current Status: {current_status}, Expected Status: {expected_status}")
+
+            # Ensure the current status matches the expected status
+            if current_status != expected_status:
+                logger.warning(f"Request ID {request.id}: Status mismatch. Expected {expected_status}, Found {current_status}")
+                continue
+
+            # Fetch valid transitions for the current status
+            valid_transitions = request_status_config.get(current_status, {}).get("Next", [])
+            logger.debug(f"Valid transitions for {current_status}: {valid_transitions}")
+
+            if next_status in valid_transitions:
+                logger.info(f"Updating request ID {request.id} to next status: {next_status}")
+
+                # Add a new RmsRequestStatus entry to represent the status update
+                new_status = RmsRequestStatus(
+                    request_id=request.id,
+                    status=next_status,
+                    username="current_user",  # Replace with actual username from authentication
+                )
+                session.add(new_status)
+                updated_count += 1
+            else:
+                logger.warning(f"Request ID {request.id}: Invalid transition from {current_status} to {next_status}")
+
+        # Commit the changes to the database
+        session.commit()
+        logger.info(f"Bulk update completed. {updated_count} rows updated successfully.")
+
+        return {"success": True, "updated_count": updated_count, "message": f"{updated_count} rows updated successfully."}
+
+    except Exception as e:
+        logger.error(f"Error during bulk status update: {str(e)}", exc_info=True)
+        raise HTTPException(status_code=500, detail="Internal Server Error")
+    finally:
+        session.close()
+        logger.debug("Session closed.")
+
+
+
+
+
+
+
+
+
 
 
 @app.get("/settings")
 async def settings(request: Request):
     return templates.TemplateResponse("settings.html", {"request": request})
-
-@app.get("/admin")
-async def admin(request: Request):
-    return templates.TemplateResponse("admin.html", {"request": request})
 
 
 @app.get("/get-row/{model_name}/{row_id}")
@@ -388,84 +779,139 @@ async def create_new(model_name: str, data: dict):
         relationships_data = data.pop("relationships", {})
         logger.debug(f"Main data extracted: {data}, Relationships: {relationships_data}")
 
-        # Create the main object
+        # Handle models with `is_request = True`
+        if getattr(model, "is_request", False):  # Dynamically check if the model has `is_request`
+            # Extract attributes for RmsRequest
+            rms_request_data = {
+                "requester": "John Doe",  # Example default value
+                "request_type": "RULE_REQUEST",  # Example default value
+                "effort": data.pop("effort", "Default Effort"),
+                "organization": data.pop("organization", "Default Org"),
+                "sub_organization": data.pop("sub_organization", "Default Sub Org"),
+                "line_of_business": data.pop("line_of_business", "Default LOB"),
+                "team": data.pop("team", "Default Team"),
+                "decision_engine": data.pop("decision_engine", "Default Engine"),
+            }
+
+            # Create and flush RmsRequest
+            new_request = RmsRequest(**rms_request_data)
+            session.add(new_request)
+            session.flush()  # Ensure the ID is generated
+
+            # Add the foreign key to the current model (e.g., RuleRequest)
+            data["rms_request_id"] = new_request.id
+
+            # Create RmsRequestStatus
+            new_status = RmsRequestStatus(
+                request_id=new_request.id,
+                status="Created",  # Initial status
+                username="System",  # Example value, replace with actual username
+                timestamp=datetime.utcnow(),
+            )
+            session.add(new_status)
+
+        # Create the main object for all models
         main_object = model(**data)
         session.add(main_object)
-        session.flush()  # Ensure the `id` is available for relationships
+        session.flush()  # Ensure the main object is saved and its ID is available
 
         # Handle relationships dynamically if present
         for relationship_name, related_objects in relationships_data.items():
             if hasattr(main_object, relationship_name):
                 relationship_attribute = getattr(main_object, relationship_name)
-                related_model = relationship_attribute[0].__class__ if relationship_attribute else None
+                relationship_model = inspect(model).relationships[relationship_name].mapper.class_
 
-                if related_model:
-                    for related_object in related_objects:
-                        related_instance = related_model(**related_object)
+                for related_object in related_objects:
+                    # Create the related object
+                    related_instance = relationship_model(**related_object)
+
+                    # Append it to the relationship attribute
+                    if isinstance(relationship_attribute, list):
                         relationship_attribute.append(related_instance)
+                    else:
+                        setattr(main_object, relationship_name, related_instance)
 
         # Commit all changes
         session.commit()
         logger.info(f"All changes committed to the database successfully for model: {model_name}.")
         return {"message": f"Entry created successfully for model '{model_name}'."}
+
     except Exception as e:
         session.rollback()
         logger.error(f"Error creating new entry for model '{model_name}': {e}", exc_info=True)
         raise HTTPException(status_code=500, detail=str(e))
+
     finally:
         session.close()
         logger.debug("Database session closed.")
 
 
 
-@app.get("/persons/{person_id}/comments")
-async def get_comments_for_person(person_id: int, request: Request):
-    logger.info(f"GET /persons/{person_id}/comments called")
+
+
+@app.post("/requests/{request_id}/comments")
+async def add_comment(request_id: int, comment_data: dict):
+    """
+    Add a new comment to a specific RmsRequest identified by request_id.
+    """
     session = SessionLocal()
     try:
-        logger.debug(f"Fetching comments for person_id: {person_id}")
-        comments = session.query(Comment).filter_by(person_id=person_id).all()
-        logger.debug(f"Fetched {len(comments)} comments for person_id: {person_id}")
+        # Ensure the RmsRequest exists
+        request = session.query(RmsRequest).filter(RmsRequest.id == request_id).one_or_none()
+        if not request:
+            raise HTTPException(status_code=404, detail="RmsRequest not found")
 
-        return templates.TemplateResponse(
-            "comments_section.html",
-            {"request": request, "comments": comments, "person_id": person_id}
+        # Create and save a new comment
+        new_comment = Comment(
+            request_id=request_id,
+            comment_text=comment_data.get("comment_text"),
+            username=comment_data.get("username"),
+            timestamp=datetime.utcnow(),
         )
-    except Exception as e:
-        logger.error(f"Error fetching comments for person_id {person_id}: {e}")
-        raise
-    finally:
-        session.close()
-
-
-from pydantic import BaseModel
-
-class CommentRequest(BaseModel):
-    comment_text: str
-    username: str
-
-@app.post("/persons/{person_id}/comments")
-async def add_comment_to_person(person_id: int, comment: CommentRequest):
-    logger.info(f"POST /persons/{person_id}/comments called")
-    session = SessionLocal()
-    try:
-        logger.debug(f"Received data: person_id={person_id}, comment={comment}")
-        
-        # Create the new comment
-        comment_data = Comment(person_id=person_id, comment_text=comment.comment_text, username=comment.username)
-        session.add(comment_data)
+        session.add(new_comment)
         session.commit()
-        logger.info(f"Comment added successfully for person_id: {person_id}, comment_id: {comment_data.id}")
 
+        # Return the created comment
         return {
-            "id": comment_data.id,
-            "person_id": person_id,
-            "comment_text": comment_data.comment_text,
-            "username": comment_data.username,
-            "timestamp": comment_data.timestamp.isoformat(),
+            "comment_text": new_comment.comment_text,
+            "username": new_comment.username,
+            "timestamp": new_comment.timestamp.isoformat(),
         }
     except Exception as e:
-        logger.error(f"Error adding comment for person_id {person_id}: {e}")
-        raise
+        session.rollback()
+        logger.error(f"Error adding comment to request_id {request_id}: {str(e)}")
+        raise HTTPException(status_code=500, detail="Failed to add comment")
     finally:
         session.close()
+
+
+
+
+@app.get("/requests/{request_id}/comments")
+async def get_comments(request_id: int):
+    """
+    Fetch all comments for a specific RmsRequest identified by request_id.
+    """
+    session = SessionLocal()
+    try:
+        # Query comments related to the RmsRequest
+        comments = session.query(Comment).filter(Comment.request_id == request_id).all()
+        if not comments:
+            return []  # Return an empty list if no comments exist
+
+        # Serialize comments
+        return [
+            {
+                "comment_text": comment.comment_text,
+                "username": comment.username,
+                "timestamp": comment.timestamp.isoformat(),
+            }
+            for comment in comments
+        ]
+    except Exception as e:
+        logger.error(f"Error fetching comments for request_id {request_id}: {str(e)}")
+        raise HTTPException(status_code=500, detail="Failed to fetch comments")
+    finally:
+        session.close()
+
+

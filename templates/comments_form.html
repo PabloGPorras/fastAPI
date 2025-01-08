@@ -1,83 +1,151 @@
-<div id="comments-container" style="display: none;">
-    <h5>Comments</h5>
-    <p>Debug: person_id = <span id="debug-person-id"></span></p>
+<style>
+#comments-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
 
-    <!-- Comments List -->
-    <ul id="comments-list" class="list-group mb-3">
-        <!-- Existing comments will be dynamically populated here -->
-    </ul>
+/* Base styling for comment items */
+.comment-item {
+    display: flex;
+    flex-direction: column;
+    max-width: 60%;
+    padding: 10px;
+    border-radius: 15px;
+    margin: 5px 0;
+    position: relative;
+}
 
-    <!-- Add Comment Form -->
-    <form id="addCommentForm">
-        <div class="mb-3">
-            <label for="commentText" class="form-label">Add a Comment</label>
-            <textarea class="form-control" id="commentText" name="comment_text" rows="2" required></textarea>
-        </div>
-        <div class="mb-3">
-            <label for="commentUsername" class="form-label">Your Name</label>
-            <input type="text" class="form-control" id="commentUsername" name="username" required>
-        </div>
-        <button type="submit" class="btn btn-primary">Submit Comment</button>
-    </form>
-</div>
+/* Timestamp styling */
+.comment-item .timestamp {
+    font-size: 0.75rem;
+    color: #b0b0b0;
+    margin-bottom: 5px;
+}
+
+/* User info styling */
+.comment-item .user-info {
+    font-size: 0.85rem;
+    font-weight: bold;
+    color: #a0d1f7;
+}
+
+/* Comment text styling */
+.comment-item .comment-text {
+    font-size: 1rem;
+    line-height: 1.5;
+}
+
+/* Current user comments */
+.comment-item.right {
+    align-self: flex-end;
+    background-color: #1e3a8a; /* Dark blue for current user */
+    color: #ffffff; /* White text */
+}
+
+/* Other user comments */
+.comment-item.left {
+    align-self: flex-start;
+    background-color: #374151; /* Dark gray for other users */
+    color: #ffffff; /* White text */
+}
+
+/* Input field and button adjustments for dark mode */
+#commentText {
+    background-color: #1f2937; /* Darker gray for input field */
+    color: #e0e0e0;
+    border: 1px solid #4b5563;
+}
+
+#addCommentButton {
+    background-color: #2563eb; /* Bright blue for button */
+    color: #ffffff;
+    border: none;
+}
+
+#addCommentButton:hover {
+    background-color: #1e40af; /* Slightly darker blue on hover */
+}
+</style>
+
+<h5>Comments</h5>
+<ul id="comments-list" class="list-group mb-3">
+    <!-- Comments will be dynamically added here -->
+</ul>
+
+<!-- Add Comment Form -->
+<form id="addCommentForm">
+    <div class="input-group">
+        <input type="text" id="commentText" class="form-control" placeholder="Enter your comment">
+        <button type="button" id="addCommentButton" class="btn btn-primary">Add Comment</button>
+    </div>
+</form>
+
+
 
 
 <script>
     document.addEventListener("DOMContentLoaded", function () {
-        const commentsContainer = document.getElementById("comments-container");
-        const debugPersonId = document.getElementById("debug-person-id");
-        const addCommentForm = document.getElementById("addCommentForm");
-        const commentsList = document.getElementById("comments-list");
 
-        function showComments(personId) {
-            debugPersonId.textContent = personId;
-            addCommentForm.setAttribute("action", `/persons/${personId}/comments`);
-            commentsContainer.style.display = "block";
-        }
+        // Handle the Add Comment button click
+        document.getElementById("addCommentButton").addEventListener("click", async function () {
+            const commentText = document.getElementById("commentText").value.trim();
+            const modal = document.getElementById("createNewModal");
+            const itemId = modal.getAttribute("data-id");
+            const currentUserId = "User123"; // Replace this with your actual logic for identifying the current user
 
-        document.getElementById("viewUpdateButton").addEventListener("click", function () {
-            const personId = "1"; // Replace with dynamic logic
-            showComments(personId);
-        });
-
-        addCommentForm.addEventListener("submit", async function (event) {
-            event.preventDefault();
-
-            const commentData = {
-                comment_text: document.getElementById("commentText").value.trim(),
-                username: document.getElementById("commentUsername").value.trim(),
-            };
+            if (!commentText) {
+                alert("Comment text cannot be empty.");
+                return;
+            }
 
             try {
-                const response = await fetch(addCommentForm.action, {
+                // Send POST request to add comment
+                const response = await fetch(`/requests/${itemId}/comments`, {
                     method: "POST",
-                    headers: {
-                        "Content-Type": "application/json",
-                    },
-                    body: JSON.stringify(commentData),
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ comment_text: commentText, username: currentUserId }),
                 });
 
                 if (!response.ok) {
                     throw new Error(`Failed to submit comment: ${response.statusText}`);
                 }
 
+                // Add the new comment to the comments list
                 const newComment = await response.json();
+                const commentsList = document.getElementById("comments-list");
+                const newCommentItem = document.createElement("div");
+                newCommentItem.classList.add("comment-item");
 
-                const newCommentItem = document.createElement("li");
-                newCommentItem.classList.add("list-group-item");
-                newCommentItem.innerHTML = `<strong>${newComment.username}</strong> <em>(${new Date(
-                    newComment.timestamp
-                ).toLocaleString()})</em>: ${newComment.comment_text}`;
+                // Align comment based on the current user
+                if (newComment.username === currentUserId) {
+                    newCommentItem.classList.add("right");
+                } else {
+                    newCommentItem.classList.add("left");
+                }
+
+                // Populate comment content
+                newCommentItem.innerHTML = `
+            <div class="timestamp">${new Date(newComment.timestamp).toLocaleString()}</div>
+            <div class="user-info">User ID: ${newComment.username}</div>
+            <div class="comment-text">${newComment.comment_text}</div>
+        `;
+
                 commentsList.appendChild(newCommentItem);
 
-                addCommentForm.reset();
+                // Clear the input field
+                document.getElementById("commentText").value = "";
             } catch (error) {
                 console.error("Error submitting comment:", error);
                 alert("Failed to add comment.");
             }
         });
+
+
+        // Prevent form submission from refreshing the page or triggering unintended actions
+        document.getElementById("addCommentForm").addEventListener("submit", function (event) {
+            event.preventDefault(); // Prevent the default form submission
+        });
     });
-
-
 
 </script>

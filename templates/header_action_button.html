@@ -1,0 +1,211 @@
+<!-- Header Button Group -->
+<div class="btn-group">
+
+    <!-- Primary Action Button -->
+    {% if primary_action %}
+    <button id="primary-action-btn" class="btn btn-success btn-sm" data-endpoint="{{ primary_action.endpoint }}">
+        {{ primary_action.label }}
+    </button>
+    {% endif %}
+    <!-- Dropdown for additional actions -->
+    <button type="button" class="btn btn-success btn-sm dropdown-toggle dropdown-toggle-split" data-bs-toggle="dropdown"
+        aria-expanded="false">
+        <span class="visually-hidden">Toggle Dropdown</span>
+    </button>
+    <ul class="dropdown-menu">
+        {% for action in actions[1:] %}
+        <li>
+            <button class="dropdown-item requires-selection action-item" data-endpoint="{{ action.endpoint }}">
+                {{ action.label }}
+            </button>
+        </li>
+        {% endfor %}
+
+        <!-- Status Change Buttons -->
+        {% if request_status_config %}
+        {% for status, config in request_status_config.items() %}
+        <li>
+            <button class="dropdown-item requires-selection status-change-btn" data-next-status="{{ status }}">
+                Change to {{ status }}
+            </button>
+        </li>
+        {% endfor %}
+        {% endif %}
+
+        <li>
+            <hr class="dropdown-divider">
+        </li>
+
+        <!-- Bulk Import Upload -->
+        {% if bulk_import_action %}
+        <li>
+            <button class="dropdown-item" data-bs-toggle="modal" data-bs-target="#uploadBulkModal">
+                {{ bulk_import_action.label }}
+            </button>
+        </li>
+        {% endif %}
+    </ul>
+
+
+</div>
+<script id="request-status-config" type="application/json">
+    {{ request_status_config | tojson }}
+</script>
+<script>
+
+    document.addEventListener("DOMContentLoaded", function () {
+        const checkboxes = document.querySelectorAll(".row-checkbox");
+        const selectAllCheckbox = document.getElementById("selectAll");
+        const statusChangeButtons = document.querySelectorAll(".status-change-btn");
+
+        // Event listener for Select All checkbox
+        if (selectAllCheckbox) {
+            selectAllCheckbox.addEventListener("change", function () {
+                checkboxes.forEach(checkbox => (checkbox.checked = this.checked));
+            });
+        }
+
+        // Event listener for status change buttons
+        statusChangeButtons.forEach(button => {
+            button.addEventListener("click", function () {
+                const nextStatus = this.dataset.nextStatus;
+                const selectedRows = Array.from(document.querySelectorAll("tr.selected-row")); // Rows with selected-row class
+                const rowIds = selectedRows.map(row => row.dataset.id);
+
+                const currentStatuses = selectedRows.map(row => {
+                    const statusCell = row.querySelector(".request_status-column");
+                    return statusCell ? statusCell.textContent.trim() : null;
+                });
+
+                // Fetch the request_status_config from the embedded script tag
+                const requestStatusConfig = JSON.parse(document.getElementById("request-status-config").textContent);
+
+                console.log("Selected Rows:", selectedRows);
+                console.log("Row IDs:", rowIds);
+                console.log("Current Statuses:", currentStatuses);
+                console.log("Request Status Config:", requestStatusConfig);
+
+                if (!rowIds.length) {
+                    alert("No rows selected.");
+                    return;
+                }
+
+                fetch(`/bulk-update-status`, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({
+                        ids: rowIds,
+                        currentStatuses,
+                        nextStatus,
+                        request_status_config: requestStatusConfig
+                    }),
+                })
+                    .then(response => {
+                        if (response.ok) {
+                            alert("Status updated successfully!");
+                            location.reload(); // Reload to reflect changes
+                        } else {
+                            response.json().then(data => alert(data.detail || "Error updating status."));
+                        }
+                    })
+                    .catch(err => alert("Network error: " + err.message));
+            });
+        });
+
+
+
+
+    });
+
+    // Function to update the state of dropdown items based on selected rows
+    function updateDropdownActions() {
+        const selectedRows = document.querySelectorAll(".selected-row");
+        const dropdownItems = document.querySelectorAll(".dropdown-item.requires-selection");
+
+        dropdownItems.forEach(item => {
+            if (selectedRows.length === 0) {
+                item.classList.add("disabled"); // Add the disabled class if no rows are selected
+            } else {
+                item.classList.remove("disabled"); // Remove the disabled class if rows are selected
+            }
+        });
+    }
+
+    document.getElementById("primary-action-btn").addEventListener("click", function () {
+    // Get the endpoint from the button's data attribute
+    const endpoint = this.getAttribute("data-endpoint");
+
+    if (endpoint === "/create-new-modal") {
+        console.log("Primary action: Create New");
+
+        // Reset the form
+        const form = document.getElementById("detailsForm");
+        if (!form) {
+            console.error("Form with ID 'detailsForm' not found.");
+            return;
+        }
+        form.reset();
+
+        // Clear relationship tables
+        document.querySelectorAll(".relationship-container tbody").forEach(container => {
+            container.innerHTML = ""; // Clear all rows in relationship subtables
+        });
+
+        // Enable all form fields
+        const inputs = form.querySelectorAll("input, select, textarea");
+        inputs.forEach(input => {
+            input.disabled = false; // Reenable the field
+        });
+
+        // Show Add buttons for relationships
+        document.querySelectorAll(".add-predefined-btn, .add-row-btn").forEach(button => {
+            button.style.display = ""; // Show Add buttons
+        });
+
+        // Reset modal title and button
+        const modalTitle = document.getElementById("createNewModalLabel");
+        const saveButton = document.querySelector("#createNewModal .btn-primary");
+        modalTitle.textContent = "Create New Entry";
+        saveButton.textContent = "Save";
+        saveButton.removeAttribute("data-id"); // Ensure no ID is associated
+
+        // Show the Save button (if hidden during View)
+        saveButton.style.display = ""; 
+
+        // Show the modal
+        const modal = new bootstrap.Modal(document.getElementById("createNewModal"));
+        modal.show();
+    } else if (endpoint === "/refresh") {
+        console.log("Primary action: Refresh");
+
+        // Fetch updated data
+        fetch(endpoint)
+            .then(response => response.json())
+            .then(data => {
+                console.log("Refreshed data:", data);
+
+                // Replace table body with updated rows
+                const tableBody = document.getElementById("tableBody");
+                tableBody.innerHTML = ""; // Clear the table
+                data.rows.forEach(row => {
+                    const rowElement = document.createElement("tr");
+                    rowElement.innerHTML = `
+                        <td>${row.id}</td>
+                        <td>${row.name}</td>
+                        <td>${row.status}</td>
+                        <!-- Add other columns as needed -->
+                    `;
+                    tableBody.appendChild(rowElement);
+                });
+            })
+            .catch(error => {
+                console.error("Error refreshing data:", error);
+            });
+    } else {
+        console.error("Unknown primary action endpoint:", endpoint);
+    }
+});
+
+</script>
