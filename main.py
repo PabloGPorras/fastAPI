@@ -216,10 +216,10 @@ async def get_table(
 
             rows = (
                 session.query(
-                    model,  # RmsRequest model
-                    RmsRequestStatus.status.label("request_status"),  # Explicitly fetch the status
+                    RmsRequest,  # Directly query RmsRequest
+                    RmsRequestStatus.status.label("request_status"),  # Fetch the status
                 )
-                .join(subquery, model.id == subquery.c.request_id)  # Join to find latest status
+                .join(subquery, RmsRequest.id == subquery.c.request_id)  # Join with subquery
                 .join(
                     RmsRequestStatus,
                     (RmsRequestStatus.request_id == subquery.c.request_id)
@@ -241,18 +241,19 @@ async def get_table(
 
                 rows = (
                     session.query(
-                        model,
-                        RmsRequestStatus.status.label("request_status"),
+                        model,  # Dynamic model (e.g., RuleRequest)
+                        RmsRequestStatus.status.label("request_status"),  # Explicitly fetch the status
+                        RmsRequest.group_id.label("group_id"),  # Fetch group_id from RmsRequest
                     )
-                    .join(RmsRequest, model.rms_request_id == RmsRequest.id)
-                    .join(subquery, RmsRequest.id == subquery.c.request_id)
+                    .join(RmsRequest, model.rms_request_id == RmsRequest.id)  # Join with RmsRequest
+                    .join(subquery, RmsRequest.id == subquery.c.request_id)  # Join to find latest status
                     .join(
                         RmsRequestStatus,
                         (RmsRequestStatus.request_id == subquery.c.request_id)
                         & (RmsRequestStatus.timestamp == subquery.c.latest_timestamp),
                     )
                     .all()
-            )
+                )
                 logger.debug(f"rows = session.query(model).all()")
             except:
                 logger.debug(f"rows = session.query(model).all()")
@@ -281,6 +282,10 @@ async def get_table(
 
         logger.debug(f"Extracted columns: {columns}")
 
+        # Add `group_id` column for is_request models
+        if getattr(model, "is_request", False) and model_name != "request":
+            columns.insert(1, {"name": "group_id", "type": "String", "options": None})
+            
         # Add a dynamic column for `request_status` if relevant
         if getattr(model, "is_request", False):
             columns.insert(1, {"name": "request_status", "type": "String", "options": None})
@@ -307,25 +312,39 @@ async def get_table(
         logger.debug(f"Predefined options: {predefined_options}")
         logger.debug(f"Extracted relationships: {relationships}")
 
+
+
+
         # Transform rows into a dictionary format with transitions
         row_dicts = []
         for row in rows:
             try:
-                # Try to unpack as a two-item row (e.g., (RuleRequest, status))
-                model_obj, request_status = row
-                # We successfully unpacked => it's a joined query row
+                # Try to unpack as a two-item or three-item row (e.g., (RuleRequest, status, group_id))
+                if len(row) == 3:  # Handle the case where group_id is returned in the query
+                    model_obj, request_status, group_id = row
+                else:  # Fallback to two-item structure
+                    model_obj, request_status = row
+                    group_id = getattr(model_obj, "group_id", None)  # Get group_id from the related RmsRequest if available
+
+                # Initialize row data
                 row_data = {}
                 for col in mapper.columns:
                     val = getattr(model_obj, col.name, None)
                     row_data[col.name] = val
+
+                # Add request_status and group_id
                 row_data["request_status"] = request_status
+                row_data["group_id"] = group_id
 
                 # Fetch transitions based on the current request_status
                 transitions = model.request_status_config.get(request_status, {}).get("Next", [])
-                row_data["transitions"] = [{"next_status": next_status, "action_label": f"Change to {next_status}"} for next_status in transitions]
+                row_data["transitions"] = [
+                    {"next_status": next_status, "action_label": f"Change to {next_status}"}
+                    for next_status in transitions
+                ]
 
             except (TypeError, ValueError):
-                # If unpack fails => we have a single model row (e.g., RmsRequest)
+                # Handle single model row (e.g., RmsRequest without request_status)
                 single_obj = row
                 row_data = {}
                 for col in mapper.columns:
@@ -333,6 +352,8 @@ async def get_table(
                     row_data[col.name] = val
 
                 # Handle transitions for rows without explicit request_status
+                row_data["request_status"] = None
+                row_data["group_id"] = getattr(single_obj, "group_id", None)
                 row_data["transitions"] = []
 
             row_dicts.append(row_data)

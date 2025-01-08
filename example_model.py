@@ -10,7 +10,7 @@ from sqlalchemy import Column, Integer, String, ForeignKey, Text, DateTime
 from sqlalchemy.orm import relationship
 from datetime import datetime
 
-
+Base = declarative_base()
 # Models
         
 class Comment(Base):
@@ -57,16 +57,7 @@ class RmsRequest(Base):
     is_request = True
     request_status_config = {}
     
-class RmsRequestStatus(Base):
-    __tablename__ = "request_status"
-    id = Column(Integer, primary_key=True)
-    request_id = Column(Integer, ForeignKey("request.id", ondelete="CASCADE"), nullable=False)
-    status = Column(String, nullable=False)
-    username = Column(String(50), nullable=False)
-    timestamp = Column(DateTime, default=datetime.utcnow, nullable=False)
 
-    request = relationship("RmsRequest", back_populates="status")
-    
     
 class RuleRequest(Base):
     __tablename__ = "rule_request"
@@ -87,6 +78,17 @@ class RuleRequest(Base):
         "COMPLETE": {"Roles": ["Governance"], "Next": []},  # No transitions out of COMPLETE
     }
 
+class RmsRequestStatus(Base):
+    __tablename__ = "request_status"
+    id = Column(Integer, primary_key=True)
+    request_id = Column(Integer, ForeignKey("request.id", ondelete="CASCADE"), nullable=False)
+    status = Column(String, nullable=False)
+    username = Column(String(50), nullable=False)
+    timestamp = Column(DateTime, default=datetime.utcnow, nullable=False)
+
+    request = relationship("RmsRequest", back_populates="status")
+    
+    
 
 class StatusTransition(Base):
     __tablename__ = "status_transition"

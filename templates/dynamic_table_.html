@@ -224,6 +224,8 @@
                 // Find the "request_type" column value from the row
                 const requestTypeElement = row.querySelector(".request_type-column");
                 const requestType = requestTypeElement ? requestTypeElement.textContent.trim() : null;
+                const groupIdElement = row.querySelector(".group_id-column");
+                const groupId = groupIdElement ? groupIdElement.textContent.trim() : null;
 
                 if (id === "N/A" || !modelName) {
                     alert("Invalid row ID or model name.");
@@ -233,7 +235,8 @@
                 if (requestType) {
                     // Navigate to the appropriate page if request type exists
                     sessionStorage.setItem("filter_id", id);
-                    const url = `/${requestType.toLowerCase()}`;
+                    sessionStorage.setItem("filter_id", groupId);
+                    const url = `/table/${modelName}`;
                     window.location.href = url;
                 } else {
                     try {

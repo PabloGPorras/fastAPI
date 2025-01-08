@@ -41,9 +41,9 @@
         const filterId = sessionStorage.getItem("filter_id");
 
         if (filterId) {
-            // Find the filter input for the "Id" column
-            const filterMenu = document.getElementById("filter-id");
-            const input = filterMenu.querySelector(".filter-input");
+            // Find the filter input for the "group_id" column
+            const filterMenu = document.getElementById("filter-group_id");
+            const input = filterMenu ? filterMenu.querySelector(".filter-input") : null;
 
             if (filterMenu && input) {
                 // Set the filter value
@@ -51,13 +51,18 @@
 
                 // Trigger the filter logic by simulating the "Apply" button click
                 const applyButton = filterMenu.querySelector(".apply-filter-btn");
-                applyButton.click();
+                if (applyButton) {
+                    applyButton.click();
+                }
 
                 // Clear the filter_id from sessionStorage to prevent reapplying it on subsequent reloads
                 sessionStorage.removeItem("filter_id");
+            } else {
+                console.warn("Filter menu or input for group_id not found.");
             }
         }
     });
+
 
     // Show/hide filter menus
     document.querySelectorAll(".filter-icon").forEach(icon => {
