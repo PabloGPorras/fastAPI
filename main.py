@@ -991,10 +991,8 @@ async def get_comments(request_id: int):
 
 
 from PyQt6.QtCore import Qt
-from PyQt6.QtWidgets import QApplication, QMainWindow,QVBoxLayout, QWidget,QSizePolicy
+from PyQt6.QtWidgets import QApplication, QMainWindow
 from PyQt6.QtWebEngineWidgets import QWebEngineView
-from PyQt6.QtWebEngineCore import QWebEngineSettings
-
 from PyQt6.QtCore import QUrl
 import threading
 import uvicorn
@@ -1013,40 +1011,15 @@ def run_server():
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
-        self.setWindowTitle("FastAPI + PyQt6 (No nest_asyncio)")
-
-        # Create the central widget and layout for zero margins
-        central_widget = QWidget()
-        layout = QVBoxLayout(central_widget)
-        layout.setContentsMargins(0, 0, 0, 0)
-        layout.setSpacing(0)
+        self.setWindowTitle("RMS")
+        self.setFixedSize(1500, 900)  # Fixed size: 800x600 pixels
 
         # Create QWebEngineView
         self.web_view = QWebEngineView()
-        # Disable vertical scrollbars
-        # Disable horizontal scrollbars
-        # Force zoom factor to 1.0
-        self.web_view.setZoomFactor(1.0)
 
-        self.web_view.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
-
-        # This toggles whether scrollbars appear at all
-        # settings.setAttribute(QWebEngineSettings.ShowScrollBars, False)
         # Load the local FastAPI page
-        self.web_view.load(QUrl("http://127.0.0.1:8000/request"))
-        settings = self.web_view.settings()
-        settings.setAttribute(QWebEngineSettings.WebAttribute.JavascriptEnabled, True)
-        settings.setAttribute(QWebEngineSettings.WebAttribute.JavascriptCanOpenWindows, True)
-        settings.setAttribute(QWebEngineSettings.WebAttribute.PluginsEnabled, True)
-        settings.setAttribute(QWebEngineSettings.WebAttribute.LocalContentCanAccessRemoteUrls, True)
-        settings.setAttribute(QWebEngineSettings.WebAttribute.AutoLoadImages, True)
-        # Add the QWebEngineView to the layout
-        self.web_view.resize(self.size())
-        layout.addWidget(self.web_view)
-        layout.setContentsMargins(0, 0, 0, 0)
-        layout.setSpacing(0)
-        # Set the layout as central widget
-        self.setCentralWidget(central_widget)
+        self.web_view.load(QUrl("http://127.0.0.1:8000/table/request"))
+        self.setCentralWidget(self.web_view)
         
 
 
@@ -1057,13 +1030,9 @@ def main():
 
     # 5) Create the PyQt Application
     qt_app = QApplication(sys.argv)
-    # qt_app.setAttribute(Qt.ApplicationAttribute.AA_EnableHighDpiScaling, True)
-    # qt_app.setAttribute(Qt.ApplicationAttribute.AA_UseHighDpiPixmaps, True)
-    qt_app.setHighDpiScaleFactorRoundingPolicy(Qt.HighDpiScaleFactorRoundingPolicy.PassThrough)
 
     window = MainWindow()
-    window.showMaximized()
-
+    window.show()
     # 6) Start the PyQt event loop
     sys.exit(qt_app.exec())
 
