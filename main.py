@@ -842,6 +842,11 @@ async def create_new(model_name: str, data: dict):
         relationships_data = data.pop("relationships", {})
         logger.debug(f"Main data extracted: {data}, Relationships: {relationships_data}")
 
+        # Handle boolean values in the input data
+        for key, value in data.items():
+            if isinstance(value, str) and value.lower() in ["true", "false"]:
+                data[key] = value.lower() == "true"
+
         # Handle models with `is_request = True`
         if getattr(model, "is_request", False):  # Dynamically check if the model has `is_request`
             # Extract attributes for RmsRequest
