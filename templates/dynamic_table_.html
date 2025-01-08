@@ -21,7 +21,9 @@
         <!-- Manage Columns Button -->
         {% include "manage_columns_button.html" %}
 
-        {% include "header_action_button.html" %}
+        {% set model_name = model_name %}
+        {% include "header_action_button.html" with context %}
+
     </div>
     <div id="manage-columns-menu" class="border p-2"
         style="display: none; max-height: 200px; overflow-y: auto; width: 250px;">
@@ -119,8 +121,9 @@
 
 
 
-<!-- Bulk Import Upload Modal -->
-{% include "bulk_update_modal.html" %}
+
+
+
 
 
 <script id="props-data" type="application/json">

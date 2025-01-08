@@ -2,7 +2,9 @@ import csv
 import io
 import json
 from typing import List, Optional
-from fastapi import Body, Depends, FastAPI, File, Form, HTTPException, Request, Response, UploadFile
+from uuid import uuid4
+import uuid
+from fastapi import Body, Depends, FastAPI, File, Form, HTTPException, Query, Request, Response, UploadFile
 from fastapi.responses import FileResponse, JSONResponse, StreamingResponse
 from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
@@ -144,7 +146,7 @@ from fastapi import status
 ADMIN_MODELS = {"users", "roles", "organizations", "sub_organizations", "line_of_business", "applications"}
 
 
-@app.get("/{model_name}")
+@app.get("/table/{model_name}")
 async def get_table(
     model_name: str,
     request: Request,
@@ -678,83 +680,137 @@ async def custom_action_1(request: Request):
         session.close()
 
 @app.get("/bulk-import-template")
-async def download_template():
-    # Define CSV headers for the main object and relatives
-    headers = [
-        "name", "age", "gender", 
-        "relative_name_1", "relative_relationship_1", 
-        "relative_name_2", "relative_relationship_2"
-    ]
+async def download_template(model_name: str = Query(...)):
+    """
+    Generate and download a CSV template for the given model, including relationship fields.
+    """
+    logger.info(f"Generating bulk import template for model: {model_name}")
+
+    # Resolve the model dynamically
+    model = get_model_by_tablename(model_name)
+    if not model:
+        logger.warning(f"Model '{model_name}' not found.")
+        raise HTTPException(status_code=404, detail=f"Model '{model_name}' not found.")
+
+    # Use SQLAlchemy inspect to dynamically gather model metadata
+    mapper = inspect(model)
+    headers = []
+
+    # Filter columns to include only input-relevant fields
+    for column in mapper.columns:
+        if column.primary_key or column.foreign_keys or column.info.get("exclude_from_form", False):
+            continue  # Skip primary keys, foreign keys, and excluded fields
+        headers.append(column.name)
+
+    # Add relationship fields where input is expected
+    for relationship in mapper.relationships:
+        if relationship.info.get("exclude_from_form", False):
+            continue  # Skip relationships marked as excluded
+        rel_name = relationship.key  # Relationship key
+        rel_model = relationship.mapper.class_  # Related model
+
+        # Include fields for the related model, skipping irrelevant ones
+        rel_fields = [
+            f"{rel_name}.{column.name}"
+            for column in inspect(rel_model).columns
+            if not column.primary_key and not column.foreign_keys and not column.info.get("exclude_from_form", False)
+        ]
+        headers.extend(rel_fields)
+
+    # Create the CSV content
     content = io.StringIO()
     writer = csv.writer(content)
     writer.writerow(headers)  # Write headers
     content.seek(0)
 
+    # Return the CSV response
     return Response(
         content.getvalue(),
         media_type="text/csv",
-        headers={"Content-Disposition": "attachment; filename=bulk_import_template.csv"}
+        headers={"Content-Disposition": f"attachment; filename={model_name}_bulk_import_template.csv"}
     )
 
 
-@app.post("/bulk-import")
-async def bulk_import(file: UploadFile):
-    logger.info(f"Received bulk import request. File name: {file.filename}")
 
-    # Check if the uploaded file is a CSV
+
+
+
+from fastapi import Form
+
+@app.post("/bulk-import")
+async def bulk_import(file: UploadFile, model_name: str = Form(...)):
+    logger.info(f"Received bulk import request for model: {model_name}. File name: {file.filename}")
+
+    if not file.filename:
+        raise HTTPException(status_code=400, detail="No file uploaded")
+    
+    # Validate model name
+    model = get_model_by_tablename(model_name)
+    if not model:
+        logger.warning(f"Model '{model_name}' not found.")
+        raise HTTPException(status_code=404, detail=f"Model '{model_name}' not found.")
+
+    # Validate file type
     if not file.filename.endswith(".csv"):
         logger.warning(f"Invalid file type uploaded: {file.filename}")
         raise HTTPException(status_code=400, detail="Only CSV files are supported.")
 
     # Parse the CSV file
     content = await file.read()
+    logger.info(f"File received: {file.filename}")
+    logger.info(f"File content preview: {content[:100]}")  # Check the first 100 bytes
+
     try:
         csv_reader = csv.DictReader(io.StringIO(content.decode("utf-8")))
     except Exception as e:
         logger.error(f"Error decoding file content: {e}")
         raise HTTPException(status_code=400, detail="Invalid CSV file format.")
 
-    session = SessionLocal()  # Create a database session
+    session = SessionLocal()
     try:
         row_count = 0
+        group_id = f"GROUP-{uuid.uuid4().hex[:8]}"  # Generate a unique group ID
+
         for row in csv_reader:
             row_count += 1
             logger.debug(f"Processing row {row_count}: {row}")
 
-            # Extract main object fields
-            try:
-                person = Person(
-                    name=row["name"],
-                    age=int(row["age"]),
-                    gender=row["gender"]
-                )
-            except KeyError as e:
-                logger.error(f"Missing required field in row {row_count}: {e}")
-                raise HTTPException(status_code=400, detail=f"Missing required field: {e}")
-            except ValueError as e:
-                logger.error(f"Invalid data format in row {row_count}: {e}")
-                raise HTTPException(status_code=400, detail=f"Invalid data format: {e}")
+            # Create a new RmsRequest
+            rms_request = RmsRequest(
+                requester="Bulk Import User",  # Provide default or dynamic values as needed
+                request_type="RULE DEPLOYMENT",
+                effort="BAU",
+                organization="FRM",
+                sub_organization="FRAP",
+                line_of_business="CREDIT",
+                team="IMPL",
+                decision_engine="SASFM",
+                group_id=group_id,
+            )
+            session.add(rms_request)
+            session.flush()  # Flush to generate an ID for rms_request
 
-            # Extract related object fields dynamically
-            relatives = []
-            for i in range(1, 10):  # Assuming a maximum of 10 relatives per person
-                relative_name = row.get(f"relative_name_{i}")
-                relative_relation_type = row.get(f"relative_relationship_{i}")  # Updated field name
-                if relative_name and relative_relation_type:
-                    relatives.append(Relative(name=relative_name, relation_type=relative_relation_type))
-                    logger.debug(f"Added relative for row {row_count}: {relative_name}, {relative_relation_type}")
+            # Insert the initial status for the RmsRequest
+            initial_status = list(model.request_status_config.keys())[0]  # Get the first status
+            rms_status = RmsRequestStatus(
+                request_id=rms_request.id,
+                status=initial_status,
+                username="Bulk Import User",  # Replace with actual user performing the import
+            )
+            session.add(rms_status)
 
-            # Add relatives to the person object
-            person.relatives = relatives
+            # Extract relevant fields for the RuleRequest model
+            model_fields = {col.name for col in inspect(model).columns}
+            data = {field: row[field] for field in model_fields if field in row}
+            data["rms_request_id"] = rms_request.id  # Associate with the newly created RmsRequest
 
-            # Add the person object to the session
-            session.add(person)
-            logger.info(f"Person added to session: {person.name}")
+            # Create the RuleRequest
+            instance = model(**data)
+            session.add(instance)
 
-        # Commit all changes
         session.commit()
         logger.info(f"Bulk import completed successfully. Total rows processed: {row_count}")
-        return {"message": "Bulk import completed successfully!"}
+        return {"message": "Bulk import completed successfully!", "group_id": group_id}
     except Exception as e:
         session.rollback()
         logger.error(f"Error processing bulk import: {e}", exc_info=True)
@@ -762,6 +818,9 @@ async def bulk_import(file: UploadFile):
     finally:
         session.close()
         logger.debug("Database session closed.")
+
+
+
 
         
 @app.post("/create-new/{model_name}")
@@ -775,6 +834,10 @@ async def create_new(model_name: str, data: dict):
             logger.warning(f"Model '{model_name}' not found.")
             raise HTTPException(status_code=404, detail="Model not found")
 
+        # Generate a new group_id for single requests
+        group_id = str(uuid4())
+        data["group_id"] = group_id
+
         # Extract main fields (excluding relationships)
         relationships_data = data.pop("relationships", {})
         logger.debug(f"Main data extracted: {data}, Relationships: {relationships_data}")
@@ -783,14 +846,15 @@ async def create_new(model_name: str, data: dict):
         if getattr(model, "is_request", False):  # Dynamically check if the model has `is_request`
             # Extract attributes for RmsRequest
             rms_request_data = {
-                "requester": "John Doe",  # Example default value
-                "request_type": "RULE_REQUEST",  # Example default value
+                "requester": data.pop("requester", "John Doe"),  # Example default value
+                "request_type": data.pop("request_type", model_name.upper()),  # Example default value
                 "effort": data.pop("effort", "Default Effort"),
                 "organization": data.pop("organization", "Default Org"),
                 "sub_organization": data.pop("sub_organization", "Default Sub Org"),
                 "line_of_business": data.pop("line_of_business", "Default LOB"),
                 "team": data.pop("team", "Default Team"),
                 "decision_engine": data.pop("decision_engine", "Default Engine"),
+                "group_id": group_id,  # Assign the generated group_id
             }
 
             # Create and flush RmsRequest
@@ -801,14 +865,21 @@ async def create_new(model_name: str, data: dict):
             # Add the foreign key to the current model (e.g., RuleRequest)
             data["rms_request_id"] = new_request.id
 
+            # Determine the initial status
+            initial_status = list(model.request_status_config.keys())[0]  # Get the first status
+
             # Create RmsRequestStatus
             new_status = RmsRequestStatus(
                 request_id=new_request.id,
-                status="Created",  # Initial status
+                status=initial_status,  # Initial status from config
                 username="System",  # Example value, replace with actual username
                 timestamp=datetime.utcnow(),
             )
             session.add(new_status)
+
+        # Remove group_id if not applicable to the current model
+        if "group_id" not in {col.name for col in inspect(model).columns}:
+            data.pop("group_id", None)
 
         # Create the main object for all models
         main_object = model(**data)
@@ -844,6 +915,8 @@ async def create_new(model_name: str, data: dict):
     finally:
         session.close()
         logger.debug("Database session closed.")
+
+
 
 
 
@@ -917,9 +990,11 @@ async def get_comments(request_id: int):
 
 
 
-
-from PyQt6.QtWidgets import QApplication, QMainWindow
+from PyQt6.QtCore import Qt
+from PyQt6.QtWidgets import QApplication, QMainWindow,QVBoxLayout, QWidget,QSizePolicy
 from PyQt6.QtWebEngineWidgets import QWebEngineView
+from PyQt6.QtWebEngineCore import QWebEngineSettings
+
 from PyQt6.QtCore import QUrl
 import threading
 import uvicorn
@@ -938,16 +1013,41 @@ def run_server():
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
-        self.setWindowTitle("FastAPI + PyQt6 Example")
+        self.setWindowTitle("FastAPI + PyQt6 (No nest_asyncio)")
 
-        # Create QWebEngineView widget
+        # Create the central widget and layout for zero margins
+        central_widget = QWidget()
+        layout = QVBoxLayout(central_widget)
+        layout.setContentsMargins(0, 0, 0, 0)
+        layout.setSpacing(0)
+
+        # Create QWebEngineView
         self.web_view = QWebEngineView()
+        # Disable vertical scrollbars
+        # Disable horizontal scrollbars
+        # Force zoom factor to 1.0
+        self.web_view.setZoomFactor(1.0)
 
-        # Load the local FastAPI app
+        self.web_view.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
+
+        # This toggles whether scrollbars appear at all
+        # settings.setAttribute(QWebEngineSettings.ShowScrollBars, False)
+        # Load the local FastAPI page
         self.web_view.load(QUrl("http://127.0.0.1:8000/request"))
-
-        # Set the QWebEngineView as the central widget
-        self.setCentralWidget(self.web_view)
+        settings = self.web_view.settings()
+        settings.setAttribute(QWebEngineSettings.WebAttribute.JavascriptEnabled, True)
+        settings.setAttribute(QWebEngineSettings.WebAttribute.JavascriptCanOpenWindows, True)
+        settings.setAttribute(QWebEngineSettings.WebAttribute.PluginsEnabled, True)
+        settings.setAttribute(QWebEngineSettings.WebAttribute.LocalContentCanAccessRemoteUrls, True)
+        settings.setAttribute(QWebEngineSettings.WebAttribute.AutoLoadImages, True)
+        # Add the QWebEngineView to the layout
+        self.web_view.resize(self.size())
+        layout.addWidget(self.web_view)
+        layout.setContentsMargins(0, 0, 0, 0)
+        layout.setSpacing(0)
+        # Set the layout as central widget
+        self.setCentralWidget(central_widget)
+        
 
 
 def main():
@@ -957,9 +1057,12 @@ def main():
 
     # 5) Create the PyQt Application
     qt_app = QApplication(sys.argv)
+    # qt_app.setAttribute(Qt.ApplicationAttribute.AA_EnableHighDpiScaling, True)
+    # qt_app.setAttribute(Qt.ApplicationAttribute.AA_UseHighDpiPixmaps, True)
+    qt_app.setHighDpiScaleFactorRoundingPolicy(Qt.HighDpiScaleFactorRoundingPolicy.PassThrough)
+
     window = MainWindow()
-    window.resize(800, 600)
-    window.show()
+    window.showMaximized()
 
     # 6) Start the PyQt event loop
     sys.exit(qt_app.exec())

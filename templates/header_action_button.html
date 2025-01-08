@@ -39,12 +39,16 @@
         <!-- Bulk Import Upload -->
         {% if bulk_import_action %}
         <li>
-            <button class="dropdown-item" data-bs-toggle="modal" data-bs-target="#uploadBulkModal">
+            <button class="dropdown-item" data-bs-toggle="modal" data-bs-target="#uploadBulkModal" 
+                data-model-name="{{ model_name }}">
                 {{ bulk_import_action.label }}
             </button>
         </li>
         {% endif %}
     </ul>
+
+    {% set model_name = model_name %}
+    {% include "bulk_update_modal.html" with context %}
 
 
 </div>

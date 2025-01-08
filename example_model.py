@@ -1,3 +1,4 @@
+import uuid
 from sqlalchemy import Boolean, Column, Integer, String,ForeignKey, Table, create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
@@ -28,6 +29,7 @@ class Comment(Base):
 class RmsRequest(Base):
     __tablename__ = "request"
     id = Column(Integer, primary_key=True)
+    group_id = Column(String, default=lambda: str(uuid.uuid4()), nullable=False)  # Add group_id
     requester = Column(String, nullable=False)
     request_type = Column(String, nullable=False)
     effort = Column(String, nullable=False)

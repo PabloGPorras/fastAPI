@@ -10,6 +10,14 @@
 
     <title>{% block title %}My App{% endblock %}</title>
     <style>
+        html, body {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+        }
+
         #manage-columns-menu {
             position: absolute;
             background: white;
@@ -278,13 +286,13 @@
             </div>
             <ul class="nav flex-column w-100">
                 <li class="nav-item">
-                    <a href="/request" class="nav-link text-dark">
+                    <a href="/table/request" class="nav-link text-dark">
                         <i class="fas fa-home"></i>
                         <span>Home</span>
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a href="/settings" class="nav-link text-dark">
+                    <a href="/table/settings" class="nav-link text-dark">
                         <i class="fas fa-cogs"></i>
                         <span>Settings</span>
                     </a>
@@ -298,22 +306,22 @@
                     <div class="sub-side-menu" id="adminSubMenu">
                         <ul class="list-unstyled m-0 p-2">
                             <li class="mb-2">
-                                <a href="/users" class="nav-link text-dark">Users</a>
+                                <a href="/table/users" class="nav-link text-dark">Users</a>
                             </li>
                             <li class="mb-2">
-                                <a href="/roles" class="nav-link text-dark">Roles</a>
+                                <a href="/table/roles" class="nav-link text-dark">Roles</a>
                             </li>
                             <li class="mb-2">
-                                <a href="/organizations" class="nav-link text-dark">Organizations</a>
+                                <a href="/table/organizations" class="nav-link text-dark">Organizations</a>
                             </li>
                             <li class="mb-2">
-                                <a href="/sub_organizations" class="nav-link text-dark">Sub_Organizations</a>
+                                <a href="/table/sub_organizations" class="nav-link text-dark">Sub_Organizations</a>
                             </li>
                             <li class="mb-2">
-                                <a href="/line_of_business" class="nav-link text-dark">Line of Business</a>
+                                <a href="/table/line_of_business" class="nav-link text-dark">Line of Business</a>
                             </li>
                             <li>
-                                <a href="/applications" class="nav-link text-dark">Applications</a>
+                                <a href="/table/applications" class="nav-link text-dark">Applications</a>
                             </li>
                         </ul>
                     </div>
@@ -329,7 +337,7 @@
                         <ul class="list-unstyled m-0 p-2">
                             {% for model in is_request_models %}
                             <li class="mb-2">
-                                <a href="{{ model.url }}" class="nav-link text-dark create-item"
+                                <a href="/table{{ model.url }}" class="nav-link text-dark create-item"
                                     data-item="{{ model.name }}">
                                     {{ model.name }}
                                 </a>
