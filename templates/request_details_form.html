@@ -163,95 +163,95 @@
     {{ is_request | tojson }}
 </script>
 <script>
-function populateDetailsForm(data, relationships) {
-    console.log("Populating details form with data:", data);
-    console.log("Populating relationships with:", relationships);
+    function populateDetailsForm(data, relationships) {
+        console.log("Populating details form with data:", data);
+        console.log("Populating relationships with:", relationships);
 
-    const form = document.getElementById("detailsForm");
-    if (!form) {
-        console.error("Form with ID 'detailsForm' not found in DOM.");
-        return;
-    }
+        const form = document.getElementById("detailsForm");
+        if (!form) {
+            console.error("Form with ID 'detailsForm' not found in DOM.");
+            return;
+        }
 
-    // Reset the form to clear any previous data
-    form.reset();
+        // Reset the form to clear any previous data
+        form.reset();
 
-    // Populate simple form fields
-    for (const [key, value] of Object.entries(data)) {
-        const input = form.querySelector(`[name="${key}"]`);
-        if (input) {
-            if (input.tagName === "SELECT") {
-                input.value = value ?? "";
+        // Populate simple form fields
+        for (const [key, value] of Object.entries(data)) {
+            const input = form.querySelector(`[name="${key}"]`);
+            if (input) {
+                if (input.tagName === "SELECT") {
+                    input.value = value ?? "";
+                } else {
+                    input.value = value ?? "";
+                }
             } else {
-                input.value = value ?? "";
+                console.warn(`Field with name '${key}' not found in the form.`);
             }
-        } else {
-            console.warn(`Field with name '${key}' not found in the form.`);
         }
-    }
 
-    // Disable all form inputs, selects, and textareas
-    const inputs = form.querySelectorAll("input, select, textarea");
-    inputs.forEach(input => {
-        input.disabled = true;
-    });
+        // Disable all form inputs, selects, and textareas
+        const inputs = form.querySelectorAll("input, select, textarea");
+        inputs.forEach(input => {
+            input.disabled = true;
+        });
 
-    // Hide or disable the "Save" button
-    const saveButton = form.querySelector(".btn-primary");
-    if (saveButton) {
-        saveButton.style.display = "none"; // Hide the Save button
-    }
+        // Hide or disable the "Save" button
+        const saveButton = form.querySelector(".btn-primary");
+        if (saveButton) {
+            saveButton.style.display = "none"; // Hide the Save button
+        }
 
-    // Disable "Add" buttons for relationships
-    document.querySelectorAll(".add-predefined-btn, .add-row-btn").forEach(button => {
-        button.style.display = "none";
-    });
+        // Disable "Add" buttons for relationships
+        document.querySelectorAll(".add-predefined-btn, .add-row-btn").forEach(button => {
+            button.style.display = "none";
+        });
 
-    // Populate relationship data
-    if (relationships) {
-        const propsData = JSON.parse(document.getElementById("props-data").textContent);
+        // Populate relationship data
+        if (relationships) {
+            const propsData = JSON.parse(document.getElementById("props-data").textContent);
 
-        for (const [relKey, relValues] of Object.entries(relationships)) {
-            const container = document.querySelector(`#${relKey}-container tbody`);
-            if (!container) {
-                console.warn(`Relationship container for '${relKey}' not found.`);
-                continue;
-            }
+            for (const [relKey, relValues] of Object.entries(relationships)) {
+                const container = document.querySelector(`#${relKey}-container tbody`);
+                if (!container) {
+                    console.warn(`Relationship container for '${relKey}' not found.`);
+                    continue;
+                }
 
-            // Clear existing rows
-            container.innerHTML = "";
+                // Clear existing rows
+                container.innerHTML = "";
 
-            // Get relationship configuration
-            const relationshipConfig = propsData.relationships.find(rel => rel.name === relKey);
-            if (!relationshipConfig || !relationshipConfig.fields) {
-                console.warn(`No configuration found for relationship '${relKey}'.`);
-                continue;
-            }
+                // Get relationship configuration
+                const relationshipConfig = propsData.relationships.find(rel => rel.name === relKey);
+                if (!relationshipConfig || !relationshipConfig.fields) {
+                    console.warn(`No configuration found for relationship '${relKey}'.`);
+                    continue;
+                }
 
-            // Populate new rows
-            relValues.forEach(item => {
-                const row = document.createElement("tr");
+                // Populate new rows
+                relValues.forEach(item => {
+                    const row = document.createElement("tr");
 
-                // Create a table cell for each field defined in the relationship
-                relationshipConfig.fields.forEach(fieldInfo => {
-                    const fieldName = fieldInfo.name;
-                    const fieldValue = item[fieldName];
+                    // Create a table cell for each field defined in the relationship
+                    relationshipConfig.fields.forEach(fieldInfo => {
+                        const fieldName = fieldInfo.name;
+                        const fieldValue = item[fieldName];
 
-                    const cell = document.createElement("td");
-                    cell.textContent = fieldValue ?? ""; // Handle empty or null values
-                    row.appendChild(cell);
+                        const cell = document.createElement("td");
+                        cell.textContent = fieldValue ?? ""; // Handle empty or null values
+                        row.appendChild(cell);
+                    });
+
+                    // Add actions cell (empty in view mode)
+                    const actionsCell = document.createElement("td");
+                    // Hide actions in view mode
+                    row.appendChild(actionsCell);
+
+                    container.appendChild(row);
                 });
-
-                // Add actions cell (empty in view mode)
-                const actionsCell = document.createElement("td");
-                // Hide actions in view mode
-                row.appendChild(actionsCell);
-
-                container.appendChild(row);
-            });
+            }
         }
     }
-}
 
 
 
@@ -282,17 +282,29 @@ function populateDetailsForm(data, relationships) {
                         relationships[relationship][index][field] = value;
                     }
                 } else {
-                    formObject[key] = value;
+                    // Convert string booleans into actual boolean values
+                    if (value === "true") {
+                        formObject[key] = true;
+                    } else if (value === "false") {
+                        formObject[key] = false;
+                    } else {
+                        formObject[key] = value;
+                    }
                 }
             });
 
+            // Handle additional fields for `is_request` models
             const isRequest = JSON.parse(document.getElementById("is-request-config").textContent);
             if (isRequest) {
                 formObject.organization = document.querySelector("#organization").value;
                 formObject.sub_organization = document.querySelector("#sub_organization").value;
                 formObject.line_of_business = document.querySelector("#line_of_business").value;
+                formObject.team = document.querySelector("#team").value;
+                formObject.decision_engine = document.querySelector("#decision_engine").value;
+                formObject.effort = document.querySelector("#effort").value;
             }
 
+            // Get row ID and model name
             const rowId = document.querySelector("#createNewModal .btn-primary")?.getAttribute("data-id");
             const modelName = JSON.parse(document.getElementById("props-data").textContent)?.model_name;
 
@@ -301,9 +313,11 @@ function populateDetailsForm(data, relationships) {
                 return;
             }
 
+            // Determine the API endpoint
             const url = rowId ? `/update-row/${modelName}/${rowId}` : `/create-new/${modelName}`;
 
             try {
+                // Make the API request
                 const response = await fetch(url, {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
@@ -312,7 +326,7 @@ function populateDetailsForm(data, relationships) {
 
                 if (response.ok) {
                     alert("Operation successful!");
-                    location.reload();
+                    location.reload(); // Reload the page after successful operation
                 } else {
                     const errorMessage = await response.text();
                     alert(`Operation failed: ${response.status} - ${errorMessage}`);
@@ -322,6 +336,7 @@ function populateDetailsForm(data, relationships) {
                 alert("An error occurred while performing the operation.");
             }
         });
+
 
         // Add Predefined Options as Rows
         document.querySelectorAll(".add-predefined-btn").forEach(button => {
