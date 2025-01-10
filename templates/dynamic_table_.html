@@ -155,12 +155,12 @@
     
                     $("#commentText").val("").prop("disabled", false);
     
-                    if (typeof loadComments === "function") {
-                        console.log("Loading comments for:", id);
-                        await loadComments(id);
-                    } else {
-                        console.warn("loadComments function not found.");
-                    }
+                    // if (typeof loadComments === "function") {
+                    //     console.log("Loading comments for:", id);
+                    //     await loadComments(id);
+                    // } else {
+                    //     console.warn("loadComments function not found.");
+                    // }
     
                     const $modal = $("#createNewModal");
                     $modal.attr("data-model-name", modelName).attr("data-id", id);

@@ -470,35 +470,35 @@
 
 
 
-        // View button functionality
-        $(document).on("click", ".view-btn", async function () {
-            try {
-                // Grab the data from the clicked button or its associated row
-                const $row = $(this).closest("tr");
-                const modelName = $row.data("model-name"); // Grab the model name from the data attribute
+        // // View button functionality
+        // $(document).on("click", ".view-btn", async function () {
+        //     try {
+        //         // Grab the data from the clicked button or its associated row
+        //         const $row = $(this).closest("tr");
+        //         const modelName = $row.data("model-name"); // Grab the model name from the data attribute
 
-                console.log("Model name extracted:", modelName);
+        //         console.log("Model name extracted:", modelName);
 
-                if (!modelName) {
-                    alert("Model name is missing.");
-                    console.error("Model name is missing or invalid:", modelName);
-                    return;
-                }
+        //         if (!modelName) {
+        //             alert("Model name is missing.");
+        //             console.error("Model name is missing or invalid:", modelName);
+        //             return;
+        //         }
 
-                // Set up the modal for the model
-                const $modal = $("#createNewModal");
-                $modal.attr("data-model-name", modelName);
+        //         // Set up the modal for the model
+        //         const $modal = $("#createNewModal");
+        //         $modal.attr("data-model-name", modelName);
 
-                console.log("Showing modal for model:", modelName);
+        //         console.log("Showing modal for model:", modelName);
 
-                // Show the modal
-                const bootstrapModal = new bootstrap.Modal(document.getElementById("createNewModal"));
-                bootstrapModal.show();
-            } catch (error) {
-                console.error("Error showing create_new_modal:", error);
-                alert("An error occurred while trying to display the modal.");
-            }
-        });
+        //         // Show the modal
+        //         const bootstrapModal = new bootstrap.Modal(document.getElementById("createNewModal"));
+        //         bootstrapModal.show();
+        //     } catch (error) {
+        //         console.error("Error showing create_new_modal:", error);
+        //         alert("An error occurred while trying to display the modal.");
+        //     }
+        // });
 
 
         // Fetch current user information
