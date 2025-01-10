@@ -1,6 +1,9 @@
 import csv
 import io
 import json
+import os
+import random
+from time import strftime
 from typing import List, Optional
 from uuid import uuid4
 import uuid
@@ -9,15 +12,15 @@ from fastapi.responses import FileResponse, JSONResponse, StreamingResponse
 from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
-from sqlalchemy.orm import sessionmaker
-from sqlalchemy import create_engine, func, inspect
-from example_model import Comment, Person, Relative, RmsRequest, Base, RmsRequestStatus, RuleRequest, StatusTransition, User
+from sqlalchemy import and_, create_engine, func, inspect
+from example_model import Comment, Person, RmsRequest, Base, RmsRequestStatus, User, id_method
 from fastapi.middleware.cors import CORSMiddleware
 import logging
 import sys
 from sqlalchemy.orm import Session
 from sqlalchemy import event
 from datetime import datetime
+from database import SessionLocal
 
 # Configure logging
 logging.basicConfig(
@@ -40,10 +43,6 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-
-# Database setup
-engine = create_engine("sqlite:///example.db")
-SessionLocal = sessionmaker(autocommit=False, autoflush=True, bind=engine)
 
 
 # Jinja2 templates setup
@@ -82,32 +81,38 @@ MODEL_PERMISSIONS = {
     "requests": "user",  # Example: Regular users can access 'requests'
 }
 
-def get_current_username(request: Request) -> str:
-    """
-    1) Check if any users exist in the database.
-       - If zero, skip requiring X-Username, treat as "admin".
-    2) Otherwise, require X-Username and raise 401 if missing.
-    """
+
+
+def get_current_user():
     session = SessionLocal()
-    try:
-        user_count = session.query(User).count()
-        if user_count == 0:
-            # No users in the DB => auto-ADMIN
-            return "admin"
-        else:
-            # Now we require the header
-            username = request.headers.get("X-Username")
-            if not username:
-                raise HTTPException(
-                    status_code=status.HTTP_401_UNAUTHORIZED,
-                    detail="No username header provided.",
-                )
-            return username
-    finally:
-        session.close()
+    logger.debug("get_current_user is being called.")
+    
+    # Get the current user's name
+    user_name = os.getlogin().upper()
+    logger.debug(f"Retrieved user_name: {user_name}")
+    
+    # Query to find the most recent non-expired user entry
+    user = (
+        session.query(User)
+        .filter(
+            and_(
+                User.user_name == user_name,
+                User.user_role_expire_timestamp > datetime.utcnow()  # Check if role is not expired
+            )
+        )
+        .order_by(User.last_update_timestamp.desc())  # Order by latest update timestamp
+        .first()  # Get the first result
+    )
+    
+    if not user:
+        logger.error(f"User not found or role expired: {user_name}")
+        raise HTTPException(status_code=401, detail="User not authenticated or role expired")
+    
+    logger.debug(f"Authenticated user: {user.user_name}, Last Update: {user.last_update_timestamp}")
+    return user
 
 def get_user_roles(
-    username: str = Depends(get_current_username)
+    username: str = Depends(get_current_user)
 ) -> List[str]:
     """
     1. Check if the User table is empty.
@@ -126,7 +131,7 @@ def get_user_roles(
             return ["admin"]
 
         # 2) Users exist, so look up the requesting user
-        db_user = session.query(User).filter(User.username == username).one_or_none()
+        db_user = session.query(User).filter(User.user_name == username).one_or_none()
         if not db_user:
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
@@ -142,8 +147,10 @@ def get_user_roles(
 
 from fastapi import status
 
-    
-ADMIN_MODELS = {"users", "roles", "organizations", "sub_organizations", "line_of_business", "applications"}
+@app.get("/example")
+async def example_endpoint(user: User = Depends(get_current_user)):
+    logger.debug(f"User in endpoint: {user.user_name}")
+    return {"message": "Success"}
 
 
 @app.get("/table/{model_name}")
@@ -151,15 +158,18 @@ async def get_table(
     model_name: str,
     request: Request,
     response: Response,
-    user_roles: str = Depends(get_user_roles),  # We'll get the role here
+    user: User = Depends(get_current_user),  # We'll get the role here
 ):
+    logger.debug(f"Fetching table data for model: {model_name}")
+    logger.debug(f"Authenticated user: {user.user_name}")
     # --- 1) Restrict certain models to admin role only ---
-    if model_name in ADMIN_MODELS and "admin" not in user_roles:
+    ADMIN_MODELS = {"users"}
+    if model_name in ADMIN_MODELS and "Admin" not in user.roles:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail=(
                 f"Admin role required to access '{model_name}'. "
-                f"Your roles: {user_roles}"
+                f"Your roles: {user.roles}"
             ),
         )
     if model_name == "favicon.ico":
@@ -219,7 +229,7 @@ async def get_table(
                     RmsRequest,  # Directly query RmsRequest
                     RmsRequestStatus.status.label("request_status"),  # Fetch the status
                 )
-                .join(subquery, RmsRequest.id == subquery.c.request_id)  # Join with subquery
+                .join(subquery, RmsRequest.unique_ref == subquery.c.request_id)  # Join with subquery
                 .join(
                     RmsRequestStatus,
                     (RmsRequestStatus.request_id == subquery.c.request_id)
@@ -245,8 +255,8 @@ async def get_table(
                         RmsRequestStatus.status.label("request_status"),  # Explicitly fetch the status
                         RmsRequest.group_id.label("group_id"),  # Fetch group_id from RmsRequest
                     )
-                    .join(RmsRequest, model.rms_request_id == RmsRequest.id)  # Join with RmsRequest
-                    .join(subquery, RmsRequest.id == subquery.c.request_id)  # Join to find latest status
+                    .join(RmsRequest, model.rms_request_id == RmsRequest.unique_ref)  # Join with RmsRequest
+                    .join(subquery, RmsRequest.unique_ref == subquery.c.request_id)  # Join to find latest status
                     .join(
                         RmsRequestStatus,
                         (RmsRequestStatus.request_id == subquery.c.request_id)
@@ -269,15 +279,21 @@ async def get_table(
         relationships = []
         predefined_options = {}
 
-        # Extract column data for the main model
+        # Extract restricted fields from the model
+        restricted_fields = getattr(model, "restricted_fields", [])
+        logger.debug(f"Restricted fields for {model.__tablename__}: {restricted_fields}")
         for column in mapper.columns:
             column_info = {
                 "name": column.name,
                 "type": str(column.type),
                 "options": getattr(model, f"{column.name}_options", None),
+                "multi_options": getattr(model, f"{column.name}_multi_options", None),
+                "is_foreign_key": bool(column.foreign_keys),
             }
             columns.append(column_info)
-            if column.name != "id":
+
+            # Include in form fields only if it's not in restricted_fields
+            if column.name not in restricted_fields and column.name not in ["unique_ref"]:
                 form_fields.append(column_info)
 
         logger.debug(f"Extracted columns: {columns}")
@@ -285,7 +301,7 @@ async def get_table(
         # Add `group_id` column for is_request models
         if getattr(model, "is_request", False) and model_name != "request":
             columns.insert(1, {"name": "group_id", "type": "String", "options": None})
-            
+
         # Add a dynamic column for `request_status` if relevant
         if getattr(model, "is_request", False):
             columns.insert(1, {"name": "request_status", "type": "String", "options": None})
@@ -305,7 +321,7 @@ async def get_table(
             if rel.info.get("predefined_options", False):
                 related_model = rel.mapper.class_
                 predefined_options[rel.key] = [
-                    {"id": obj.id, "name": getattr(obj, "name", str(obj.id))}
+                    {"id": obj.unique_ref, "name": getattr(obj, "name", str(obj.unique_ref))}
                     for obj in session.query(related_model).all()
                 ]
 
@@ -360,9 +376,7 @@ async def get_table(
 
 
 
-        # Identify foreign key fields (if any)
-        foreign_keys = [col.name for col in mapper.columns if col.foreign_keys]
-        logger.debug(f"Foreign keys: {foreign_keys}")
+
 
         # Handle request_status_config only if applicable
         if hasattr(model, "request_status_config"):
@@ -390,7 +404,6 @@ async def get_table(
                 "model_name": model_name,
                 "model": model,
                 "RmsRequest": RmsRequest,
-                "foreign_keys": foreign_keys,
                 "bulk_import_action": bulk_import_action,
                 "primary_action": primary_action,
                 "request_status_config": request_status_config,
@@ -411,7 +424,7 @@ async def get_table(
 from sqlalchemy.orm import joinedload, subqueryload
 
 @app.get("/get-details/{model_name}/{item_id}")
-async def get_details(model_name: str, item_id: int):
+async def get_details(model_name: str, item_id: str):
     logger.info(f"Fetching details for model: {model_name}, item_id: {item_id}")
     session = SessionLocal()
     try:
@@ -425,7 +438,7 @@ async def get_details(model_name: str, item_id: int):
         item = (
             session.query(model)
             .options(joinedload("*"))  # Eagerly load all relationships
-            .filter(model.id == item_id)
+            .filter(model.unique_ref == item_id)
             .one_or_none()
         )
         if not item:
@@ -469,7 +482,7 @@ async def get_details(model_name: str, item_id: int):
 
 
 @app.post("/bulk-update-status")
-def bulk_update_status(payload: dict):
+def bulk_update_status(payload: dict, user: User = Depends(get_current_user)):
     import logging
     logger = logging.getLogger("bulk_update_status")
 
@@ -505,7 +518,7 @@ def bulk_update_status(payload: dict):
 
         rows = (
             session.query(RmsRequest, RmsRequestStatus.status)
-            .join(subquery, RmsRequest.id == subquery.c.request_id)
+            .join(subquery, RmsRequest.unique_ref == subquery.c.request_id)
             .join(
                 RmsRequestStatus,
                 (RmsRequestStatus.request_id == subquery.c.request_id)
@@ -514,35 +527,44 @@ def bulk_update_status(payload: dict):
             .all()
         )
 
-        logger.debug(f"Fetched rows: {[{'id': r.id, 'status': s} for r, s in rows]}")
+        logger.debug(f"Fetched rows: {[{'id': r.unique_ref, 'status': s} for r, s in rows]}")
 
         updated_count = 0
 
         for (request, current_status), expected_status in zip(rows, current_statuses):
-            logger.debug(f"Processing request ID: {request.id}, Current Status: {current_status}, Expected Status: {expected_status}")
+            logger.debug(f"Processing request ID: {request.unique_ref}, Current Status: {current_status}, Expected Status: {expected_status}")
 
             # Ensure the current status matches the expected status
             if current_status != expected_status:
-                logger.warning(f"Request ID {request.id}: Status mismatch. Expected {expected_status}, Found {current_status}")
+                logger.warning(f"Request ID {request.unique_ref}: Status mismatch. Expected {expected_status}, Found {current_status}")
                 continue
 
-            # Fetch valid transitions for the current status
+            # Fetch valid roles and transitions for the current status
+            valid_roles = request_status_config.get(current_status, {}).get("Roles", [])
             valid_transitions = request_status_config.get(current_status, {}).get("Next", [])
+            logger.debug(f"Valid roles for {current_status}: {valid_roles}")
             logger.debug(f"Valid transitions for {current_status}: {valid_transitions}")
 
+            # Check if the user has at least one of the valid roles
+            user_roles = set(user.roles.split(","))
+            if not user_roles.intersection(valid_roles):
+                logger.warning(f"Request ID {request.unique_ref}: User '{user.user_name}' does not have required roles for {current_status}")
+                continue
+
+            # Check if the next status is valid
             if next_status in valid_transitions:
-                logger.info(f"Updating request ID {request.id} to next status: {next_status}")
+                logger.info(f"Updating request ID {request.unique_ref} to next status: {next_status}")
 
                 # Add a new RmsRequestStatus entry to represent the status update
                 new_status = RmsRequestStatus(
-                    request_id=request.id,
+                    request_id=request.unique_ref,
                     status=next_status,
-                    username="current_user",  # Replace with actual username from authentication
+                    user_name=user.user_name,  # Use the authenticated user's name
                 )
                 session.add(new_status)
                 updated_count += 1
             else:
-                logger.warning(f"Request ID {request.id}: Invalid transition from {current_status} to {next_status}")
+                logger.warning(f"Request ID {request.unique_ref}: Invalid transition from {current_status} to {next_status}")
 
         # Commit the changes to the database
         session.commit()
@@ -556,6 +578,7 @@ def bulk_update_status(payload: dict):
     finally:
         session.close()
         logger.debug("Session closed.")
+
 
 
 
@@ -759,7 +782,7 @@ async def download_template(model_name: str = Query(...)):
 from fastapi import Form
 
 @app.post("/bulk-import")
-async def bulk_import(file: UploadFile, model_name: str = Form(...)):
+async def bulk_import(file: UploadFile, model_name: str = Form(...),user: User = Depends(get_current_user)):
     logger.info(f"Received bulk import request for model: {model_name}. File name: {file.filename}")
 
     if not file.filename:
@@ -790,7 +813,7 @@ async def bulk_import(file: UploadFile, model_name: str = Form(...)):
     session = SessionLocal()
     try:
         row_count = 0
-        group_id = f"GROUP-{uuid.uuid4().hex[:8]}"  # Generate a unique group ID
+        group_id = id_method()  # Generate a unique group ID
 
         for row in csv_reader:
             row_count += 1
@@ -798,7 +821,7 @@ async def bulk_import(file: UploadFile, model_name: str = Form(...)):
 
             # Create a new RmsRequest
             rms_request = RmsRequest(
-                requester="Bulk Import User",  # Provide default or dynamic values as needed
+                requester=user.user_name,  # Provide default or dynamic values as needed
                 request_type="RULE DEPLOYMENT",
                 effort="BAU",
                 organization="FRM",
@@ -814,16 +837,16 @@ async def bulk_import(file: UploadFile, model_name: str = Form(...)):
             # Insert the initial status for the RmsRequest
             initial_status = list(model.request_status_config.keys())[0]  # Get the first status
             rms_status = RmsRequestStatus(
-                request_id=rms_request.id,
+                request_id=rms_request.unique_ref,
                 status=initial_status,
-                username="Bulk Import User",  # Replace with actual user performing the import
+                user_name=user.user_name,  # Replace with actual user performing the import
             )
             session.add(rms_status)
 
             # Extract relevant fields for the RuleRequest model
             model_fields = {col.name for col in inspect(model).columns}
             data = {field: row[field] for field in model_fields if field in row}
-            data["rms_request_id"] = rms_request.id  # Associate with the newly created RmsRequest
+            data["rms_request_id"] = rms_request.unique_ref  # Associate with the newly created RmsRequest
 
             # Create the RuleRequest
             instance = model(**data)
@@ -845,7 +868,7 @@ async def bulk_import(file: UploadFile, model_name: str = Form(...)):
 
         
 @app.post("/create-new/{model_name}")
-async def create_new(model_name: str, data: dict):
+async def create_new(model_name: str, data: dict,user: User = Depends(get_current_user)):
     logger.info(f"Received request to create a new entry for model: {model_name}.")
     session = SessionLocal()
     try:
@@ -856,7 +879,7 @@ async def create_new(model_name: str, data: dict):
             raise HTTPException(status_code=404, detail="Model not found")
 
         # Generate a new group_id for single requests
-        group_id = str(uuid4())
+        group_id = id_method()
         data["group_id"] = group_id
 
         # Extract main fields (excluding relationships)
@@ -872,7 +895,7 @@ async def create_new(model_name: str, data: dict):
         if getattr(model, "is_request", False):  # Dynamically check if the model has `is_request`
             # Extract attributes for RmsRequest
             rms_request_data = {
-                "requester": data.pop("requester", "John Doe"),  # Example default value
+                "unique_ref": data.get("unique_ref"),  # Ensure the unique_ref is the same
                 "request_type": data.pop("request_type", model_name.upper()),  # Example default value
                 "effort": data.pop("effort", "Default Effort"),
                 "organization": data.pop("organization", "Default Org"),
@@ -884,21 +907,23 @@ async def create_new(model_name: str, data: dict):
             }
 
             # Create and flush RmsRequest
-            new_request = RmsRequest(**rms_request_data)
+            initial_status = list(model.request_status_config.keys())[0]  # Get the first status
+            new_request = RmsRequest(
+                **rms_request_data,
+                request_status=initial_status  # Assign the initial status here
+            )
             session.add(new_request)
             session.flush()  # Ensure the ID is generated
 
-            # Add the foreign key to the current model (e.g., RuleRequest)
-            data["rms_request_id"] = new_request.id
-
-            # Determine the initial status
-            initial_status = list(model.request_status_config.keys())[0]  # Get the first status
+            # Set the same unique_ref in RuleRequest
+            data["unique_ref"] = new_request.unique_ref  # Synchronize unique_ref
+            data["rms_request_id"] = new_request.unique_ref
 
             # Create RmsRequestStatus
             new_status = RmsRequestStatus(
-                request_id=new_request.id,
+                request_id=new_request.unique_ref,
                 status=initial_status,  # Initial status from config
-                username="System",  # Example value, replace with actual username
+                user_name=user.user_name,  # Example value, replace with actual username
                 timestamp=datetime.utcnow(),
             )
             session.add(new_status)
@@ -948,71 +973,108 @@ async def create_new(model_name: str, data: dict):
 
 
 
-@app.post("/requests/{request_id}/comments")
-async def add_comment(request_id: int, comment_data: dict):
+@app.post("/requests/{unique_ref}/comments")
+async def add_comment(unique_ref: str, comment_data: dict, user: User = Depends(get_current_user)):
     """
-    Add a new comment to a specific RmsRequest identified by request_id.
+    Add a new comment to a specific RmsRequest identified by unique_ref.
     """
     session = SessionLocal()
-    try:
-        # Ensure the RmsRequest exists
-        request = session.query(RmsRequest).filter(RmsRequest.id == request_id).one_or_none()
-        if not request:
-            raise HTTPException(status_code=404, detail="RmsRequest not found")
+    logger.debug(f"Received comment_data: {comment_data}")
 
+    try:
+        logger.debug(f"Adding comment to unique_ref: {unique_ref} with data: {comment_data}")
+
+        # Ensure the RmsRequest exists
+        request = session.query(RmsRequest).filter(RmsRequest.unique_ref == unique_ref).one_or_none()
+        if not request:
+            logger.warning(f"RmsRequest not found for unique_ref: {unique_ref}")
+            raise HTTPException(status_code=404, detail=f"Request with unique_ref {unique_ref} does not exist")
+
+    
         # Create and save a new comment
         new_comment = Comment(
-            request_id=request_id,
-            comment_text=comment_data.get("comment_text"),
-            username=comment_data.get("username"),
-            timestamp=datetime.utcnow(),
+            unique_ref=unique_ref,
+            comment=comment_data.get("comment_text"),
+            user_name=user.user_name,
+            comment_timestamp=datetime.utcnow(),
         )
         session.add(new_comment)
         session.commit()
 
+        logger.info(f"Comment added successfully to unique_ref {unique_ref}")
         # Return the created comment
         return {
-            "comment_text": new_comment.comment_text,
-            "username": new_comment.username,
-            "timestamp": new_comment.timestamp.isoformat(),
+            "comment_id": new_comment.comment_id,
+            "comment": new_comment.comment,
+            "user_name": new_comment.user_name,
+            "comment_timestamp": new_comment.comment_timestamp.isoformat(),
         }
     except Exception as e:
         session.rollback()
-        logger.error(f"Error adding comment to request_id {request_id}: {str(e)}")
+        logger.error(f"Error adding comment to unique_ref {unique_ref}: {str(e)}")
         raise HTTPException(status_code=500, detail="Failed to add comment")
     finally:
         session.close()
 
-
-
-
-@app.get("/requests/{request_id}/comments")
-async def get_comments(request_id: int):
+@app.get("/requests/{unique_ref}/comments")
+async def get_comments(unique_ref: str):
     """
-    Fetch all comments for a specific RmsRequest identified by request_id.
+    Fetch all comments for a specific RmsRequest identified by unique_ref.
     """
     session = SessionLocal()
     try:
+        logger.debug(f"Fetching comments for unique_ref: {unique_ref}")
+
         # Query comments related to the RmsRequest
-        comments = session.query(Comment).filter(Comment.request_id == request_id).all()
+        comments = session.query(Comment).filter(Comment.unique_ref == unique_ref).all()
         if not comments:
+            logger.debug(f"No comments found for unique_ref: {unique_ref}")
             return []  # Return an empty list if no comments exist
 
         # Serialize comments
-        return [
+        serialized_comments = [
             {
-                "comment_text": comment.comment_text,
-                "username": comment.username,
-                "timestamp": comment.timestamp.isoformat(),
+                "comment": comment.comment,
+                "user_name": comment.user_name,
+                "comment_timestamp": comment.comment_timestamp.isoformat() if comment.comment_timestamp else None,
             }
             for comment in comments
         ]
+
+        logger.debug(f"Fetched and serialized comments: {serialized_comments}")
+        return serialized_comments
+
     except Exception as e:
-        logger.error(f"Error fetching comments for request_id {request_id}: {str(e)}")
+        logger.error(f"Error fetching comments for unique_ref {unique_ref}: {str(e)}", exc_info=True)
         raise HTTPException(status_code=500, detail="Failed to fetch comments")
     finally:
         session.close()
+        logger.debug(f"Database session closed for unique_ref: {unique_ref}")
 
+
+@app.get("/current-user", response_model=dict)
+async def get_current_user_info(user: User = Depends(get_current_user)):
+    """
+    Fetch the currently logged-in user's information.
+    """
+    try:
+        logger.debug(f"Fetching current user information for: {user.user_name}")
+        return {
+            "user_name": user.user_name,
+            "roles": user.roles,
+            "email_from": user.email_from,
+            "email_to": user.email_to,
+            "email_cc": user.email_cc,
+            "organizations": user.organizations,
+            "sub_organizations": user.sub_organizations,
+            "line_of_businesses": user.line_of_businesses,
+            "decision_engines": user.decision_engines,
+            "last_update_timestamp": user.last_update_timestamp.isoformat(),
+            "user_role_expire_timestamp": user.user_role_expire_timestamp.isoformat(),
+        }
+    except Exception as e:
+        logger.error(f"Error fetching current user information: {e}")
+        raise HTTPException(status_code=500, detail="Unable to fetch current user information")
 
 
 

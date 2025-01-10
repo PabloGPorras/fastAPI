@@ -68,19 +68,17 @@
 }
 </style>
 
-<h5>Comments</h5>
-<ul id="comments-list" class="list-group mb-3">
-    <!-- Comments will be dynamically added here -->
-</ul>
-
-<!-- Add Comment Form -->
-<form id="addCommentForm">
-    <div class="input-group">
+<div class="tab-pane fade" id="comments-tab-pane" role="tabpanel" aria-labelledby="comments-tab">
+    <h5>Comments</h5>
+    <ul id="comments-list" class="list-group mb-3">
+        <!-- Comments will be dynamically added here -->
+    </ul>
+    <!-- Add Comment Form -->
+    <form id="addCommentForm" class="d-flex gap-2">
         <input type="text" id="commentText" class="form-control" placeholder="Enter your comment">
         <button type="button" id="addCommentButton" class="btn btn-primary">Add Comment</button>
-    </div>
-</form>
-
+    </form>
+</div>
 
 
 

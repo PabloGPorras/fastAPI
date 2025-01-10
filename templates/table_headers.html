@@ -3,6 +3,7 @@
         <!-- Blank Header for the First Column -->
         <th></th>
         {% for column in columns %}
+        {% if not column.is_foreign_key %}
         <th class="{{ column.name }}-column">
             {{ column.name|capitalize }}
             <button class="btn btn-link sort-btn" data-column="{{ column.name }}" data-order="asc">
@@ -29,191 +30,191 @@
                 </div>
             </div>
         </th>
+        {% endif %}
         {% endfor %}
     </tr>
 </thead>
 
 
-
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script>
-    document.addEventListener("DOMContentLoaded", function () {
-        // Check if a filter_id is stored in sessionStorage
-        const filterId = sessionStorage.getItem("filter_id");
+    $(document).ready(function () {
+        // Apply stored group_id filter from sessionStorage
+        const storedGroupId = sessionStorage.getItem("group_id");
+        if (storedGroupId) {
+            console.log("Found stored group_id:", storedGroupId);
 
-        if (filterId) {
-            // Find the filter input for the "group_id" column
-            const filterMenu = document.getElementById("filter-group_id");
-            const input = filterMenu ? filterMenu.querySelector(".filter-input") : null;
+            const $filterMenu = $("#filter-group_id");
+            const $input = $filterMenu.find(".filter-input");
+            const $filterIcon = $("#filter-icon-group_id");
 
-            if (filterMenu && input) {
+            if ($filterMenu.length && $input.length) {
                 // Set the filter value
-                input.value = filterId.toLowerCase();
+                $input.val(storedGroupId);
+                console.log("Setting group_id filter input value:", $input.val());
 
                 // Trigger the filter logic by simulating the "Apply" button click
-                const applyButton = filterMenu.querySelector(".apply-filter-btn");
-                if (applyButton) {
-                    applyButton.click();
+                const $applyButton = $filterMenu.find(".apply-filter-btn");
+                if ($applyButton.length) {
+                    console.log("Triggering Apply button for group_id filter.");
+                    $applyButton.trigger("click");
+                } else {
+                    console.warn("Apply button not found for group_id filter.");
                 }
 
-                // Clear the filter_id from sessionStorage to prevent reapplying it on subsequent reloads
-                sessionStorage.removeItem("filter_id");
+                // Add the active class to the filter icon
+                $filterIcon.addClass("active");
+                console.log("Filter icon for group_id marked as active.");
             } else {
                 console.warn("Filter menu or input for group_id not found.");
             }
+        } else {
+            console.log("No stored group_id found in sessionStorage.");
         }
-    });
 
-
-    // Show/hide filter menus
-    document.querySelectorAll(".filter-icon").forEach(icon => {
-        icon.addEventListener("click", function (event) {
+        // Show/hide filter menus
+        $(".filter-icon").on("click", function (event) {
             event.stopPropagation();
-            const column = this.dataset.column;
-            const filterMenu = document.getElementById(`filter-${column}`);
-            document.querySelectorAll(".filter-menu").forEach(menu => {
-                if (menu !== filterMenu) {
-                    menu.classList.remove("show");
-                }
-            });
-            filterMenu.classList.toggle("show");
-        });
-    });
+            const column = $(this).data("column");
+            const $filterMenu = $(`#filter-${column}`);
 
-    // Apply filter
-    document.querySelectorAll(".apply-filter-btn").forEach(button => {
-        button.addEventListener("click", function () {
-            const column = this.dataset.column;
-            const filterIcon = document.getElementById(`filter-icon-${column}`);
-            const filterMenu = document.getElementById(`filter-${column}`);
+            $(".filter-menu").not($filterMenu).removeClass("show");
+            $filterMenu.toggleClass("show");
+        });
+
+        // Apply filter
+        $(".apply-filter-btn").on("click", function () {
+            const column = $(this).data("column");
+            const $filterMenu = $(`#filter-${column}`);
+            const $filterIcon = $(`#filter-icon-${column}`);
             let selectedValues = [];
 
             // Check if it's a multi-select or input filter
-            const select = filterMenu.querySelector(".filter-select");
-            const input = filterMenu.querySelector(".filter-input");
+            const $select = $filterMenu.find(".filter-select");
+            const $input = $filterMenu.find(".filter-input");
 
-            if (select) {
+            if ($select.length) {
                 // Multi-select: Get selected options
-                selectedValues = Array.from(select.selectedOptions).map(option => option.value.toLowerCase());
-            } else if (input) {
+                selectedValues = $select.val().map((value) => value.toLowerCase());
+            } else if ($input.length) {
                 // Input field: Get text value
-                selectedValues = [input.value.toLowerCase()];
+                selectedValues = [$input.val().toLowerCase()];
             }
 
-            document.querySelectorAll(`#tableBody .${column}-column`).forEach(cell => {
-                const row = cell.closest("tr");
-                const cellValue = cell.textContent.toLowerCase();
+            // Filter rows
+            $(`#tableBody .${column}-column`).each(function () {
+                const $row = $(this).closest("tr");
+                const cellValue = $(this).text().toLowerCase();
 
                 if (selectedValues.length > 0) {
-                    // For multi-select or input, check if the cell value matches any selected value
-                    if (selectedValues.some(value => cellValue.includes(value))) {
-                        row.style.display = ""; // Show matching rows
+                    if (selectedValues.some((value) => cellValue.includes(value))) {
+                        $row.show(); // Show matching rows
                     } else {
-                        row.style.display = "none"; // Hide non-matching rows
+                        $row.hide(); // Hide non-matching rows
                     }
                 } else {
-                    row.style.display = ""; // Show all rows if no filter applied
+                    $row.show(); // Show all rows if no filter applied
                 }
             });
 
-            // Toggle filter icon indicator
+            // Update filter icon state
             if (selectedValues.length > 0) {
-                filterIcon.classList.add("active");
+                $filterIcon.addClass("active"); // Highlight the filter icon for active filters
+
+                // Save filter value to sessionStorage
+                if (column === "group_id" && $input.val()) {
+                    sessionStorage.setItem("group_id", $input.val());
+                }
             } else {
-                filterIcon.classList.remove("active");
+                $filterIcon.removeClass("active");
+
+                // Remove filter from sessionStorage if empty
+                if (column === "group_id") {
+                    sessionStorage.removeItem("group_id");
+                }
             }
 
             // Close the filter menu
-            filterMenu.classList.remove("show");
+            $filterMenu.removeClass("show");
         });
-    });
 
-
-    // Clear filter
-    document.querySelectorAll(".clear-filter-btn").forEach(button => {
-        button.addEventListener("click", function () {
-            const column = this.dataset.column;
-            const filterIcon = document.getElementById(`filter-icon-${column}`);
-            const filterMenu = document.getElementById(`filter-${column}`);
+        // Clear filter
+        $(".clear-filter-btn").on("click", function () {
+            const column = $(this).data("column");
+            const $filterMenu = $(`#filter-${column}`);
+            const $filterIcon = $(`#filter-icon-${column}`);
 
             // Reset filters
-            const select = filterMenu.querySelector(".filter-select");
-            const input = filterMenu.querySelector(".filter-input");
+            const $select = $filterMenu.find(".filter-select");
+            const $input = $filterMenu.find(".filter-input");
 
-            if (select) {
-                select.selectedIndex = -1; // Clear selection
-            } else if (input) {
-                input.value = ""; // Clear input
+            if ($select.length) {
+                $select.prop("selectedIndex", -1); // Clear selection
+            } else if ($input.length) {
+                $input.val(""); // Clear input
             }
 
             // Show all rows
-            document.querySelectorAll(`#tableBody .${column}-column`).forEach(cell => {
-                const row = cell.closest("tr");
-                row.style.display = "";
+            $(`#tableBody .${column}-column`).each(function () {
+                $(this).closest("tr").show();
             });
 
-            // Remove filter icon indicator
-            filterIcon.classList.remove("active");
+            // Remove filter icon state
+            $filterIcon.removeClass("active");
+
+            // Remove group_id filter from sessionStorage
+            if (column === "group_id") {
+                sessionStorage.removeItem("group_id");
+            }
 
             // Close the filter menu
-            filterMenu.classList.remove("show");
+            $filterMenu.removeClass("show");
         });
-    });
 
-    // Close filter menus when clicking outside
-    document.addEventListener("click", function (event) {
-        if (!event.target.closest(".filter-icon") && !event.target.closest(".filter-menu")) {
-            document.querySelectorAll(".filter-menu").forEach(menu => menu.classList.remove("show"));
-        }
-    });
+        // Close filter menus when clicking outside
+        $(document).on("click", function (event) {
+            if (!$(event.target).closest(".filter-icon, .filter-menu").length) {
+                $(".filter-menu").removeClass("show");
+            }
+        });
 
-
-    // Sorting
-    document.querySelectorAll(".sort-btn").forEach(button => {
-        button.addEventListener("click", function () {
-            const column = this.dataset.column;
-            const order = this.dataset.order;
-            const sortIcon = document.getElementById(`sort-${column}`);
-            const rows = Array.from(document.querySelectorAll("#tableBody tr"));
+        // Sorting
+        $(".sort-btn").on("click", function () {
+            const column = $(this).data("column");
+            const order = $(this).data("order");
+            const $sortIcon = $(`#sort-${column}`);
+            const $rows = $("#tableBody tr");
 
             // Determine if the column contains numeric data
-            const isNumeric = rows.some(row => {
-                const value = row.querySelector(`.${column}-column`).textContent.trim();
-                return !isNaN(value) && value !== ""; // Check if value is numeric
-            });
+            const isNumeric = $rows
+                .find(`.${column}-column`)
+                .toArray()
+                .some((cell) => !isNaN(parseFloat($(cell).text())));
 
-            rows.sort((a, b) => {
-                const aValue = a.querySelector(`.${column}-column`).textContent.trim();
-                const bValue = b.querySelector(`.${column}-column`).textContent.trim();
+            $rows.sort(function (a, b) {
+                const aValue = $(a).find(`.${column}-column`).text().trim();
+                const bValue = $(b).find(`.${column}-column`).text().trim();
 
                 if (isNumeric) {
-                    // Parse as numbers for numeric columns
-                    return order === "asc" ? aValue - bValue : bValue - aValue;
+                    return order === "asc"
+                        ? parseFloat(aValue) - parseFloat(bValue)
+                        : parseFloat(bValue) - parseFloat(aValue);
                 } else {
-                    // Use localeCompare for text columns
-                    return order === "asc" ? aValue.localeCompare(bValue) : bValue.localeCompare(aValue);
+                    return order === "asc"
+                        ? aValue.localeCompare(bValue)
+                        : bValue.localeCompare(aValue);
                 }
             });
 
-            rows.forEach(row => document.getElementById("tableBody").appendChild(row));
-            this.dataset.order = order === "asc" ? "desc" : "asc";
+            $rows.appendTo("#tableBody");
 
-            // Reset other sort icons
-            document.querySelectorAll(".sort-icon").forEach(icon => {
-                if (icon !== sortIcon) {
-                    icon.textContent = "⬆";
-                    icon.classList.remove("active");
-                }
-            });
+            // Toggle sort order
+            $(this).data("order", order === "asc" ? "desc" : "asc");
 
             // Update sort icon
-            if (order === "asc") {
-                sortIcon.textContent = "⬇";
-            } else {
-                sortIcon.textContent = "⬆";
-            }
-            sortIcon.classList.add("active");
+            $(".sort-icon").not($sortIcon).text("⬆").removeClass("active");
+            $sortIcon.text(order === "asc" ? "⬇" : "⬆").addClass("active");
         });
     });
-
 
 </script>
