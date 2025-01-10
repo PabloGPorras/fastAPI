@@ -85,22 +85,7 @@
 
 <script>
 $(document).ready(async function () {
-    let currentUserId;
 
-    // Fetch current user information
-    async function fetchCurrentUser() {
-        try {
-            const response = await fetch("/current-user");
-            if (!response.ok) {
-                throw new Error(`Failed to fetch current user. HTTP Status: ${response.status}`);
-            }
-            const userData = await response.json();
-            currentUserId = userData.user_name; // Set current user ID
-        } catch (error) {
-            console.error("Error fetching current user:", error);
-            alert("Unable to fetch current user. Please try again.");
-        }
-    }
 
     // Load comments dynamically for the current item
     async function loadComments(itemId) {

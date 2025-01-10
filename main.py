@@ -868,7 +868,7 @@ async def bulk_import(file: UploadFile, model_name: str = Form(...),user: User =
 
         
 @app.post("/create-new/{model_name}")
-async def create_new(model_name: str, data: dict,user: User = Depends(get_current_user)):
+async def create_new(model_name: str, data: dict, user: User = Depends(get_current_user)):
     logger.info(f"Received request to create a new entry for model: {model_name}.")
     session = SessionLocal()
     try:
@@ -878,13 +878,24 @@ async def create_new(model_name: str, data: dict,user: User = Depends(get_curren
             logger.warning(f"Model '{model_name}' not found.")
             raise HTTPException(status_code=404, detail="Model not found")
 
+        # Extract the "formObject" key if present and merge its contents into `data`
+        form_object = data.pop("formObject", {})
+        if not isinstance(form_object, dict):
+            raise HTTPException(status_code=400, detail="'formObject' must be a dictionary.")
+        data.update(form_object)
+
         # Generate a new group_id for single requests
         group_id = id_method()
         data["group_id"] = group_id
 
         # Extract main fields (excluding relationships)
         relationships_data = data.pop("relationships", {})
-        logger.debug(f"Main data extracted: {data}, Relationships: {relationships_data}")
+        logger.debug(f"Main data extracted before filtering: {data}, Relationships: {relationships_data}")
+
+        # Filter data to include only valid column names for the model
+        valid_columns = {col.name for col in inspect(model).columns}
+        data = {key: value for key, value in data.items() if key in valid_columns}
+        logger.debug(f"Filtered main data: {data}")
 
         # Handle boolean values in the input data
         for key, value in data.items():
@@ -893,17 +904,16 @@ async def create_new(model_name: str, data: dict,user: User = Depends(get_curren
 
         # Handle models with `is_request = True`
         if getattr(model, "is_request", False):  # Dynamically check if the model has `is_request`
-            # Extract attributes for RmsRequest
             rms_request_data = {
-                "unique_ref": data.get("unique_ref"),  # Ensure the unique_ref is the same
-                "request_type": data.pop("request_type", model_name.upper()),  # Example default value
+                "unique_ref": data.get("unique_ref"),
+                "request_type": data.pop("request_type", model_name.upper()),
                 "effort": data.pop("effort", "Default Effort"),
                 "organization": data.pop("organization", "Default Org"),
                 "sub_organization": data.pop("sub_organization", "Default Sub Org"),
                 "line_of_business": data.pop("line_of_business", "Default LOB"),
                 "team": data.pop("team", "Default Team"),
                 "decision_engine": data.pop("decision_engine", "Default Engine"),
-                "group_id": group_id,  # Assign the generated group_id
+                "group_id": group_id,
             }
 
             # Create and flush RmsRequest
@@ -916,14 +926,14 @@ async def create_new(model_name: str, data: dict,user: User = Depends(get_curren
             session.flush()  # Ensure the ID is generated
 
             # Set the same unique_ref in RuleRequest
-            data["unique_ref"] = new_request.unique_ref  # Synchronize unique_ref
+            data["unique_ref"] = new_request.unique_ref
             data["rms_request_id"] = new_request.unique_ref
 
             # Create RmsRequestStatus
             new_status = RmsRequestStatus(
                 request_id=new_request.unique_ref,
-                status=initial_status,  # Initial status from config
-                user_name=user.user_name,  # Example value, replace with actual username
+                status=initial_status,
+                user_name=user.user_name,
                 timestamp=datetime.utcnow(),
             )
             session.add(new_status)
@@ -944,10 +954,7 @@ async def create_new(model_name: str, data: dict,user: User = Depends(get_curren
                 relationship_model = inspect(model).relationships[relationship_name].mapper.class_
 
                 for related_object in related_objects:
-                    # Create the related object
                     related_instance = relationship_model(**related_object)
-
-                    # Append it to the relationship attribute
                     if isinstance(relationship_attribute, list):
                         relationship_attribute.append(related_instance)
                     else:
@@ -966,6 +973,7 @@ async def create_new(model_name: str, data: dict,user: User = Depends(get_curren
     finally:
         session.close()
         logger.debug("Database session closed.")
+
 
 
 

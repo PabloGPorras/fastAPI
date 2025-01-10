@@ -65,23 +65,6 @@ $(document).ready(async function () {
     const requestStatusConfig = JSON.parse($("#request-status-config").text());
     let currentUserRoles = []; // Placeholder for current user's roles
 
-    // Fetch current user information
-    async function fetchCurrentUser() {
-        try {
-            const response = await fetch("/current-user");
-            if (!response.ok) {
-                throw new Error(`Failed to fetch current user. HTTP Status: ${response.status}`);
-            }
-            const userData = await response.json();
-            currentUserRoles = userData.roles || [];
-            console.log("Current user roles:", currentUserRoles);
-        } catch (error) {
-            console.error("Error fetching current user:", error);
-            alert("Unable to fetch current user. Please try again.");
-        }
-    }
-
-    // Call fetchCurrentUser to populate roles before proceeding
     await fetchCurrentUser();
 
     // Function to update visible status change buttons based on selected rows and user roles
