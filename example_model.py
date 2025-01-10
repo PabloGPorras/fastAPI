@@ -129,10 +129,29 @@ class RuleRequest(Base):
 
 class RuleConfigRequest(Base):
     __tablename__ = "rule_config_request"
+    frontend_table_name = "Rule Requests"
     unique_ref = Column(String, primary_key=True, default=id_method)
-    rule_name = Column(String)
-    rule_id = Column(String)
-    rule_version = Column(Integer)
+    config_name = Column(String)
+    config_id = Column(String)
+    config_version = Column(Integer)
+    rms_request_id = Column(String, ForeignKey("request.unique_ref"), nullable=False)
+    rms_request = relationship("RmsRequest", backref="rule_config_request", info={"exclude_from_form": True})
+    is_request = True
+    request_status_config = {
+        "PENDING APPROVAL": {"Roles": ["FS Manager"], "Next": ["PENDING GOVERNANCE","APPROVAL REJECTED"], "Status_Type":["APPROVAL"]},
+        "APPROVAL REJECTED": {"Roles": ["FS Manager"], "Next": [], "Status_Type":["APPROVAL"]},  
+        
+        "PENDING GOVERNANCE": {"Roles": ["FS Manager"], "Next": ["PENDING UAT TABLE DETAIL","GOVERNANCE REJECTED"], "Status_Type":["GOVERNANCE"]},
+        "PENDING UAT TABLE DETAIL": {"Roles": ["IMPL Specialist"], "Next": ["COMPLETED","GOVERNANCE REJECTED"], "Status_Type":[]},
+        "GOVERNANCE REJECTED": {"Roles": ["IMPL Specialist"], "Next": [], "Status_Type":["GOVERNANCE REJECTED"]}, 
+
+        "COMPLETED": {"Roles": ["IMPL Specialist"], "Next": [], "Status_Type":[]},  
+        "USER REJECTED": {"Roles": ["FS Analyst"], "Next": [], "Status_Type":["APPROVAL"]},  
+    }
+
+
+
+
 
 class Person(Base):
     __tablename__ = "persons"

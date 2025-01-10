@@ -155,7 +155,8 @@ async def get_table(
             if getattr(cls, "is_request", False):  # Check if `is_request` is True
                 models_with_is_request.append({
                     "name": cls.__tablename__.replace("_", " ").capitalize(),
-                    "url": f"/{cls.__tablename__}"  # Generate the URL dynamically
+                    "url": f"/{cls.__tablename__}",  # Generate the URL dynamically
+                    "model_name": cls.__tablename__  # Generate the URL dynamically
                 })
 
     try:
@@ -1144,7 +1145,7 @@ def get_status_transitions(
         raise HTTPException(status_code=400, detail=f"Invalid status provided: {str(e)}")
     except Exception as e:
         logger.error(f"Error in status-transitions endpoint: {str(e)}", exc_info=True)
-        raise HTTPException(status_code=500, detail="An unexpected error occurred.")
+        raise HTTPException(status_code=403, detail="An unexpected error occurred.")
 
 
 

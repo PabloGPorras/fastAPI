@@ -196,129 +196,133 @@
 </script>
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script>
-$(document).ready(function () {
-    // Add New Multi-Options to Fields
-    $(".add-option-btn").click(function () {
-        const fieldName = $(this).data("field"); // Field name for which options are being added
-        const input = $(this).prev(".add-option-input"); // Input element for adding new options
-        const newOption = input.val().trim(); // Get the entered option
+    $(document).ready(function () {
+        // Add New Multi-Options to Fields
+        $(".add-option-btn").click(function () {
+            const fieldName = $(this).data("field"); // Field name for which options are being added
+            const input = $(this).prev(".add-option-input"); // Input element for adding new options
+            const newOption = input.val().trim(); // Get the entered option
 
-        if (!newOption) {
-            alert("Option cannot be empty.");
-            return;
-        }
+            if (!newOption) {
+                alert("Option cannot be empty.");
+                return;
+            }
 
-        // Get the corresponding select element
-        const select = $(`#${fieldName}`);
-        if (!select.length) {
-            alert("Select element not found.");
-            return;
-        }
+            // Get the corresponding select element
+            const select = $(`#${fieldName}`);
+            if (!select.length) {
+                alert("Select element not found.");
+                return;
+            }
 
-        // Check for duplicates
-        if (select.find(`option[value="${newOption}"]`).length) {
-            alert("Option already exists.");
-            return;
-        }
+            // Check for duplicates
+            if (select.find(`option[value="${newOption}"]`).length) {
+                alert("Option already exists.");
+                return;
+            }
 
-        // Add the new option to the select dropdown
-        select.append(new Option(newOption, newOption));
+            // Add the new option to the select dropdown
+            select.append(new Option(newOption, newOption));
 
-        // Clear the input field
-        input.val("");
-    });
+            // Clear the input field
+            input.val("");
+        });
 
-    // Form Submission
-    $("#detailsForm").submit(async function (event) {
-        event.preventDefault();
+        // Form Submission
+        $(document).ready(function () {
+            // Prevent duplicate handlers by unbinding before attaching
+            $("#detailsForm").off("submit").on("submit", async function (event) {
+                event.preventDefault(); // Prevent default form submission behavior
 
-        const formObject = {};
-        const relationships = {};
+                const formObject = {};
+                const relationships = {};
 
-        // Convert form data into objects
-        $(this)
-            .find(":input")
-            .each(function () {
-                const inputName = $(this).attr("name");
-                const inputValue = $(this).val();
+                // Convert form data into objects
+                $(this)
+                    .find(":input")
+                    .each(function () {
+                        const inputName = $(this).attr("name");
+                        const inputValue = $(this).val();
 
-                // Handle multi-select fields
-                if ($(this).is("select[multiple]")) {
-                    const selectedValues = $(this).val() || []; // Get selected options or an empty array
-                    formObject[inputName] = selectedValues.join(","); // Convert to CSV
-                } else if ($(this).is(":checkbox")) {
-                    formObject[inputName] = $(this).is(":checked");
-                } else {
-                    formObject[inputName] = inputValue;
+                        // Handle multi-select fields
+                        if ($(this).is("select[multiple]")) {
+                            const selectedValues = $(this).val() || []; // Get selected options or an empty array
+                            formObject[inputName] = selectedValues.join(","); // Convert to CSV
+                        } else if ($(this).is(":checkbox")) {
+                            formObject[inputName] = $(this).is(":checked");
+                        } else {
+                            formObject[inputName] = inputValue;
+                        }
+                    });
+
+                const isRequest = JSON.parse($("#is-request-config").text());
+                if (isRequest) {
+                    formObject.organization = $("#organization").val();
+                    formObject.sub_organization = $("#sub_organization").val();
+                    formObject.line_of_business = $("#line_of_business").val();
+                    formObject.team = $("#team").val();
+                    formObject.decision_engine = $("#decision_engine").val();
+                    formObject.effort = $("#effort").val();
+                }
+
+                const rowId = $("#createNewModal .btn-primary").data("id");
+                const modelName = JSON.parse($("#props-data").text()).model_name;
+
+                if (!modelName) {
+                    console.error("Model name is not defined.");
+                    return;
+                }
+
+                const url = rowId ? `/update-row/${modelName}/${rowId}` : `/create-new/${modelName}`;
+
+                try {
+                    const response = await fetch(url, {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ formObject, relationships }),
+                    });
+
+                    if (response.ok) {
+                        location.reload();
+                    } else {
+                        const errorMessage = await response.text();
+                        alert(`Operation failed: ${response.status} - ${errorMessage}`);
+                    }
+                } catch (error) {
+                    console.error("Error during the operation:", error);
+                    alert("An error occurred while performing the operation.");
                 }
             });
+        });
 
-        const isRequest = JSON.parse($("#is-request-config").text());
-        if (isRequest) {
-            formObject.organization = $("#organization").val();
-            formObject.sub_organization = $("#sub_organization").val();
-            formObject.line_of_business = $("#line_of_business").val();
-            formObject.team = $("#team").val();
-            formObject.decision_engine = $("#decision_engine").val();
-            formObject.effort = $("#effort").val();
-        }
 
-        const rowId = $("#createNewModal .btn-primary").data("id");
-        const modelName = JSON.parse($("#props-data").text()).model_name;
+        // Add Predefined Options as Rows
+        $(".add-predefined-btn").click(function () {
+            const relationship = $(this).data("relationship");
+            const container = $(`#${relationship}-container tbody`);
+            const dropdown = $(`#${relationship}_options`);
+            const selectedValue = dropdown.val();
+            const selectedText = dropdown.find("option:selected").text();
 
-        if (!modelName) {
-            console.error("Model name is not defined.");
-            return;
-        }
+            if (!selectedValue) return;
 
-        const url = rowId ? `/update-row/${modelName}/${rowId}` : `/create-new/${modelName}`;
-
-        try {
-            const response = await fetch(url, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ formObject, relationships }),
-            });
-
-            if (response.ok) {
-                location.reload();
-            } else {
-                const errorMessage = await response.text();
-                alert(`Operation failed: ${response.status} - ${errorMessage}`);
+            // Check for duplicates before adding
+            if (container.find(`tr[data-value="${selectedValue}"]`).length) {
+                alert(`This ${relationship} is already added.`);
+                return;
             }
-        } catch (error) {
-            console.error("Error during the operation:", error);
-            alert("An error occurred while performing the operation.");
-        }
+
+            // Add new row
+            const row = $(`<tr data-value="${selectedValue}"></tr>`);
+            row.append(`<td>${selectedText}</td>`);
+            row.append('<td><button type="button" class="btn btn-danger btn-sm remove-row-btn">Remove</button></td>');
+            container.append(row);
+        });
+
+        // Handle Row Removal
+        $("body").on("click", ".remove-row-btn", function () {
+            $(this).closest("tr").remove();
+        });
     });
-
-    // Add Predefined Options as Rows
-    $(".add-predefined-btn").click(function () {
-        const relationship = $(this).data("relationship");
-        const container = $(`#${relationship}-container tbody`);
-        const dropdown = $(`#${relationship}_options`);
-        const selectedValue = dropdown.val();
-        const selectedText = dropdown.find("option:selected").text();
-
-        if (!selectedValue) return;
-
-        // Check for duplicates before adding
-        if (container.find(`tr[data-value="${selectedValue}"]`).length) {
-            alert(`This ${relationship} is already added.`);
-            return;
-        }
-
-        // Add new row
-        const row = $(`<tr data-value="${selectedValue}"></tr>`);
-        row.append(`<td>${selectedText}</td>`);
-        row.append('<td><button type="button" class="btn btn-danger btn-sm remove-row-btn">Remove</button></td>');
-        container.append(row);
-    });
-
-    // Handle Row Removal
-    $("body").on("click", ".remove-row-btn", function () {
-        $(this).closest("tr").remove();
-    });
-});
 
 </script>
