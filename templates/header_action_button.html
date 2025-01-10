@@ -39,7 +39,7 @@
         <!-- Bulk Import Upload -->
         {% if bulk_import_action %}
         <li>
-            <button class="dropdown-item" data-bs-toggle="modal" data-bs-target="#uploadBulkModal" 
+            <button class="dropdown-item" data-bs-toggle="modal" data-bs-target="#uploadBulkModal"
                 data-model-name="{{ model_name }}">
                 {{ bulk_import_action.label }}
             </button>
@@ -56,174 +56,199 @@
     {{ request_status_config | tojson }}
 </script>
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
 <script>
-$(document).ready(async function () {
-    const $tableBody = $("#tableBody");
-    const $checkboxes = $tableBody.find(".row-checkbox");
-    const $selectAllCheckbox = $("#selectAll");
-    const $statusChangeButtons = $(".status-change-btn");
-    const requestStatusConfig = JSON.parse($("#request-status-config").text());
-    let currentUserRoles = []; // Placeholder for current user's roles
+    $(document).ready(async function () {
+        const $tableBody = $("#tableBody");
+        const $checkboxes = $tableBody.find(".row-checkbox");
+        const $statusChangeButtons = $(".status-change-btn");
+        const requestStatusConfig = JSON.parse($("#request-status-config").text());
+        const $selectAllCheckbox = $("#selectAll");
 
-    await fetchCurrentUser();
+        const modelName = "{{ model_name }}"; // Retrieve model_name directly from the template
 
-    // Function to update visible status change buttons based on selected rows and user roles
-    function updateStatusChangeButtons() {
-        const $selectedRows = $tableBody.find("tr.selected-row");
-        const currentStatuses = $selectedRows.map(function () {
-            const statusCell = $(this).find(".request_status-column");
-            return statusCell.length ? statusCell.text().trim() : null;
-        }).get();
+        // Fetch current user roles using fetchCurrentUser
+        await fetchCurrentUser();
+        console.log("Current currentUserRoles:", currentUserRoles);
+        console.log("Current currentUserId2:", currentUserId2);
+        currentUserRoles = currentUserRoles ? currentUserRoles : [];
+        console.log("Current User Roles:", currentUserRoles);
 
-        let validTransitions = [];
-        if (currentStatuses.length > 0) {
-            validTransitions = requestStatusConfig[currentStatuses[0]]?.Next || [];
-            currentStatuses.slice(1).forEach(status => {
-                validTransitions = validTransitions.filter(transition =>
-                    requestStatusConfig[status]?.Next.includes(transition)
-                );
-            });
+        async function fetchValidTransitions(currentStatuses) {
+            try {
+                console.log({
+                    current_statuses: currentStatuses,
+                    user_roles: currentUserRoles,
+                });
+                const response = await fetch(`/status-transitions/${modelName}`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        current_statuses: currentStatuses,
+                        user_roles: currentUserRoles,
+                    }),
+                });
+
+                if (!response.ok) {
+                    throw new Error(`Failed to fetch valid transitions. HTTP Status: ${response.status}`);
+                }
+
+                const data = await response.json();
+                return data.valid_transitions || [];
+            } catch (error) {
+                console.error("Error fetching valid transitions:", error);
+                return [];
+            }
         }
 
-        // Show/Hide buttons based on valid transitions and user roles
-        $statusChangeButtons.each(function () {
-            const nextStatus = $(this).data("nextStatus");
-            const requiredRoles = requestStatusConfig[nextStatus]?.Roles || [];
-            const userHasRole = requiredRoles.some(role => currentUserRoles.includes(role));
-            const isVisible = validTransitions.includes(nextStatus) && userHasRole;
-            $(this).toggle(isVisible);
-        });
-    }
 
-    // Add or remove the "selected-row" class when rows are clicked
-    $tableBody.on("click", "tr", function (e) {
-        if (!$(e.target).hasClass("row-checkbox")) {
-            $(this).toggleClass("selected-row");
-            const checkbox = $(this).find(".row-checkbox");
-            checkbox.prop("checked", $(this).hasClass("selected-row"));
-        }
-        updateStatusChangeButtons();
-    });
+        async function updateStatusChangeButtons() {
+            const $selectedRows = $tableBody.find("tr.selected-row");
+            const currentStatuses = $selectedRows.map(function () {
+                const statusCell = $(this).find(".request_status-column");
+                return statusCell.length ? statusCell.text().trim() : null;
+            }).get();
 
-    // Event listener for Select All checkbox
-    if ($selectAllCheckbox.length) {
-        $selectAllCheckbox.on("change", function () {
-            const isChecked = $(this).is(":checked");
-            $checkboxes.prop("checked", isChecked);
-            $checkboxes.each(function () {
-                const $row = $(this).closest("tr");
-                $row.toggleClass("selected-row", isChecked);
-            });
-            updateStatusChangeButtons();
-        });
-    }
-
-    // Automatically update status buttons when a checkbox is clicked
-    $checkboxes.on("change", function () {
-        const $row = $(this).closest("tr");
-        $row.toggleClass("selected-row", $(this).is(":checked"));
-        updateStatusChangeButtons();
-    });
-
-    // Event listener for status change buttons
-    $statusChangeButtons.on("click", function () {
-        const nextStatus = $(this).data("nextStatus");
-        const $selectedRows = $tableBody.find("tr.selected-row");
-        const rowIds = $selectedRows.map(function () {
-            return $(this).data("id");
-        }).get();
-
-        const currentStatuses = $selectedRows.map(function () {
-            const statusCell = $(this).find(".request_status-column");
-            return statusCell.length ? statusCell.text().trim() : null;
-        }).get();
-
-        if (!rowIds.length) {
-            alert("No rows selected.");
-            return;
-        }
-
-        $.ajax({
-            url: "/bulk-update-status",
-            method: "POST",
-            contentType: "application/json",
-            data: JSON.stringify({
-                ids: rowIds,
-                currentStatuses,
-                nextStatus,
-                request_status_config: requestStatusConfig,
-            }),
-            success: function () {
-                alert("Status updated successfully!");
-                location.reload(); // Reload to reflect changes
-            },
-            error: function (xhr) {
-                const errorDetail = xhr.responseJSON?.detail || "Error updating status.";
-                alert(errorDetail);
-            },
-        });
-    });
-
-    // Event listener for primary-action-btn
-    $("#primary-action-btn").on("click", function () {
-        const endpoint = $(this).data("endpoint");
-
-        if (endpoint === "/create-new-modal") {
-            console.log("Primary action: Create New");
-
-            // Reset the form
-            const $form = $("#detailsForm");
-            if (!$form.length) {
-                console.error("Form with ID 'detailsForm' not found.");
+            if (currentStatuses.length === 0) {
+                $statusChangeButtons.hide();
                 return;
             }
-            $form[0].reset();
 
-            // Clear relationship tables
-            $(".relationship-container tbody").empty();
+            const validTransitions = await fetchValidTransitions(currentStatuses);
 
-            // Enable all form fields
-            $form.find("input, select, textarea").prop("disabled", false);
-
-            // Show Add buttons for relationships
-            $(".add-predefined-btn, .add-row-btn").show();
-
-            // Reset modal title and button
-            $("#createNewModalLabel").text("Create New Entry");
-            const $saveButton = $("#createNewModal .btn-primary");
-            $saveButton.text("Save").removeData("id").show();
-
-            // Show the modal
-            const modal = new bootstrap.Modal($("#createNewModal")[0]);
-            modal.show();
-        } else if (endpoint === "/refresh") {
-            console.log("Primary action: Refresh");
-
-            // Fetch updated data
-            $.getJSON(endpoint, function (data) {
-                console.log("Refreshed data:", data);
-
-                // Replace table body with updated rows
-                const $tableBody = $("#tableBody");
-                $tableBody.empty(); // Clear the table
-                data.rows.forEach(row => {
-                    const rowElement = $(`
-                        <tr>
-                            <td>${row.id}</td>
-                            <td>${row.name}</td>
-                            <td>${row.status}</td>
-                            <!-- Add other columns as needed -->
-                        </tr>
-                    `);
-                    $tableBody.append(rowElement);
-                });
-            }).fail(function (error) {
-                console.error("Error refreshing data:", error);
+            // Show/Hide buttons based on valid transitions
+            $statusChangeButtons.each(function () {
+                const nextStatus = $(this).data("nextStatus");
+                $(this).toggle(validTransitions.includes(nextStatus));
             });
-        } else {
-            console.error("Unknown primary action endpoint:", endpoint);
         }
+
+        // Event Listeners
+        $tableBody.on("click", "tr", function (e) {
+            if (!$(e.target).hasClass("row-checkbox")) {
+                $(this).toggleClass("selected-row");
+                const checkbox = $(this).find(".row-checkbox");
+                checkbox.prop("checked", $(this).hasClass("selected-row"));
+            }
+            updateStatusChangeButtons();
+        });
+
+        if ($selectAllCheckbox.length) {
+            $selectAllCheckbox.on("change", function () {
+                const isChecked = $(this).is(":checked");
+                $checkboxes.prop("checked", isChecked);
+                $checkboxes.each(function () {
+                    const $row = $(this).closest("tr");
+                    $row.toggleClass("selected-row", isChecked);
+                });
+                updateStatusChangeButtons();
+            });
+        }
+
+        $checkboxes.on("change", function () {
+            const $row = $(this).closest("tr");
+            $row.toggleClass("selected-row", $(this).is(":checked"));
+            updateStatusChangeButtons();
+        });
+
+        // Event listener for status change buttons
+        $statusChangeButtons.on("click", function () {
+            const nextStatus = $(this).data("nextStatus");
+            const $selectedRows = $tableBody.find("tr.selected-row");
+            const rowIds = $selectedRows.map(function () {
+                return $(this).data("id");
+            }).get();
+
+            const currentStatuses = $selectedRows.map(function () {
+                const statusCell = $(this).find(".request_status-column");
+                return statusCell.length ? statusCell.text().trim() : null;
+            }).get();
+
+            if (!rowIds.length) {
+                alert("No rows selected.");
+                return;
+            }
+
+            $.ajax({
+                url: "/bulk-update-status",
+                method: "POST",
+                contentType: "application/json",
+                data: JSON.stringify({
+                    ids: rowIds,
+                    currentStatuses,
+                    nextStatus,
+                    request_status_config: requestStatusConfig,
+                }),
+                success: function () {
+                    location.reload(); // Reload to reflect changes
+                },
+                error: function (xhr) {
+                    const errorDetail = xhr.responseJSON?.detail || "Error updating status.";
+                    alert(errorDetail);
+                },
+            });
+        });
+
+        // Event listener for primary-action-btn
+        $("#primary-action-btn").on("click", function () {
+            const endpoint = $(this).data("endpoint");
+
+            if (endpoint === "/create-new-modal") {
+                console.log("Primary action: Create New");
+
+                // Reset the form
+                const $form = $("#detailsForm");
+                if (!$form.length) {
+                    console.error("Form with ID 'detailsForm' not found.");
+                    return;
+                }
+                $form[0].reset();
+
+                // Clear relationship tables
+                $(".relationship-container tbody").empty();
+
+                // Enable all form fields
+                $form.find("input, select, textarea").prop("disabled", false);
+
+                // Show Add buttons for relationships
+                $(".add-predefined-btn, .add-row-btn").show();
+
+                // Reset modal title and button
+                $("#createNewModalLabel").text("Create New Entry");
+                const $saveButton = $("#createNewModal .btn-primary");
+                $saveButton.text("Save").removeData("id").show();
+
+                // Show the modal
+                const modal = new bootstrap.Modal($("#createNewModal")[0]);
+                modal.show();
+            } else if (endpoint === "/refresh") {
+                console.log("Primary action: Refresh");
+
+                // Fetch updated data
+                $.getJSON(endpoint, function (data) {
+                    console.log("Refreshed data:", data);
+
+                    // Replace table body with updated rows
+                    const $tableBody = $("#tableBody");
+                    $tableBody.empty(); // Clear the table
+                    data.rows.forEach(row => {
+                        const rowElement = $(`
+                            <tr>
+                                <td>${row.id}</td>
+                                <td>${row.name}</td>
+                                <td>${row.status}</td>
+                                <!-- Add other columns as needed -->
+                            </tr>
+                        `);
+                        $tableBody.append(rowElement);
+                    });
+                }).fail(function (error) {
+                    console.error("Error refreshing data:", error);
+                });
+            } else {
+                console.error("Unknown primary action endpoint:", endpoint);
+            }
+        });
     });
-});
 
 </script>

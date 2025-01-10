@@ -352,21 +352,6 @@
                             <li class="mb-2">
                                 <a href="/table/users" class="nav-link text-dark">Users</a>
                             </li>
-                            <li class="mb-2">
-                                <a href="/table/roles" class="nav-link text-dark">Roles</a>
-                            </li>
-                            <li class="mb-2">
-                                <a href="/table/organizations" class="nav-link text-dark">Organizations</a>
-                            </li>
-                            <li class="mb-2">
-                                <a href="/table/sub_organizations" class="nav-link text-dark">Sub_Organizations</a>
-                            </li>
-                            <li class="mb-2">
-                                <a href="/table/line_of_business" class="nav-link text-dark">Line of Business</a>
-                            </li>
-                            <li>
-                                <a href="/table/applications" class="nav-link text-dark">Applications</a>
-                            </li>
                         </ul>
                     </div>
                 </li>
@@ -402,9 +387,6 @@
         </nav>
 
 
-
-
-
         <!-- Main Content -->
         <div class="flex-grow-1">
             <div class="p-3">
@@ -412,6 +394,7 @@
             </div>
         </div>
     </div>
+    {% include "create_new_modal.html" %}
 
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/js/bootstrap.bundle.min.js"></script>
@@ -429,6 +412,8 @@
                 }
                 const userData = await response.json();
                 currentUserId = userData.user_name; // Set current user ID
+                currentUserRoles = userData.roles; // Set current user ID
+                currentUserId2 = userData.user_id; // Set current user ID
             } catch (error) {
                 console.error("Error fetching current user:", error);
                 alert("Unable to fetch current user. Please try again.");

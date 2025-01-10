@@ -109,41 +109,10 @@ def get_current_user():
         raise HTTPException(status_code=401, detail="User not authenticated or role expired")
     
     logger.debug(f"Authenticated user: {user.user_name}, Last Update: {user.last_update_timestamp}")
+    logger.debug(f"Authenticated user: {user.user_id}, Last Update: {user.last_update_timestamp}")
+    logger.debug(f"Authenticated user: {user.roles}, Last Update: {user.last_update_timestamp}")
     return user
 
-def get_user_roles(
-    username: str = Depends(get_current_user)
-) -> List[str]:
-    """
-    1. Check if the User table is empty.
-       - If yes, assume the user is "admin".
-    2. Otherwise, look up the user in the DB by username.
-       - If user not found, raise 401.
-       - Return the list of roles from many-to-many relationship (e.g. ["admin", "manager"]).
-    """
-    session: Session = SessionLocal()
-
-    try:
-        # 1) Check if any users exist at all
-        user_count = session.query(User).count()
-        if user_count == 0:
-            # No users in the database ⇒ treat the requesting user as "admin"
-            return ["admin"]
-
-        # 2) Users exist, so look up the requesting user
-        db_user = session.query(User).filter(User.user_name == username).one_or_none()
-        if not db_user:
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="User not found in the database. Please register or use a valid username.",
-            )
-
-        # Return all roles for this user
-        user_roles: List[str] = [role.name for role in db_user.roles]
-        return user_roles
-
-    finally:
-        session.close()
 
 from fastapi import status
 
@@ -1063,26 +1032,119 @@ async def get_comments(unique_ref: str):
 @app.get("/current-user", response_model=dict)
 async def get_current_user_info(user: User = Depends(get_current_user)):
     """
-    Fetch the currently logged-in user's information.
+    Fetch the currently logged-in user's information with parsed CSV fields.
     """
     try:
         logger.debug(f"Fetching current user information for: {user.user_name}")
         return {
+            "user_id": user.user_id,
             "user_name": user.user_name,
-            "roles": user.roles,
+            "roles": user.roles.split(",") if user.roles else [],
             "email_from": user.email_from,
             "email_to": user.email_to,
             "email_cc": user.email_cc,
-            "organizations": user.organizations,
-            "sub_organizations": user.sub_organizations,
-            "line_of_businesses": user.line_of_businesses,
-            "decision_engines": user.decision_engines,
+            "organizations": user.organizations.split(",") if user.organizations else [],
+            "sub_organizations": user.sub_organizations.split(",") if user.sub_organizations else [],
+            "line_of_businesses": user.line_of_businesses.split(",") if user.line_of_businesses else [],
+            "decision_engines": user.decision_engines.split(",") if user.decision_engines else [],
             "last_update_timestamp": user.last_update_timestamp.isoformat(),
             "user_role_expire_timestamp": user.user_role_expire_timestamp.isoformat(),
         }
     except Exception as e:
         logger.error(f"Error fetching current user information: {e}")
         raise HTTPException(status_code=500, detail="Unable to fetch current user information")
+
+
+class StatusTransitionRequest(BaseModel):
+    current_statuses: List[str]
+    user_roles: List[str]
+
+@app.post("/status-transitions/{model_name}")
+def get_status_transitions(
+    model_name: str,
+    data: StatusTransitionRequest,
+    user: User = Depends(get_current_user),
+):
+    try:
+        logger.info(f"Model name: {model_name}")
+        logger.info(f"Request data: {data.dict()}")
+
+        # Fetch the model dynamically
+        model = get_model_by_tablename(model_name)
+        if not model or not hasattr(model, "request_status_config"):
+            raise HTTPException(status_code=404, detail=f"Model '{model_name}' not found or has no status config.")
+
+        request_status_config = model.request_status_config
+
+        # Validate current statuses
+        current_statuses = data.current_statuses
+        if not current_statuses:
+            raise HTTPException(status_code=400, detail="No current statuses provided.")
+
+        user_roles = data.user_roles
+
+        # Fetch related `RmsRequest` record
+        session = SessionLocal()
+        rms_request = (
+            session.query(RmsRequest)
+            .filter(RmsRequest.request_status.in_(current_statuses))
+            .first()
+        )
+        if not rms_request:
+            raise HTTPException(status_code=404, detail="No related RmsRequest record found.")
+
+        # Log request and user configurations for debugging
+        logger.debug(f"RmsRequest Configurations: "
+                     f"Org: {rms_request.organization}, Sub-Org: {rms_request.sub_organization}, "
+                     f"LoB: {rms_request.line_of_business}, Team: {rms_request.team}, "
+                     f"Decision Engine: {rms_request.decision_engine}")
+        logger.debug(f"User Configurations: "
+                     f"Organizations: {user.organizations}, Sub-Orgs: {user.sub_organizations}, "
+                     f"LoBs: {user.line_of_businesses}, Roles: {user.roles}, "
+                     f"Decision Engines: {user.decision_engines}")
+
+        # Check if any of the user's configurations match the request's configuration
+        if not (
+            rms_request.organization in user.organizations.split(",") and
+            rms_request.sub_organization in user.sub_organizations.split(",") and
+            rms_request.line_of_business in user.line_of_businesses.split(",") and
+            any(role in user.roles.split(",") for role in ["IMPL", "FS"]) and
+            rms_request.decision_engine in user.decision_engines.split(",")
+        ):
+            logger.warning(f"Mismatch detected: "
+                           f"Request Org: {rms_request.organization}, User Orgs: {user.organizations.split(',')}; "
+                           f"Request Sub-Org: {rms_request.sub_organization}, User Sub-Orgs: {user.sub_organizations.split(',')}; "
+                           f"Request LoB: {rms_request.line_of_business}, User LoBs: {user.line_of_businesses.split(',')}; "
+                           f"Request Decision Engine: {rms_request.decision_engine}, "
+                           f"User Decision Engines: {user.decision_engines.split(',')}.")
+
+            raise HTTPException(
+                status_code=403,
+                detail=(f"User does not have matching configurations for Org: {rms_request.organization}, "
+                        f"Sub-Org: {rms_request.sub_organization}, LoB: {rms_request.line_of_business}, "
+                        f"Team: {rms_request.team}, Decision Engine: {rms_request.decision_engine}.")
+            )
+
+        # Determine valid transitions
+        valid_transitions = set(request_status_config[current_statuses[0]]["Next"])
+        for status in current_statuses[1:]:
+            if status not in request_status_config:
+                raise HTTPException(status_code=400, detail=f"Invalid status: {status}")
+            valid_transitions.intersection_update(request_status_config[status]["Next"])
+
+        # Filter transitions by roles
+        filtered_transitions = [
+            status for status in valid_transitions
+            if any(role in user_roles for role in request_status_config.get(status, {}).get("Roles", []))
+        ]
+
+        return {"valid_transitions": filtered_transitions}
+
+    except KeyError as e:
+        raise HTTPException(status_code=400, detail=f"Invalid status provided: {str(e)}")
+    except Exception as e:
+        logger.error(f"Error in status-transitions endpoint: {str(e)}", exc_info=True)
+        raise HTTPException(status_code=500, detail="An unexpected error occurred.")
 
 
 
