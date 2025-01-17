@@ -1,7 +1,59 @@
+<style>
+    /* Filter and Sort Icons */
+    .filter-icon {
+        font-size: 18px;
+        position: relative;
+        cursor: pointer;
+    }
+
+    .filter-icon::after {
+        content: '';
+        display: none;
+        position: absolute;
+        top: -4px;
+        right: -4px;
+        width: 8px;
+        height: 8px;
+        background-color: #007bff;
+        /* Blue indicator for active filters */
+        border-radius: 50%;
+    }
+
+    .filter-icon.active::after {
+        display: block;
+    }
+
+    .sort-icon {
+        margin-left: 5px;
+        cursor: pointer;
+        color: gray;
+        /* Default color */
+    }
+
+    .sort-icon.active {
+        color: #007bff;
+        /* Active sort color */
+    }
+
+    /* Filter Menu */
+    .filter-menu {
+        display: none;
+        position: absolute;
+        background: var(--menu-bg-color, white);
+        border: 1px solid #ccc;
+        padding: 10px;
+        z-index: 10;
+    }
+
+    .filter-menu.show {
+        display: block;
+    }
+</style>
 <thead>
     <tr>
         <!-- Blank Header for the First Column -->
-        <th></th>
+        <th >
+        </th>
         {% for column in columns %}
         {% if not column.is_foreign_key %}
         <th class="{{ column.name }}-column">
@@ -84,6 +136,7 @@
 
         // Apply filter
         $(".apply-filter-btn").on("click", function () {
+            event.preventDefault(); // Prevent the default button behavior
             const column = $(this).data("column");
             const $filterMenu = $(`#filter-${column}`);
             const $filterIcon = $(`#filter-icon-${column}`);
@@ -140,6 +193,7 @@
 
         // Clear filter
         $(".clear-filter-btn").on("click", function () {
+            event.preventDefault(); // Prevent the default button behavior
             const column = $(this).data("column");
             const $filterMenu = $(`#filter-${column}`);
             const $filterIcon = $(`#filter-icon-${column}`);
@@ -180,6 +234,7 @@
 
         // Sorting
         $(".sort-btn").on("click", function () {
+            event.preventDefault(); // Prevent the default button behavior
             const column = $(this).data("column");
             const order = $(this).data("order");
             const $sortIcon = $(`#sort-${column}`);

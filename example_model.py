@@ -34,7 +34,12 @@ from sqlalchemy import Text, DateTime
 from datetime import datetime
 
 Base = declarative_base()
-
+organizations_multi_list = ["FRM"]
+sub_organization_list = ["FRAP", "ATO", "Transactional"]
+line_of_business_list = ["CREDIT", "DEBIT", "DEPOSIT"]
+team_list = ["IMPL", "CPT", "CNP", "ATO","FPF"]
+decision_engine_list = ["SASFM", "DMP"]
+effort_list = ["BAU", "QUICK", "Other"]
 # Helper function for generating unique IDs
 def id_method():
     unique_ref = str(os.getlogin()).upper() + "-" + strftime("%Y%m%d%H%M%S") + str(random.randint(10000, 99999))
@@ -85,12 +90,12 @@ class RmsRequest(Base):
     decision_engine = Column(String, nullable=False)
     status = relationship("RmsRequestStatus", back_populates="request", cascade="all, delete-orphan")
     comments = relationship("Comment", back_populates="request", cascade="all, delete-orphan")
-    organization_options = ["FRM"]
-    sub_organization_options = ["FRAP", "ATO", "Transactional"]
-    line_of_business_options = ["CREDIT", "DEBIT", "DEPOSIT"]
-    team_options = ["IMPL", "CPT", "CNP", "ATO","FPF"]
-    decision_engine_options = ["SASFM", "DMP"]
-    effort_options = ["BAU", "QUICK", "Other"]
+    organization_options = organizations_multi_list
+    sub_organization_options = sub_organization_list
+    line_of_business_options = line_of_business_list
+    team_options = team_list
+    decision_engine_options = decision_engine_list
+    effort_options = effort_list
     request_type_options = ["RULE DEPLOYMENT", "RULE DEACTIVATION", "RULE CONFIG"]
     is_request = True
     request_status_config = {}
@@ -115,15 +120,15 @@ class RuleRequest(Base):
     rms_request = relationship("RmsRequest", backref="rule_requests", info={"exclude_from_form": True})
     is_request = True
     request_status_config = {
-        "PENDING APPROVAL": {"Roles": ["FS Manager"], "Next": ["PENDING GOVERNANCE","APPROVAL REJECTED"], "Status_Type":["APPROVAL"]},
-        "APPROVAL REJECTED": {"Roles": ["FS Manager"], "Next": [], "Status_Type":["APPROVAL"]},  
+        "PENDING APPROVAL": {"Roles": ["FS_Manager"], "Next": ["PENDING GOVERNANCE","APPROVAL REJECTED"], "Status_Type":["APPROVAL"]},
+        "APPROVAL REJECTED": {"Roles": ["FS_Manager"], "Next": [], "Status_Type":["APPROVAL"]},  
         
-        "PENDING GOVERNANCE": {"Roles": ["FS Manager"], "Next": ["PENDING UAT TABLE DETAIL","GOVERNANCE REJECTED"], "Status_Type":["GOVERNANCE"]},
-        "PENDING UAT TABLE DETAIL": {"Roles": ["IMPL Specialist"], "Next": ["COMPLETED","GOVERNANCE REJECTED"], "Status_Type":[]},
-        "GOVERNANCE REJECTED": {"Roles": ["IMPL Specialist"], "Next": [], "Status_Type":["GOVERNANCE REJECTED"]}, 
+        "PENDING GOVERNANCE": {"Roles": ["FS_Manager"], "Next": ["PENDING UAT TABLE DETAIL","GOVERNANCE REJECTED"], "Status_Type":["GOVERNANCE"]},
+        "PENDING UAT TABLE DETAIL": {"Roles": ["IMPL_Specialist"], "Next": ["COMPLETED","GOVERNANCE REJECTED"], "Status_Type":[]},
+        "GOVERNANCE REJECTED": {"Roles": ["IMPL_Specialist"], "Next": [], "Status_Type":["GOVERNANCE REJECTED"]}, 
 
-        "COMPLETED": {"Roles": ["IMPL Specialist"], "Next": [], "Status_Type":[]},  
-        "USER REJECTED": {"Roles": ["FS Analyst"], "Next": [], "Status_Type":["APPROVAL"]},  
+        "COMPLETED": {"Roles": ["IMPL_Specialist"], "Next": [], "Status_Type":[]},  
+        "USER REJECTED": {"Roles": ["FS_Analyst"], "Next": [], "Status_Type":["APPROVAL"]},  
     }
 
 
@@ -138,15 +143,15 @@ class RuleConfigRequest(Base):
     rms_request = relationship("RmsRequest", backref="rule_config_request", info={"exclude_from_form": True})
     is_request = True
     request_status_config = {
-        "PENDING APPROVAL": {"Roles": ["FS Manager"], "Next": ["PENDING GOVERNANCE","APPROVAL REJECTED"], "Status_Type":["APPROVAL"]},
-        "APPROVAL REJECTED": {"Roles": ["FS Manager"], "Next": [], "Status_Type":["APPROVAL"]},  
+        "PENDING APPROVAL": {"Roles": ["FS_Manager"], "Next": ["PENDING GOVERNANCE","APPROVAL REJECTED"], "Status_Type":["APPROVAL"]},
+        "APPROVAL REJECTED": {"Roles": ["FS_Manager"], "Next": [], "Status_Type":["APPROVAL"]},  
         
-        "PENDING GOVERNANCE": {"Roles": ["FS Manager"], "Next": ["PENDING UAT TABLE DETAIL","GOVERNANCE REJECTED"], "Status_Type":["GOVERNANCE"]},
-        "PENDING UAT TABLE DETAIL": {"Roles": ["IMPL Specialist"], "Next": ["COMPLETED","GOVERNANCE REJECTED"], "Status_Type":[]},
-        "GOVERNANCE REJECTED": {"Roles": ["IMPL Specialist"], "Next": [], "Status_Type":["GOVERNANCE REJECTED"]}, 
+        "PENDING GOVERNANCE": {"Roles": ["FS_Manager"], "Next": ["PENDING UAT TABLE DETAIL","GOVERNANCE REJECTED"], "Status_Type":["GOVERNANCE"]},
+        "PENDING UAT TABLE DETAIL": {"Roles": ["IMPL_Specialist"], "Next": ["COMPLETED","GOVERNANCE REJECTED"], "Status_Type":[]},
+        "GOVERNANCE REJECTED": {"Roles": ["IMPL_Specialist"], "Next": [], "Status_Type":["GOVERNANCE REJECTED"]}, 
 
-        "COMPLETED": {"Roles": ["IMPL Specialist"], "Next": [], "Status_Type":[]},  
-        "USER REJECTED": {"Roles": ["FS Analyst"], "Next": [], "Status_Type":["APPROVAL"]},  
+        "COMPLETED": {"Roles": ["IMPL_Specialist"], "Next": [], "Status_Type":[]},  
+        "USER REJECTED": {"Roles": ["FS_Analyst"], "Next": [], "Status_Type":["APPROVAL"]},  
     }
 
 
@@ -181,15 +186,18 @@ class User(Base):
     user_role_expire_timestamp = Column(DateTime, default=datetime.utcnow)
 
     roles = Column(String, nullable=False)
-    roles_multi_options = ["FS Manager", "FS Analyst", "FS Director","IMPL Manager", "IMPL Specialist", "IMPL Director","Admin"]
     organizations = Column(String, nullable=False)
-    organizations_multi_options = ["FRM"]
     sub_organizations = Column(String, nullable=False)
-    sub_organizations_multi_options = ["Transactional", "First Party Fraud", "Authentication"]
     line_of_businesses = Column(String, nullable=False)
-    line_of_businesses_multi_options = ["Credit", "Debit", "Deposits Incoming","Deposits Outgoing","Authentication","Orchestration"]
+    teams = Column(String, nullable=False)
     decision_engines = Column(String, nullable=False)
-    decision_engines_multi_options = ["SASFM", "DMP"]
+    roles_multi_options = ["FS_Manager", "FS_Analyst", "FS_Director","IMPL_Manager", "IMPL_Specialist", "IMPL_Director","Admin"]
+    organizations_multi_options = organizations_multi_list
+    sub_organizations_multi_options = sub_organization_list
+    line_of_businesses_multi_options = line_of_business_list
+    teams_multi_options = team_list
+    decision_engines_multi_options = decision_engine_list
+
     # Specify restricted fields that shouldn't be shown or updated
     restricted_fields = ["user_id", "last_update_timestamp"]
 

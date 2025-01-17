@@ -28,6 +28,7 @@ def insert_user():
             organizations="FRM",  # Replace with a valid organization
             sub_organizations="Transactional",  # Replace with a valid sub-organization
             line_of_businesses="Credit",  # Replace with a valid line of business
+            teams="CPP",  # Replace with a valid line of business
             decision_engines="SASFM",  # Replace with a valid decision engine
         )
         session.add(new_user)

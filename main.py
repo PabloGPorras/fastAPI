@@ -1,14 +1,15 @@
+import ast
 import csv
 import io
 import json
 import os
 import random
-from time import strftime
-from typing import List, Optional
+from time import sleep, strftime
+from typing import Dict, List, Optional
 from uuid import uuid4
 import uuid
 from fastapi import Body, Depends, FastAPI, File, Form, HTTPException, Query, Request, Response, UploadFile
-from fastapi.responses import FileResponse, JSONResponse, StreamingResponse
+from fastapi.responses import FileResponse, HTMLResponse, JSONResponse, StreamingResponse
 from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
@@ -121,6 +122,104 @@ async def example_endpoint(user: User = Depends(get_current_user)):
     logger.debug(f"User in endpoint: {user.user_name}")
     return {"message": "Success"}
 
+@app.get("/refresh-table/{model_name}")
+async def refresh_table(
+    model_name: str,
+    user: User = Depends(get_current_user),  # Authenticate user
+):
+    logger.debug(f"Refreshing table data for model: {model_name}")
+    session = SessionLocal()
+    
+    try:
+        # --- 1) Restrict access for certain models ---
+        ADMIN_MODELS = {"users"}
+        if model_name in ADMIN_MODELS and "Admin" not in user.roles:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail=(f"Admin role required to access '{model_name}'. Your roles: {user.roles}")
+            )
+
+        # --- 2) Resolve the model dynamically ---
+        model = get_model_by_tablename(model_name)
+        if not model:
+            logger.warning(f"Model '{model_name}' not found.")
+            raise HTTPException(status_code=404, detail=f"Model not found {model_name}")
+        logger.debug(f"Model resolved: {model}")
+
+        # --- 3) Fetch table data ---
+        rows = []
+        if model_name == "request":
+            # Special case for RmsRequest
+            subquery = (
+                session.query(
+                    RmsRequestStatus.request_id,
+                    func.max(RmsRequestStatus.timestamp).label("latest_timestamp"),
+                )
+                .group_by(RmsRequestStatus.request_id)
+                .subquery()
+            )
+
+            rows = (
+                session.query(
+                    RmsRequest,
+                    RmsRequestStatus.status.label("request_status"),
+                )
+                .join(subquery, RmsRequest.unique_ref == subquery.c.request_id)
+                .join(
+                    RmsRequestStatus,
+                    (RmsRequestStatus.request_id == subquery.c.request_id)
+                    & (RmsRequestStatus.timestamp == subquery.c.latest_timestamp),
+                )
+                .all()
+            )
+        else:
+            rows = session.query(model).all()
+
+        logger.debug(f"Fetched rows: {rows}")
+
+        # --- 4) Prepare data for rendering ---
+        mapper = inspect(model)
+        columns = [
+            {
+                "name": col.name,
+                "type": str(col.type),
+                "is_foreign_key": bool(col.foreign_keys),
+            }
+            for col in mapper.columns
+        ]
+
+        row_dicts = []
+        for row in rows:
+            row_data = {}
+            if isinstance(row, tuple):
+                # Handle cases like (ModelInstance, status, group_id)
+                model_instance, request_status = row[0], row[1]
+                for col in mapper.columns:
+                    row_data[col.name] = getattr(model_instance, col.name, None)
+                row_data["request_status"] = request_status
+            else:
+                for col in mapper.columns:
+                    row_data[col.name] = getattr(row, col.name, None)
+            row_dicts.append(row_data)
+
+        # --- 5) Return updated rows ---
+        return templates.TemplateResponse(
+            "table_rows.html",  # A partial template for rows
+            {
+                "rows": row_dicts,
+                "columns": columns,
+                "model_name": model_name,
+            },
+        )
+
+    except Exception as e:
+        logger.error(f"Error refreshing table data for model '{model_name}': {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail=str(e))
+
+    finally:
+        session.close()
+        logger.debug("Database session closed.")
+
 
 @app.get("/table/{model_name}")
 async def get_table(
@@ -168,20 +267,7 @@ async def get_table(
 
         logger.debug(f"Model resolved: {model}")
 
-        # Define action options
-        if model_name == "request":
-            actions = [{"label": "Refresh", "endpoint": "/refresh"}]
-        else:
-            actions = [
-                {"label": "Create New", "endpoint": "/create-new-modal"},
-                {"label": "Refresh", "endpoint": "/refresh"},
-            ]
 
-        # Extract the first action as the primary action
-        primary_action = actions.pop(0) if actions else None
-
-        # Add bulk import option if enabled
-        bulk_import_action = {"label": "Upload Bulk Import", "endpoint": "/bulk-import"}
 
         # Query data based on the model name
         if model_name == "request":
@@ -241,6 +327,8 @@ async def get_table(
 
         logger.debug(f"Fetched rows: {rows}")
 
+
+        
         # Extract model metadata dynamically
         mapper = inspect(model)
 
@@ -316,6 +404,9 @@ async def get_table(
                 row_data = {}
                 for col in mapper.columns:
                     val = getattr(model_obj, col.name, None)
+                    # Convert datetime objects to ISO 8601 strings
+                    if isinstance(val, datetime):
+                        val = val.isoformat()
                     row_data[col.name] = val
 
                 # Add request_status and group_id
@@ -368,14 +459,11 @@ async def get_table(
                 "request": request,
                 "rows": row_dicts,
                 "columns": columns,
-                "actions": actions,
                 "form_fields": form_fields,
                 "relationships": relationships,
                 "model_name": model_name,
                 "model": model,
                 "RmsRequest": RmsRequest,
-                "bulk_import_action": bulk_import_action,
-                "primary_action": primary_action,
                 "request_status_config": request_status_config,
                 "is_request": is_request,
                 "predefined_options": predefined_options,  # Pass to template
@@ -393,150 +481,292 @@ async def get_table(
 
 from sqlalchemy.orm import joinedload, subqueryload
 
-@app.get("/get-details/{model_name}/{item_id}")
-async def get_details(model_name: str, item_id: str):
-    logger.info(f"Fetching details for model: {model_name}, item_id: {item_id}")
+@app.post("/get-form", response_class=HTMLResponse)
+async def get_details(
+    request: Request,
+    model_name: str = Form(...)  # The name of the model to fetch details for
+):
+    try:
+        # Step 1: Resolve the model dynamically using model_name
+        logger.debug(f"Fetching details for model: {model_name}")
+        model = get_model_by_tablename(model_name.lower())
+        if not model:
+            raise HTTPException(status_code=404, detail=f"Model '{model_name}' not found")
+
+        # Step 2: Extract metadata for the model
+        form_fields = []
+        relationships = []
+        predefined_options = []
+
+        mapper = inspect(model)
+        restricted_fields = getattr(model, "restricted_fields", [])
+        logger.debug(f"Restricted fields for {model.__tablename__}: {restricted_fields}")
+
+        for column in mapper.columns:
+            column_info = {
+                "name": column.name,
+                "type": str(column.type),
+                "options": getattr(model, f"{column.name}_options", None),  # Dropdown options
+                "multi_options": getattr(model, f"{column.name}_multi_options", None),  # Multi-select options
+                "is_foreign_key": bool(column.foreign_keys),
+                "value": "",  # No pre-filled value since no DB fetch
+                "required": not column.nullable,  # Infer required fields
+            }
+            if column.name not in restricted_fields and column.name != "unique_ref":
+                form_fields.append(column_info)
+
+        for rel in mapper.relationships:
+            relationships.append({
+                "name": rel.key,
+                "fields": [
+                    {"name": col.name, "type": str(col.type)}
+                    for col in rel.mapper.columns if col.name != "id"
+                ],
+                "info": rel.info,  # Include `info` attribute for form logic
+            })
+
+            # Add predefined options if applicable
+            if rel.info.get("predefined_options", False):
+                related_model = rel.mapper.class_
+                predefined_options.append({
+                    "name": rel.key,
+                    "options": [
+                        {"id": obj.unique_ref, "name": getattr(obj, "name", str(obj.unique_ref))}
+                        for obj in SessionLocal().query(related_model).all()
+                    ],
+                })
+
+        # Step 3: Pass the metadata to the template
+        logger.debug("Rendering the template with the following data:")
+        logger.debug({
+            "form_fields": form_fields,
+            "relationships": relationships,
+            "predefined_options": predefined_options,
+        })
+
+        return templates.TemplateResponse(
+            "request_details_form.html",
+            {
+                "model_name": model_name.lower(),
+                "request": request,
+                "RmsRequest": model,
+                "form_fields": form_fields,
+                "relationships": relationships,
+                "predefined_options": predefined_options,
+            },
+        )
+
+    except Exception as e:
+        logger.error(f"Error processing model data: {str(e)}", exc_info=True)
+        raise HTTPException(status_code=500, detail="Internal Server Error")
+
+
+@app.post("/get-details", response_class=HTMLResponse)
+async def get_details(
+    request: Request,
+    unique_ref: str = Form(...)  # The row object serialized as a JSON string
+):
     session = SessionLocal()
     try:
-        # Resolve the model dynamically
-        model = get_model_by_tablename(model_name)
-        if not model:
-            logger.warning(f"Model '{model_name}' not found.")
-            raise HTTPException(status_code=404, detail=f"Model '{model_name}' not found.")
+        # Step 1: Fetch RmsRequest details from unique_refs
+        logger.debug(f"Unique reference to query: {unique_ref}")
 
-        # Query the specific item with eager loading for relationships
+        # Query RmsRequest table for these unique_refs
+        session = SessionLocal()
+        rmsRequest = session.query(RmsRequest).filter(RmsRequest.unique_ref == unique_ref).one_or_none()
+        if not request:
+            logger.error("No matching requests found in the RmsRequest table.")
+            raise HTTPException(
+                status_code=404,
+                detail="No matching requests found for the provided unique_refs.",
+            )
+        logger.debug(f"Fetched request from database: {rmsRequest}")
+
+        model = get_model_by_tablename(rmsRequest.request_type.lower())
+        if not model:
+            raise HTTPException(status_code=404, detail=f"Model '{request.request_type.lower()}' not found")
+
+        # Step 3: Query the specific item with eager loading for relationships
         item = (
             session.query(model)
             .options(joinedload("*"))  # Eagerly load all relationships
-            .filter(model.unique_ref == item_id)
+            .filter(model.unique_ref == unique_ref)
             .one_or_none()
         )
         if not item:
-            logger.warning(f"Item with id {item_id} not found in model '{model_name}'.")
             raise HTTPException(status_code=404, detail="Item not found")
 
-        logger.debug(f"Fetched item: {item}")
+        # Step 4: Extract item details
+        item_data = {col.name: getattr(item, col.name) for col in inspect(model).columns}
 
-        # Fetch relationships dynamically
-        relationships = {}
-        for relationship in inspect(model).relationships:
-            related_items = getattr(item, relationship.key)
-            relationships[relationship.key] = [
-                {col.name: getattr(related_item, col.name) for col in relationship.mapper.columns}
-                for related_item in (related_items if isinstance(related_items, list) else [related_items])
-                if related_item
-            ]
+        # Step 5: Fetch relationships dynamically
+        relationships = []
+        predefined_options = {}
+        for rel in inspect(model).relationships:
+            relationships.append({
+                "name": rel.key,
+                "fields": [
+                    {"name": col.name, "type": str(col.type)}
+                    for col in rel.mapper.columns if col.name != "id"
+                ],
+                "info": rel.info,  # Include the `info` attribute
+            })
 
-        logger.debug(f"Fetched relationships for item {item_id}: {relationships}")
+            # Fetch predefined options if specified
+            if rel.info.get("predefined_options", False):
+                related_model = rel.mapper.class_
+                predefined_options[rel.key] = [
+                    {"id": obj.unique_ref, "name": getattr(obj, "name", str(obj.unique_ref))}
+                    for obj in session.query(related_model).all()
+                ]
 
-        # Prepare the response data
-        data = {col.name: getattr(item, col.name) for col in inspect(model).columns}
-        logger.debug(f"Item data: {data}")
 
-        response = {
-            "data": data,
-            "relationships": relationships,
-        }
-        logger.info(f"Response prepared for model '{model_name}', item_id {item_id}: {response}")
+        form_fields = []
+        columns = []
+        mapper = inspect(model)
+        # Extract restricted fields from the model
+        restricted_fields = getattr(model, "restricted_fields", [])
+        logger.debug(f"Restricted fields for {model.__tablename__}: {restricted_fields}")
+        for column in mapper.columns:
+            column_info = {
+                "name": column.name,
+                "type": str(column.type),
+                "options": getattr(model, f"{column.name}_options", None),  # Dropdown options
+                "multi_options": getattr(model, f"{column.name}_multi_options", None),  # Multi-select options
+                "is_foreign_key": bool(column.foreign_keys),
+                "value": item_data.get(column.name, ""),  # Add value from item_data or leave blank
+            }
+            columns.append(column_info)
 
-        return response
+            # Include in form fields only if it's not in restricted_fields
+            if column.name not in restricted_fields and column.name not in ["unique_ref"]:
+                form_fields.append(column_info)
 
+                
+        # Pass relationships and predefined options to the template
+        logger.debug("Pass relationships and predefined options to the template")
+        # Render the template
+        return templates.TemplateResponse(
+            "request_details_form.html",
+            {
+                "request": request,
+                "RmsRequest": model,
+                "form_fields": form_fields,
+                "relationships": relationships,
+                "predefined_options": predefined_options,
+            },
+        )
     except Exception as e:
-        logger.error(f"Error fetching details for model '{model_name}', item_id {item_id}: {str(e)}", exc_info=True)
+        logger.error(f"Error processing row data: {str(e)}", exc_info=True)
         raise HTTPException(status_code=500, detail="Internal Server Error")
 
     finally:
         session.close()
-        logger.debug(f"Database session closed for model: {model_name}, item_id: {item_id}")
 
 
 
 @app.post("/bulk-update-status")
-def bulk_update_status(payload: dict, user: User = Depends(get_current_user)):
-    import logging
+def bulk_update_status(
+    ids: List[str] = Form(...),  # List of unique_ref IDs
+    request_type: str = Form(...),  # Request type
+    next_status: str = Form(...),  # Status to update to
+    user: User = Depends(get_current_user),  # Authenticated user
+):
+    session = SessionLocal() 
     logger = logging.getLogger("bulk_update_status")
-
-    session = SessionLocal()
-
     try:
-        ids = payload.get("ids", [])
-        current_statuses = payload.get("currentStatuses", [])
-        next_status = payload.get("nextStatus")
-        request_status_config = payload.get("request_status_config", {})
-
         logger.info("Bulk status update request received.")
-        logger.debug(f"Payload received: {payload}")
+        logger.debug(f"Request IDs: {ids}")
+        logger.debug(f"Request Type: {request_type}")
+        logger.debug(f"Next Status: {next_status}")
 
-        if not ids or not next_status:
-            logger.error(f"Invalid payload: {payload}")
-            raise HTTPException(status_code=400, detail="Invalid request data")
+        if not ids or not request_type or not next_status:
+            logger.error("Invalid input data.")
+            raise HTTPException(status_code=400, detail="Invalid request data.")
 
-        if not request_status_config:
-            logger.error("Request status configuration is missing.")
-            raise HTTPException(status_code=400, detail="Request status configuration is missing.")
-
-        # Fetch the latest status for the provided request IDs
-        subquery = (
-            session.query(
-                RmsRequestStatus.request_id,
-                func.max(RmsRequestStatus.timestamp).label("latest_timestamp"),
+        # Fetch the configuration for the request type
+        model = get_model_by_tablename(request_type.lower())
+        if not model or not hasattr(model, "request_status_config"):
+            logger.error(f"Model '{request_type}' not found or has no status configuration.")
+            raise HTTPException(
+                status_code=404, detail=f"Model '{request_type}' not found or has no status config."
             )
-            .filter(RmsRequestStatus.request_id.in_(ids))
-            .group_by(RmsRequestStatus.request_id)
-            .subquery()
-        )
 
-        rows = (
-            session.query(RmsRequest, RmsRequestStatus.status)
-            .join(subquery, RmsRequest.unique_ref == subquery.c.request_id)
-            .join(
-                RmsRequestStatus,
-                (RmsRequestStatus.request_id == subquery.c.request_id)
-                & (RmsRequestStatus.timestamp == subquery.c.latest_timestamp),
+        request_status_config = model.request_status_config
+        logger.debug(f"Request status configuration: {request_status_config}")
+
+        # Validate transitions
+        current_statuses = [
+            session.query(RmsRequestStatus.status)
+            .filter(RmsRequestStatus.request_id == unique_ref)
+            .order_by(RmsRequestStatus.timestamp.desc())
+            .first()[0]
+            for unique_ref in ids
+        ]
+
+        if not all(status == current_statuses[0] for status in current_statuses):
+            logger.error("Not all requests share the same current status.")
+            raise HTTPException(
+                status_code=400, detail="All requests must share the same current status."
             )
-            .all()
-        )
 
-        logger.debug(f"Fetched rows: {[{'id': r.unique_ref, 'status': s} for r, s in rows]}")
+        current_status = current_statuses[0]
+        logger.debug(f"Current status: {current_status}")
 
+        # Validate user roles
+        valid_roles = request_status_config.get(current_status, {}).get("Roles", [])
+        user_roles = set(user.roles.split(","))
+
+        if not user_roles.intersection(valid_roles):
+            logger.warning(f"User '{user.user_name}' does not have required roles for {current_status}")
+            raise HTTPException(
+                status_code=403,
+                detail=(
+                    f"User does not have the required roles for status '{current_status}'. Required roles: {valid_roles}."
+                ),
+            )
+
+        # Validate next status
+        valid_transitions = request_status_config.get(current_status, {}).get("Next", [])
+        if next_status not in valid_transitions:
+            logger.error(f"Invalid transition from {current_status} to {next_status}.")
+            raise HTTPException(
+                status_code=400,
+                detail=(
+                    f"Invalid transition from {current_status} to {next_status}. Valid transitions: {valid_transitions}."
+                ),
+            )
+
+        # Update requests
         updated_count = 0
+        for unique_ref in ids:
+            request = session.query(RmsRequest).filter(RmsRequest.unique_ref == unique_ref).first()
 
-        for (request, current_status), expected_status in zip(rows, current_statuses):
-            logger.debug(f"Processing request ID: {request.unique_ref}, Current Status: {current_status}, Expected Status: {expected_status}")
-
-            # Ensure the current status matches the expected status
-            if current_status != expected_status:
-                logger.warning(f"Request ID {request.unique_ref}: Status mismatch. Expected {expected_status}, Found {current_status}")
+            if not request:
+                logger.warning(f"Request with unique_ref {unique_ref} not found.")
                 continue
 
-            # Fetch valid roles and transitions for the current status
-            valid_roles = request_status_config.get(current_status, {}).get("Roles", [])
-            valid_transitions = request_status_config.get(current_status, {}).get("Next", [])
-            logger.debug(f"Valid roles for {current_status}: {valid_roles}")
-            logger.debug(f"Valid transitions for {current_status}: {valid_transitions}")
+            # Update RmsRequestStatus
+            new_status = RmsRequestStatus(
+                request_id=unique_ref, status=next_status, user_name=user.user_name
+            )
+            session.add(new_status)
 
-            # Check if the user has at least one of the valid roles
-            user_roles = set(user.roles.split(","))
-            if not user_roles.intersection(valid_roles):
-                logger.warning(f"Request ID {request.unique_ref}: User '{user.user_name}' does not have required roles for {current_status}")
-                continue
+            # Update RmsRequest based on Status_Type
+            status_type = request_status_config.get(current_status, {}).get("Status_Type", [])
+            if "APPROVAL" in status_type:
+                request.approval_timesatmp = datetime.utcnow()
+                request.approved = "Y"
+                request.approver = user.user_name
+                logger.debug(f"Request ID {unique_ref}: Approval details updated.")
+            elif "GOVERNANCE" in status_type:
+                request.governed_timestamp = datetime.utcnow()
+                request.governed = "Y"
+                request.governed_by = user.user_name
+                logger.debug(f"Request ID {unique_ref}: Governance details updated.")
 
-            # Check if the next status is valid
-            if next_status in valid_transitions:
-                logger.info(f"Updating request ID {request.unique_ref} to next status: {next_status}")
+            updated_count += 1
 
-                # Add a new RmsRequestStatus entry to represent the status update
-                new_status = RmsRequestStatus(
-                    request_id=request.unique_ref,
-                    status=next_status,
-                    user_name=user.user_name,  # Use the authenticated user's name
-                )
-                session.add(new_status)
-                updated_count += 1
-            else:
-                logger.warning(f"Request ID {request.unique_ref}: Invalid transition from {current_status} to {next_status}")
-
-        # Commit the changes to the database
         session.commit()
         logger.info(f"Bulk update completed. {updated_count} rows updated successfully.")
 
@@ -545,9 +775,12 @@ def bulk_update_status(payload: dict, user: User = Depends(get_current_user)):
     except Exception as e:
         logger.error(f"Error during bulk status update: {str(e)}", exc_info=True)
         raise HTTPException(status_code=500, detail="Internal Server Error")
+
     finally:
         session.close()
         logger.debug("Session closed.")
+
+
 
 
 
@@ -838,7 +1071,9 @@ async def bulk_import(file: UploadFile, model_name: str = Form(...),user: User =
 
         
 @app.post("/create-new/{model_name}")
-async def create_new(model_name: str, data: dict, user: User = Depends(get_current_user)):
+async def create_new(model_name: str, request: Request, user: User = Depends(get_current_user)):
+    data = await request.form()  # Parses form data
+    data = dict(data)  # Convert to dictionary
     logger.info(f"Received request to create a new entry for model: {model_name}.")
     session = SessionLocal()
     try:
@@ -864,7 +1099,7 @@ async def create_new(model_name: str, data: dict, user: User = Depends(get_curre
 
         # Filter data to include only valid column names for the model
         valid_columns = {col.name for col in inspect(model).columns}
-        data = {key: value for key, value in data.items() if key in valid_columns}
+        data = {key: value for key, value in data.items() if key in valid_columns or key in ["effort", "organization", "sub_organization", "line_of_business", "team", "decision_engine"]}
         logger.debug(f"Filtered main data: {data}")
 
         # Handle boolean values in the input data
@@ -872,19 +1107,21 @@ async def create_new(model_name: str, data: dict, user: User = Depends(get_curre
             if isinstance(value, str) and value.lower() in ["true", "false"]:
                 data[key] = value.lower() == "true"
 
+        logger.debug(f"Filtered main data2: {data}")
         # Handle models with `is_request = True`
         if getattr(model, "is_request", False):  # Dynamically check if the model has `is_request`
             rms_request_data = {
                 "unique_ref": data.get("unique_ref"),
                 "request_type": data.pop("request_type", model_name.upper()),
-                "effort": data.pop("effort", "Default Effort"),
-                "organization": data.pop("organization", "Default Org"),
-                "sub_organization": data.pop("sub_organization", "Default Sub Org"),
-                "line_of_business": data.pop("line_of_business", "Default LOB"),
-                "team": data.pop("team", "Default Team"),
-                "decision_engine": data.pop("decision_engine", "Default Engine"),
+                "effort": data.pop("effort", "ERROR"),
+                "organization": data.pop("organization", "ERROR"),
+                "sub_organization": data.pop("sub_organization", "ERROR"),
+                "line_of_business": data.pop("line_of_business", "ERROR"),
+                "team": data.pop("team", "ERROR"),
+                "decision_engine": data.pop("decision_engine", "ERROR"),
                 "group_id": group_id,
             }
+            logger.debug(f"rms_request_data data: {rms_request_data}")
 
             # Create and flush RmsRequest
             initial_status = list(model.request_status_config.keys())[0]  # Get the first status
@@ -1036,7 +1273,7 @@ async def get_current_user_info(user: User = Depends(get_current_user)):
     Fetch the currently logged-in user's information with parsed CSV fields.
     """
     try:
-        logger.debug(f"Fetching current user information for: {user.user_name}")
+        logger.debug(f"Fetching current user information for: {user.user_id}")
         return {
             "user_id": user.user_id,
             "user_name": user.user_name,
@@ -1060,92 +1297,276 @@ class StatusTransitionRequest(BaseModel):
     current_statuses: List[str]
     user_roles: List[str]
 
+
+@app.post("/status-transitions", response_class=HTMLResponse)
+def get_status_transitions(
+    selected_rows: List[str] = Form(...),  # List of JSON strings
+    next_status: str = Form(...),
+    user: User = Depends(get_current_user),  # Authenticated user
+):
+    try:
+        logger.info(f"User '{user.user_name}' initiated a status transition.")
+        logger.debug(f"Received selected rows: {selected_rows}")
+        logger.debug(f"Next status: {next_status}")
+
+        # Step 1: Parse selected rows into Python dictionaries using `ast.literal_eval`
+        try:
+            def sanitize_row(row):
+                # Replace unsupported constructs (e.g., `datetime`) with placeholders
+                row = row.replace("datetime.datetime", "").replace("(", "").replace(")", "")
+                return ast.literal_eval(row)
+
+            parsed_rows = [sanitize_row(row) for row in selected_rows]
+            logger.debug(f"Parsed rows: {parsed_rows}")
+        except Exception as e:
+            logger.error(f"Failed to parse selected rows: {e}")
+            raise HTTPException(
+                status_code=400,
+                detail="Invalid format in selected rows. Ensure proper Python object notation.",
+            )
+
+        # Step 2: Ensure all statuses and request types are the same
+        statuses = {row.get("request_status") for row in parsed_rows}
+        request_types = {row.get("request_type") for row in parsed_rows}
+
+        if len(statuses) != 1:
+            logger.warning("Selected rows have multiple different statuses.")
+            raise HTTPException(
+                status_code=400,
+                detail="Selected rows must have the same status.",
+            )
+
+        if len(request_types) != 1:
+            logger.warning("Selected rows have multiple different request types.")
+            raise HTTPException(
+                status_code=400,
+                detail="Selected rows must have the same request type.",
+            )
+
+        current_status = statuses.pop()  # Extract the single status
+        current_request_type = request_types.pop()  # Extract the single request type
+        logger.info(f"Current status for all rows: {current_status}")
+        logger.info(f"Current request type for all rows: {current_request_type}")
+
+        # Step 3: Fetch all unique_refs from parsed rows
+        unique_refs = [row.get("unique_ref") for row in parsed_rows]
+        logger.debug(f"Unique references to query: {unique_refs}")
+
+        # Query RmsRequest table for these unique_refs
+        session = SessionLocal()
+        requests = session.query(RmsRequest).filter(RmsRequest.unique_ref.in_(unique_refs)).all()
+        if not requests:
+            logger.error("No matching requests found in the RmsRequest table.")
+            raise HTTPException(
+                status_code=404,
+                detail="No matching requests found for the provided unique_refs.",
+            )
+        logger.debug(f"Fetched requests from database: {requests}")
+
+        # Step 4: Check if user has access to all organizations, sub-organizations, etc.
+        for request in requests:
+            if (
+                request.organization not in user.organizations.split(",") or
+                request.sub_organization not in user.sub_organizations.split(",") or
+                request.line_of_business not in user.line_of_businesses.split(",") or 
+                request.team not in user.teams.split(",") or
+                request.decision_engine not in user.decision_engines.split(",")
+            ):
+                logger.warning(
+                    f"Access denied for user '{user.user_name}' on request '{request.unique_ref}'. "
+                    f"Organization: {request.organization}, Sub-Organization: {request.sub_organization}, "
+                    f"LoB: {request.line_of_business}, Team: {request.team}, Decision Engine: {request.decision_engine}."
+                )
+                
+                raise HTTPException(
+                    status_code=403,
+                    detail=(f"User {user.user_id} does not have access to all organizations, sub-organizations, "
+                            f"or lines of business for request with unique_ref: {request.unique_ref}.")
+                )
+
+        # Step 5: Validate user's roles for the current status using the correct model
+        model = get_model_by_tablename(current_request_type.lower())
+        if not model or not hasattr(model, "request_status_config"):
+            logger.error(f"Model '{current_request_type}' not found or has no status configuration.")
+            raise HTTPException(
+                status_code=404,
+                detail=f"Model '{current_request_type}' not found or has no status config.",
+            )
+
+        request_status_config = model.request_status_config
+        if current_status not in request_status_config:
+            logger.warning(f"Invalid status '{current_status}' in request_status_config.")
+            raise HTTPException(
+                status_code=400,
+                detail=f"Invalid status: {current_status}",
+            )
+
+        allowed_roles = request_status_config[current_status]["Roles"]
+        user_roles = user.roles.split(",")
+        logger.debug(f"Allowed roles for status '{current_status}': {allowed_roles}")
+        logger.debug(f"User roles: {user_roles}")
+
+        if not set(user_roles).intersection(allowed_roles):
+            logger.warning(
+                f"User '{user.user_name}' does not have the required roles for status '{current_status}'."
+            )
+            raise HTTPException(
+                status_code=403,
+                detail=(f"User does not have the required roles for status '{current_status}'. "
+                        f"Required roles: {allowed_roles}. User roles: {user_roles}."),
+            )
+
+        # If all checks pass, proceed
+        logger.info(f"All checks passed for user '{user.user_name}'.")
+    
+        # Step 6: Generate HTML buttons
+        valid_transitions = request_status_config.get(current_status, {}).get("Next", [])
+        logger.debug(f"Valid transitions for status '{current_status}': {valid_transitions}")
+
+        ids_json = json.dumps([row["unique_ref"] for row in parsed_rows])  # Prepare unique_ref list
+        buttons = []
+
+        for next_status in valid_transitions:
+            button_html = (
+                f'<button class="dropdown-item" '
+                f'  hx-post="/bulk-update-status" '
+                f'  hx-vals=\'{{'
+                f'    "ids": {json.dumps([row["unique_ref"] for row in parsed_rows])}, '
+                f'    "next_status": "{next_status}", '
+                f'    "request_type": "{current_request_type}"'
+                f'  }}\' '
+                f'  hx-trigger="click">'
+                f'Change to {next_status}'
+                f'</button>'
+            )
+            buttons.append(button_html)
+
+        # Combine buttons into a single HTML response
+        response_html = "".join(buttons)
+        return HTMLResponse(content=response_html)
+    except Exception as e:
+        logger.error(f"Error in status-transitions endpoint: {e}", exc_info=True)
+        raise HTTPException(
+            status_code=500,
+            detail=f"Internal server error: {str(e)}",
+        )
+
+
 @app.post("/status-transitions/{model_name}")
 def get_status_transitions(
     model_name: str,
-    data: StatusTransitionRequest,
-    user: User = Depends(get_current_user),
+    selected_rows: List[str] = Form(...),  # List of JSON strings
+    next_status: str = Form(...),
+    user: User = Depends(get_current_user),  # Authenticated user
 ):
     try:
-        logger.info(f"Model name: {model_name}")
-        logger.info(f"Request data: {data.dict()}")
+        logger.info(f"User '{user.user_name}' initiated a status transition for model '{model_name}'.")
+        logger.debug(f"Received selected rows: {selected_rows}")
+        logger.debug(f"Next status: {next_status}")
 
-        # Fetch the model dynamically
-        model = get_model_by_tablename(model_name)
-        if not model or not hasattr(model, "request_status_config"):
-            raise HTTPException(status_code=404, detail=f"Model '{model_name}' not found or has no status config.")
+        # Step 1: Parse selected rows into Python dictionaries using `ast.literal_eval`
+        try:
+            def sanitize_row(row):
+                # Replace unsupported constructs (e.g., `datetime`) with placeholders
+                row = row.replace("datetime.datetime", "").replace("(", "").replace(")", "")
+                return ast.literal_eval(row)
 
-        request_status_config = model.request_status_config
-
-        # Validate current statuses
-        current_statuses = data.current_statuses
-        if not current_statuses:
-            raise HTTPException(status_code=400, detail="No current statuses provided.")
-
-        user_roles = data.user_roles
-
-        # Fetch related `RmsRequest` record
-        session = SessionLocal()
-        rms_request = (
-            session.query(RmsRequest)
-            .filter(RmsRequest.request_status.in_(current_statuses))
-            .first()
-        )
-        if not rms_request:
-            raise HTTPException(status_code=404, detail="No related RmsRequest record found.")
-
-        # Log request and user configurations for debugging
-        logger.debug(f"RmsRequest Configurations: "
-                     f"Org: {rms_request.organization}, Sub-Org: {rms_request.sub_organization}, "
-                     f"LoB: {rms_request.line_of_business}, Team: {rms_request.team}, "
-                     f"Decision Engine: {rms_request.decision_engine}")
-        logger.debug(f"User Configurations: "
-                     f"Organizations: {user.organizations}, Sub-Orgs: {user.sub_organizations}, "
-                     f"LoBs: {user.line_of_businesses}, Roles: {user.roles}, "
-                     f"Decision Engines: {user.decision_engines}")
-
-        # Check if any of the user's configurations match the request's configuration
-        if not (
-            rms_request.organization in user.organizations.split(",") and
-            rms_request.sub_organization in user.sub_organizations.split(",") and
-            rms_request.line_of_business in user.line_of_businesses.split(",") and
-            any(role in user.roles.split(",") for role in ["IMPL", "FS"]) and
-            rms_request.decision_engine in user.decision_engines.split(",")
-        ):
-            logger.warning(f"Mismatch detected: "
-                           f"Request Org: {rms_request.organization}, User Orgs: {user.organizations.split(',')}; "
-                           f"Request Sub-Org: {rms_request.sub_organization}, User Sub-Orgs: {user.sub_organizations.split(',')}; "
-                           f"Request LoB: {rms_request.line_of_business}, User LoBs: {user.line_of_businesses.split(',')}; "
-                           f"Request Decision Engine: {rms_request.decision_engine}, "
-                           f"User Decision Engines: {user.decision_engines.split(',')}.")
-
+            parsed_rows = [sanitize_row(row) for row in selected_rows]
+            logger.debug(f"Parsed rows: {parsed_rows}")
+        except Exception as e:
+            logger.error(f"Failed to parse selected rows: {e}")
             raise HTTPException(
-                status_code=403,
-                detail=(f"User does not have matching configurations for Org: {rms_request.organization}, "
-                        f"Sub-Org: {rms_request.sub_organization}, LoB: {rms_request.line_of_business}, "
-                        f"Team: {rms_request.team}, Decision Engine: {rms_request.decision_engine}.")
+                status_code=400,
+                detail="Invalid format in selected rows. Ensure proper Python object notation.",
             )
 
-        # Determine valid transitions
-        valid_transitions = set(request_status_config[current_statuses[0]]["Next"])
-        for status in current_statuses[1:]:
-            if status not in request_status_config:
-                raise HTTPException(status_code=400, detail=f"Invalid status: {status}")
-            valid_transitions.intersection_update(request_status_config[status]["Next"])
+        # Step 2: Ensure all statuses are the same
+        statuses = {row.get("request_status") for row in parsed_rows}
+        if len(statuses) != 1:
+            logger.warning("Selected rows have multiple different statuses.")
+            raise HTTPException(
+                status_code=400,
+                detail="Selected rows must have the same status.",
+            )
 
-        # Filter transitions by roles
-        filtered_transitions = [
-            status for status in valid_transitions
-            if any(role in user_roles for role in request_status_config.get(status, {}).get("Roles", []))
-        ]
+        current_status = statuses.pop()  # Extract the single status
+        logger.info(f"Current status for all rows: {current_status}")
 
-        return {"valid_transitions": filtered_transitions}
+        # Step 3: Validate user's roles for the current status
+        model = get_model_by_tablename(model_name)
+        logger.error(f"Model '{model}' found.")
 
-    except KeyError as e:
-        raise HTTPException(status_code=400, detail=f"Invalid status provided: {str(e)}")
+        request_status_config = model.request_status_config
+        if current_status not in request_status_config:
+            logger.warning(f"Invalid status '{current_status}' in request_status_config: {request_status_config}.")
+            raise HTTPException(
+                status_code=400,
+                detail=f"Invalid status: {current_status}",
+            )
+
+        allowed_roles = request_status_config[current_status]["Roles"]
+        user_roles = user.roles.split(",")
+        logger.debug(f"Allowed roles for status '{current_status}': {allowed_roles}")
+        logger.debug(f"User roles: {user_roles}")
+
+        if not set(user_roles).intersection(allowed_roles):
+            logger.warning(
+                f"User '{user.user_name}' does not have the required roles for status '{current_status}'."
+            )
+            raise HTTPException(
+                status_code=403,
+                detail=f"User does not have the required roles for status '{current_status}'. Required roles: {allowed_roles}. User roles: {user.user_id}",
+            )
+
+        # Step 4: Get all unique_refs from parsed rows
+        unique_refs = [row.get("unique_ref") for row in parsed_rows]
+        logger.debug(f"Unique references to query: {unique_refs}")
+
+        # Query RmsRequest table for these unique_refs
+        session = SessionLocal()
+        requests = session.query(RmsRequest).filter(RmsRequest.unique_ref.in_(unique_refs)).all()
+
+        if not requests:
+            logger.error("No matching requests found in the RmsRequest table.")
+            raise HTTPException(
+                status_code=404,
+                detail="No matching requests found for the provided unique_refs.",
+            )
+
+        logger.debug(f"Fetched requests from database: {requests}")
+
+        # Step 5: Check if user has access to all organizations, sub-organizations, etc.
+        for request in requests:
+            if (
+                request.organization not in user.organizations.split(",") or
+                request.sub_organization not in user.sub_organizations.split(",") or
+                request.line_of_business not in user.line_of_businesses.split(",") or 
+                request.team not in user.teams.split(",") or
+                request.decision_engine not in user.decision_engines.split(",")
+            ):
+                logger.warning(
+                    f"Access denied for user '{user.user_name}' on request '{request.unique_ref}'. "
+                    f"Organization: {request.organization}, Sub-Organization: {request.sub_organization}, "
+                    f"LoB: {request.line_of_business}, Team: {request.team}, Decision Engine: {request.decision_engine}."
+                )
+                raise HTTPException(
+                    status_code=403,
+                    detail=(
+                        f"User does not have access to all organizations, sub-organizations, "
+                        f"or lines of business for request with unique_ref: {request.unique_ref}."
+                    ),
+                )
+
+        # If all checks pass, proceed
+        logger.info(f"All checks passed for user '{user.user_name}'.")
+        return {"message": "Status transitions validated successfully!"}
+
     except Exception as e:
-        logger.error(f"Error in status-transitions endpoint: {str(e)}", exc_info=True)
-        raise HTTPException(status_code=403, detail="An unexpected error occurred.")
+        logger.error(f"Error in status-transitions endpoint: {e}", exc_info=True)
+        raise HTTPException(
+            status_code=500,
+            detail=f"Internal server error: {str(e)}",
+        )
 
 
 

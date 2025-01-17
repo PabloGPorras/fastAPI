@@ -1,0 +1,159 @@
+<style>
+    /* Sub-Side Menu */
+    .sub-side-menu {
+        position: absolute;
+        top: 0;
+        left: 100%;
+        min-width: 200px;
+        z-index: 2000;
+        /* Ensure it is above other elements */
+        background-color: var(--menu-bg-color);
+        border: 1px solid var(--sidebar-border-color);
+        display: none;
+        /* Hidden initially */
+        color: var(--sidebar-text-color);
+    }
+
+    .sub-side-menu.show {
+        display: block;
+        /* Show the menu when triggered */
+    }
+
+    .sub-side-menu a.nav-link:hover {
+        background-color: var(--link-hover-bg-color);
+        color: var(--link-color);
+    }
+
+    .nav-item:hover .sub-side-menu {
+        display: block;
+        /* Display the submenu */
+    }
+
+    /* Sidebar Styles */
+    #sidebar {
+        min-width: 60px;
+        /* Collapsed width */
+        max-width: 200px;
+        /* Expanded width */
+        transition: all 0.3s ease-in-out;
+        margin: 0;
+        padding: 0;
+        border-right: 1px solid var(--sidebar-border-color, #dee2e6);
+        background-color: var(--sidebar-bg-color, #f8f9fa);
+        color: var(--sidebar-text-color, #212529);
+    }
+
+    #sidebar.collapsed {
+        width: 60px;
+    }
+
+    #sidebar .nav-link {
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        color: var(--link-color, #212529);
+    }
+
+    #sidebar .nav-link:hover {
+        background-color: var(--link-hover-bg-color, #e9ecef);
+    }
+
+    #sidebar .nav-link i {
+        margin-right: 10px;
+    }
+
+    #sidebar.collapsed .nav-link span {
+        display: none;
+        /* Hide text when collapsed */
+    }
+
+    #sidebar.collapsed #darkModeToggle i {
+        margin: auto;
+        /* Center icon */
+    }
+</style>
+<!-- Sidebar -->
+<nav class="border-end vh-100 d-flex flex-column align-items-center" id="sidebar">
+    <div class="p-3 w-100">
+        <button id="sidebar-toggler" class="btn btn-light w-100">
+            <i class="fas fa-bars"></i>
+        </button>
+    </div>
+    <ul class="nav flex-column w-100">
+        <li class="nav-item">
+            <a href="/table/request" class="nav-link text-dark">
+                <i class="fas fa-home"></i>
+                <span>Home</span>
+            </a>
+        </li>
+        <li class="nav-item">
+            <a href="/table/settings" class="nav-link text-dark">
+                <i class="fas fa-cogs"></i>
+                <span>Settings</span>
+            </a>
+        </li>
+        <!-- Admin Button with Sub-side Menu -->
+        <li class="nav-item position-relative">
+            <a href="#" class="nav-link text-dark" id="adminBtn">
+                <i class="fas fa-user-shield"></i>
+                <span>Admin</span>
+            </a>
+            <div class="sub-side-menu" id="adminSubMenu">
+                <ul class="list-unstyled m-0 p-2">
+                    <li class="mb-2">
+                        <a href="/table/users" class="nav-link text-dark">Users</a>
+                    </li>
+                </ul>
+            </div>
+        </li>
+
+        <!-- Create New Button with Dynamic Submenu -->
+        <li class="nav-item position-relative">
+            <a href="#" class="nav-link text-dark" id="createNewBtn">
+                <i class="fas fa-plus-circle"></i>
+                <span>Create New</span>
+            </a>
+            <div class="sub-side-menu" id="createNewSubMenu">
+                <ul class="list-unstyled m-0 p-2">
+                    {% for model in is_request_models %}
+                    {% if model.name != "Request" %}
+                    <li class="mb-2">
+                        <a href="#" class="nav-link text-dark create-item" data-item="{{ model.url }}">
+                            {{ model.name }}
+                        </a>
+                    </li>
+                    {% endif %}
+                    {% endfor %}
+                </ul>
+            </div>
+        </li>
+        <!-- Request Tables with Dynamic Submenu -->
+        <li class="nav-item position-relative">
+            <a href="#" class="nav-link text-dark" id="tableBtn">
+                <i class="fas fa-table"></i>
+                <span>Tables</span>
+            </a>
+            <div class="sub-side-menu" id="tableSubMenu">
+                <ul class="list-unstyled m-0 p-2">
+                    {% for model in is_request_models %}
+                    {% if model.name != "request" %}
+                    <li class="mb-2">
+                        <a href="/table{{ model.url }}" class="nav-link text-dark create-item"
+                            data-item="{{ model.name }}">
+                            {{ model.name }}
+                        </a>
+                    </li>
+                    {% endif %}
+                    {% endfor %}
+                </ul>
+            </div>
+    </ul>
+
+    <!-- Dark Mode Toggle Button -->
+    <div class="mt-auto p-3">
+        <a id="darkModeToggle" href="#" class="nav-link text-dark">
+            <i class="fas fa-moon"></i>
+            <span>Dark Mode</span>
+        </a>
+    </div>
+</nav>

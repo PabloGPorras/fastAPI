@@ -10,247 +10,13 @@
 
     <title>{% block title %}My App{% endblock %}</title>
     <style>
+        /* General Styles */
         html,
         body {
             overflow-x: hidden;
             /* Prevent horizontal overflow globally */
-        }
-
-
-        #manage-columns-menu {
-            position: absolute;
-            background: white;
-            box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
-            border-radius: 5px;
-            z-index: 1000;
-        }
-
-        .selected-row {
-            background-color: #d3e4f7 !important;
-        }
-
-        .filter-icon {
-            font-size: 18px;
-            position: relative;
-            cursor: pointer;
-        }
-
-        .filter-icon::after {
-            content: '';
-            display: none;
-            position: absolute;
-            top: -4px;
-            right: -4px;
-            width: 8px;
-            height: 8px;
-            background-color: #007bff;
-            /* Blue indicator for active filters */
-            border-radius: 50%;
-        }
-
-        .filter-icon.active::after {
-            display: block;
-        }
-
-        .sort-icon {
-            margin-left: 5px;
-            cursor: pointer;
-            color: gray;
-            /* Default color */
-        }
-
-        .sort-icon.active {
-            color: #007bff;
-            /* Active sort color */
-        }
-
-        .filter-menu {
-            display: none;
-            position: absolute;
-            background: white;
-            border: 1px solid #ccc;
-            padding: 10px;
-            z-index: 10;
-        }
-
-        .filter-menu.show {
-            display: block;
-        }
-
-        .dropdown-item.disabled {
-            pointer-events: none;
-            opacity: 0.65;
-        }
-
-
-
-
-        #sidebar {
-            min-width: 60px;
-            /* Collapsed width */
-            max-width: 200px;
-            /* Expanded width */
-            transition: all 0.3s;
-        }
-
-        #sidebar.collapsed {
-            width: 60px;
-        }
-
-        #sidebar .nav-link {
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-
-        #sidebar .nav-link i {
-            margin-right: 10px;
-        }
-
-        #sidebar.collapsed .nav-link span {
-            display: none;
-            /* Hide text when collapsed */
-        }
-
-        #sidebar-toggler {
-            cursor: pointer;
-        }
-
-        body.dark-mode {
-            background-color: #121212;
-            color: #ffffff;
-        }
-
-        body.dark-mode a.nav-link {
-            color: #ffffff;
-        }
-
-        body.dark-mode #sidebar {
-            background-color: #1e1e1e;
-            border-color: #2e2e2e;
-        }
-
-        body.dark-mode .btn {
-            background-color: #444444;
-            color: #ffffff;
-        }
-
-        body.dark-mode .btn:hover {
-            background-color: #555555;
-        }
-
-
-
-        /* Center the icon when collapsed */
-        #sidebar.collapsed #darkModeToggle i {
-            margin: auto;
-            /* Center icon */
-        }
-
-        /* Hide text when sidebar is collapsed */
-        #sidebar.collapsed .nav-link span {
-            display: none;
-        }
-
-
-        /* Align the toggle button */
-        #darkModeToggle {
-            display: flex;
-            align-items: center;
-        }
-
-        /* Light Mode Sidebar */
-        #sidebar {
-            background-color: #f8f9fa;
-            /* Light background */
-            color: #212529;
-            /* Dark text */
-            border-right: 1px solid #dee2e6;
-            /* Optional border */
-        }
-
-        #sidebar .nav-link {
-            color: #212529;
-            /* Light mode link text */
-        }
-
-        #sidebar .nav-link:hover {
-            background-color: #e9ecef;
-            /* Hover effect for light mode */
-        }
-
-        /* Dark Mode Sidebar */
-        body.dark-mode #sidebar {
-            background-color: #1e1e1e;
-            /* Dark background */
-            color: #f8f9fa;
-            /* Light text */
-            border-right: 1px solid #444444;
-            /* Optional border */
-        }
-
-        body.dark-mode #sidebar .nav-link {
-            color: #f8f9fa;
-            /* Light text for links */
-        }
-
-        body.dark-mode #sidebar .nav-link:hover {
-            background-color: #333333;
-            /* Hover effect for links in dark mode */
-        }
-
-
-        /* Sub-side menu light mode */
-        .sub-side-menu {
-            position: absolute;
-            top: 0;
-            left: 100%;
-            min-width: 200px;
-            z-index: 2000;
-            /* Ensure it is above other elements */
-            background-color: #ffffff;
-            border: 1px solid #dee2e6;
-            display: none;
-            /* Hidden initially */
-        }
-
-        /* Sub-side menu dark mode */
-        body.dark-mode .sub-side-menu {
-            background-color: #2b2b2b;
-            background-color: #2b2b2b;
-            /* Dark mode background */
-            color: #f8f9fa;
-            /* Dark mode text */
-            border: 1px solid #444444;
-            /* Dark mode border */
-        }
-
-        .sub-side-menu.show {
-            display: block;
-            /* Show the menu when triggered */
-        }
-
-        /* Sub-side menu hover effects */
-        .sub-side-menu a.nav-link:hover {
-            background-color: #e9ecef;
-            /* Light hover for light mode */
-            color: #212529;
-            /* Ensure dark text visibility */
-        }
-
-        body.dark-mode .sub-side-menu a.nav-link:hover {
-            background-color: #444444;
-            /* Slightly lighter background for hover in dark mode */
-            color: #ffffff;
-            /* Ensure text remains visible */
-        }
-
-
-        body {
             display: flex;
             height: 100vh;
-            overflow: hidden;
-            /* Prevent overflow */
             margin: 0;
             /* Remove default margin */
             padding: 0;
@@ -261,27 +27,8 @@
             margin: 0;
             /* Remove extra margins around flex container */
             width: 100%;
-            /* Ensure it spans full width */
             height: 100%;
-            /* Ensure full height */
         }
-
-
-        #sidebar {
-            min-width: 60px;
-            /* Set the minimum width */
-            max-width: 200px;
-            /* Set the maximum width */
-            transition: all 0.3s ease-in-out;
-            /* Keep smooth transitions */
-            margin: 0;
-            /* Remove any unintended margin */
-            padding: 0;
-            /* Remove any padding */
-            border-right: 1px solid #dee2e6;
-            /* Optional border for clarity */
-        }
-
 
         .flex-grow-1 {
             flex-grow: 1;
@@ -290,122 +37,62 @@
             overflow-x: auto;
             /* Allow horizontal scrolling */
             max-height: 100vh;
-            /* Ensure it doesn't exceed viewport height */
             width: 100%;
-            /* Ensure it spans the available width */
             box-sizing: border-box;
-            /* Include padding and borders in size calculations */
             margin: 0;
-            /* Remove margins */
             padding: 0;
-            /* Adjust padding as needed */
-        }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            overflow: auto;
-            /* Ensure table is scrollable */
         }
 
 
-        .table-responsive {
-            overflow-x: auto;
-            /* Enable horizontal scrolling */
-            width: 100%;
-            /* Ensure it spans the full width */
+
+        /* Manage Columns Menu */
+        #manage-columns-menu {
+            position: absolute;
+            background: var(--menu-bg-color, white);
+            box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+            border-radius: 5px;
+            z-index: 1000;
         }
+
+
+
+
+        /* Dropdown Item */
+        .dropdown-item.disabled {
+            pointer-events: none;
+            opacity: 0.65;
+        }
+
+
+
+        /* Light and Dark Mode Variables */
+        body {
+            --sidebar-bg-color: #f8f9fa;
+            --sidebar-text-color: #212529;
+            --sidebar-border-color: #dee2e6;
+            --link-color: #212529;
+            --link-hover-bg-color: #e9ecef;
+            --menu-bg-color: #ffffff;
+        }
+
+        body.dark-mode {
+            --sidebar-bg-color: #1e1e1e;
+            --sidebar-text-color: #f8f9fa;
+            --sidebar-border-color: #444444;
+            --link-color: #f8f9fa;
+            --link-hover-bg-color: #333333;
+            --menu-bg-color: #2b2b2b;
+        }
+
+
     </style>
+    <script src="https://unpkg.com/htmx.org"></script>
 
 </head>
 
 <body>
     <div class="d-flex">
-        <!-- Sidebar -->
-        <nav class="border-end vh-100 d-flex flex-column align-items-center" id="sidebar">
-            <div class="p-3 w-100">
-                <button id="sidebar-toggler" class="btn btn-light w-100">
-                    <i class="fas fa-bars"></i>
-                </button>
-            </div>
-            <ul class="nav flex-column w-100">
-                <li class="nav-item">
-                    <a href="/table/request" class="nav-link text-dark">
-                        <i class="fas fa-home"></i>
-                        <span>Home</span>
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a href="/table/settings" class="nav-link text-dark">
-                        <i class="fas fa-cogs"></i>
-                        <span>Settings</span>
-                    </a>
-                </li>
-                <!-- Admin Button with Sub-side Menu -->
-                <li class="nav-item position-relative">
-                    <a href="#" class="nav-link text-dark" id="adminBtn">
-                        <i class="fas fa-user-shield"></i>
-                        <span>Admin</span>
-                    </a>
-                    <div class="sub-side-menu" id="adminSubMenu">
-                        <ul class="list-unstyled m-0 p-2">
-                            <li class="mb-2">
-                                <a href="/table/users" class="nav-link text-dark">Users</a>
-                            </li>
-                        </ul>
-                    </div>
-                </li>
-
-                <!-- Create New Button with Dynamic Submenu -->
-                <li class="nav-item position-relative">
-                    <a href="#" class="nav-link text-dark" id="createNewBtn">
-                        <i class="fas fa-plus-circle"></i>
-                        <span>Create New</span>
-                    </a>
-                    <div class="sub-side-menu" id="createNewSubMenu">
-                        <ul class="list-unstyled m-0 p-2">
-                            {% for model in is_request_models %}
-                            {% if model.name != "Request" %}
-                            <li class="mb-2">
-                                <a href="#" class="nav-link text-dark create-item" data-item="{{ model.url }}">
-                                    {{ model.name }}
-                                </a>
-                            </li>
-                            {% endif %}
-                            {% endfor %}
-                        </ul>
-                    </div>
-                </li>
-                <!-- Request Tables with Dynamic Submenu -->
-                <li class="nav-item position-relative">
-                    <a href="#" class="nav-link text-dark" id="tableBtn">
-                        <i class="fas fa-table"></i>
-                        <span>Tables</span>
-                    </a>
-                    <div class="sub-side-menu" id="tableSubMenu">
-                        <ul class="list-unstyled m-0 p-2">
-                            {% for model in is_request_models %}
-                            {% if model.name != "request" %}
-                            <li class="mb-2">
-                                <a href="/table{{ model.url }}" class="nav-link text-dark create-item"
-                                    data-item="{{ model.name }}">
-                                    {{ model.name }}
-                                </a>
-                            </li>
-                            {% endif %}
-                            {% endfor %}
-                        </ul>
-                    </div>
-            </ul>
-
-            <!-- Dark Mode Toggle Button -->
-            <div class="mt-auto p-3">
-                <a id="darkModeToggle" href="#" class="nav-link text-dark">
-                    <i class="fas fa-moon"></i>
-                    <span>Dark Mode</span>
-                </a>
-            </div>
-        </nav>
+        {% include "sidebar_nav.html" %}
 
         <!-- Main Content -->
         <div class="flex-grow-1">
@@ -415,7 +102,6 @@
         </div>
     </div>
 
-    {% include "create_new_modal.html" %}
 
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/js/bootstrap.bundle.min.js"></script>
@@ -424,82 +110,10 @@
     </script>
 
     <script>
-        $(document).ready(function () {
-            // Show the submenu on hover
-            $("#createNewBtn").on("mouseenter", function () {
-                $("#createNewSubMenu").addClass("show");
-            });
-
-            // Hide the submenu when the mouse leaves the parent list item
-            $("#createNewBtn").parent().on("mouseleave", function () {
-                $("#createNewSubMenu").removeClass("show");
-            });
-
-            // Handle submenu item clicks to open the modal
-            $(".create-item").on("click", function (e) {
-                e.preventDefault(); // Prevent default navigation behavior
-
-                // Explicitly grab the data-item attribute value
-                const modelName = $(this).attr("data-item"); // Use .attr() to directly fetch the attribute value
-
-                // Log the clicked element and model name
-                console.log("Clicked item:", this);
-                console.log("Extracted model name:", modelName);
-
-                if (!modelName) {
-                    console.error("Model name is missing.");
-                    alert("Model name is missing.");
-                    return;
-                }
-
-                // Configure the modal with the model name
-                const $modal = $("#createNewModal");
-                $modal.attr("data-model-name", modelName); // Set the model name
-                $modal.find(".modal-title").text(`Create New: ${modelName}`); // Update the title
-
-                // Log modal configuration
-                console.log("Modal updated with model name:", $modal.attr("data-model-name"));
-
-                // Show the modal
-                $modal.modal("show");
-            });
-        });
-
-
-
-
-
-
-        // // View button functionality
-        // $(document).on("click", ".view-btn", async function () {
-        //     try {
-        //         // Grab the data from the clicked button or its associated row
-        //         const $row = $(this).closest("tr");
-        //         const modelName = $row.data("model-name"); // Grab the model name from the data attribute
-
-        //         console.log("Model name extracted:", modelName);
-
-        //         if (!modelName) {
-        //             alert("Model name is missing.");
-        //             console.error("Model name is missing or invalid:", modelName);
-        //             return;
-        //         }
-
-        //         // Set up the modal for the model
-        //         const $modal = $("#createNewModal");
-        //         $modal.attr("data-model-name", modelName);
-
-        //         console.log("Showing modal for model:", modelName);
-
-        //         // Show the modal
-        //         const bootstrapModal = new bootstrap.Modal(document.getElementById("createNewModal"));
-        //         bootstrapModal.show();
-        //     } catch (error) {
-        //         console.error("Error showing create_new_modal:", error);
-        //         alert("An error occurred while trying to display the modal.");
-        //     }
-        // });
-
+            function showModal() {
+                const modal = new bootstrap.Modal(document.getElementById('createNewModal'));
+                modal.show();
+            }
 
         // Fetch current user information
         async function fetchCurrentUser() {
@@ -602,27 +216,7 @@
 
         document.addEventListener("DOMContentLoaded", function () {
             const tableBtn = document.getElementById("tableBtn");
-            const tableSubMenu = document.getElementById("tableSubMenu");
 
-            // Toggle the visibility of the sub-side menu
-            tableBtn.addEventListener("mouseenter", function () {
-                tableSubMenu.classList.add("show");
-            });
-
-            // Hide the sub-menu when the mouse leaves the parent list item
-            tableBtn.parentElement.addEventListener("mouseleave", function () {
-                tableSubMenu.classList.remove("show");
-            });
-
-            // Handle sub-menu item clicks
-            document.querySelectorAll(".create-item").forEach(item => {
-                item.addEventListener("click", function (e) {
-                    e.preventDefault();
-                    const itemType = this.getAttribute("data-item");
-                    // You can redirect or open a modal for creation here
-                    window.location.href = this.getAttribute("href");
-                });
-            });
 
             const darkModeToggle = document.getElementById("darkModeToggle");
 

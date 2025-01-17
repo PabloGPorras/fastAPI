@@ -1,47 +1,54 @@
 <!-- Header Button Group -->
+<script src="https://unpkg.com/htmx.org"></script>
 <div class="btn-group">
-
     <!-- Primary Action Button -->
-    {% if primary_action %}
-    <button id="primary-action-btn" class="btn btn-success btn-sm" data-endpoint="{{ primary_action.endpoint }}">
-        {{ primary_action.label }}
+    {% if model_name != "request"%}
+        <button class="btn btn-success btn-sm"
+        hx-post="/get-form" 
+        hx-target="#detailsForm" 
+        hx-trigger="click" 
+        hx-swap="innerHTML"
+        hx-vals='{"model_name": "{{ model_name }}"}'
+        onclick="showModal()">Create New</button>
+    {% else %}
+    <button class="btn btn-success btn-sm">
+        Referesh
     </button>
     {% endif %}
     <!-- Dropdown for additional actions -->
     <button type="button" class="btn btn-success btn-sm dropdown-toggle dropdown-toggle-split" data-bs-toggle="dropdown"
-        aria-expanded="false">
+        aria-expanded="false"
+        data-next-status="{{ status }}"
+        hx-post="/status-transitions"
+        hx-trigger="click"
+        hx-include="#status-form"
+        hx-vals='{"next_status": "{{ status }}"}'
+        hx-target="#status-options-container">
         <span class="visually-hidden">Toggle Dropdown</span>
     </button>
     <ul class="dropdown-menu">
-        {% for action in actions[1:] %}
+        
+        {% if model_name != "request"%}
         <li>
-            <button class="dropdown-item requires-selection action-item" data-endpoint="{{ action.endpoint }}">
-                {{ action.label }}
+            <button class="dropdown-item">
+                Referesh
             </button>
         </li>
-        {% endfor %}
-
-        <!-- Status Change Buttons -->
-        {% if request_status_config %}
-        {% for status, config in request_status_config.items() %}
-        <li>
-            <button class="dropdown-item requires-selection status-change-btn" data-next-status="{{ status }}">
-                Change to {{ status }}
-            </button>
-        </li>
-        {% endfor %}
         {% endif %}
 
+        <li id="status-options-container" >
+            <!-- Dynamic buttons will be inserted here -->
+        </li>
         <li>
             <hr class="dropdown-divider">
         </li>
 
         <!-- Bulk Import Upload -->
-        {% if bulk_import_action %}
+        {% if model_name != "request"%}
         <li>
             <button class="dropdown-item" data-bs-toggle="modal" data-bs-target="#uploadBulkModal"
                 data-model-name="{{ model_name }}">
-                {{ bulk_import_action.label }}
+                Bulk Import
             </button>
         </li>
         {% endif %}
@@ -69,38 +76,7 @@
 
         // Fetch current user roles using fetchCurrentUser
         await fetchCurrentUser();
-        console.log("Current currentUserRoles:", currentUserRoles);
-        console.log("Current currentUserId2:", currentUserId2);
         currentUserRoles = currentUserRoles ? currentUserRoles : [];
-        console.log("Current User Roles:", currentUserRoles);
-
-        async function fetchValidTransitions(currentStatuses) {
-            try {
-                console.log({
-                    current_statuses: currentStatuses,
-                    user_roles: currentUserRoles,
-                });
-                const response = await fetch(`/status-transitions/${modelName}`, {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({
-                        current_statuses: currentStatuses,
-                        user_roles: currentUserRoles,
-                    }),
-                });
-
-                if (!response.ok) {
-                    throw new Error(`Failed to fetch valid transitions. HTTP Status: ${response.status}`);
-                }
-
-                const data = await response.json();
-                return data.valid_transitions || [];
-            } catch (error) {
-                console.error("Error fetching valid transitions:", error);
-                return [];
-            }
-        }
-
 
         async function updateStatusChangeButtons() {
             const $selectedRows = $tableBody.find("tr.selected-row");
@@ -123,15 +99,6 @@
             });
         }
 
-        // Event Listeners
-        $tableBody.on("click", "tr", function (e) {
-            if (!$(e.target).hasClass("row-checkbox")) {
-                $(this).toggleClass("selected-row");
-                const checkbox = $(this).find(".row-checkbox");
-                checkbox.prop("checked", $(this).hasClass("selected-row"));
-            }
-            updateStatusChangeButtons();
-        });
 
         if ($selectAllCheckbox.length) {
             $selectAllCheckbox.on("change", function () {
