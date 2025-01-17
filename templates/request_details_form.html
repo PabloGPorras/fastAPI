@@ -149,7 +149,7 @@
     {% endfor %}
 
     <!-- Dynamically Generated Relationship Subtables -->
-    {% for relationship in relationships if not relationship.info.get("exclude_from_form", False) %}
+    {% for relationship in relationships if not relationship.info.get("form_visibility", {}).get("createNew", False) %}
     <h5>{{ relationship.name|capitalize }}</h5>
     <div id="{{ relationship.name }}-container" class="relationship-container">
         <table class="table">

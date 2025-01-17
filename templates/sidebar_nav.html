@@ -107,16 +107,21 @@
             </div>
         </li>
 
-        <!-- Create New Button with Dynamic Submenu -->
-        <li class="nav-item position-relative">
-            <a href="#" class="nav-link text-dark" id="createNewBtn">
-                <i class="fas fa-plus-circle"></i>
-                <span>Create New</span>
-            </a>
-            <div class="sub-side-menu" id="createNewSubMenu">
-                <ul class="list-unstyled m-0 p-2">
-                    {% for model in is_request_models %}
-                    {% if model.name != "Request" %}
+<!-- Create New Button with Dynamic Submenu -->
+ <!-- 
+<li class="nav-item position-relative">
+    <a href="#" class="nav-link text-dark" id="createNewBtn">
+        <i class="fas fa-plus-circle"></i>
+        <span>Create New</span>
+    </a>
+    <div class="sub-side-menu" id="createNewSubMenu">
+        <ul class="list-unstyled m-0 p-2">
+            {% for category, models in all_models|groupby("request_menu_category") %}
+            <li class="mb-3">
+                <strong class="text-muted">{{ category if category else "Uncategorized" }}</strong>
+                <ul class="list-unstyled ms-3">
+                    {% for model in models %}
+                    {% if model.is_request %}
                     <li class="mb-2">
                         <a href="#" class="nav-link text-dark create-item" data-item="{{ model.url }}">
                             {{ model.name }}
@@ -125,28 +130,37 @@
                     {% endif %}
                     {% endfor %}
                 </ul>
-            </div>
-        </li>
-        <!-- Request Tables with Dynamic Submenu -->
-        <li class="nav-item position-relative">
-            <a href="#" class="nav-link text-dark" id="tableBtn">
-                <i class="fas fa-table"></i>
-                <span>Tables</span>
-            </a>
-            <div class="sub-side-menu" id="tableSubMenu">
-                <ul class="list-unstyled m-0 p-2">
-                    {% for model in is_request_models %}
-                    {% if model.name != "request" %}
+            </li>
+            {% endfor %}
+        </ul>
+    </div>
+</li>-->
+
+<!-- Request Tables with Dynamic Submenu -->
+<li class="nav-item position-relative">
+    <a href="#" class="nav-link text-dark" id="tableBtn">
+        <i class="fas fa-table"></i>
+        <span>Requests</span>
+    </a>
+    <div class="sub-side-menu" id="tableSubMenu">
+        <ul class="list-unstyled m-0 p-2">
+            {% for category, models in all_models|groupby("request_menu_category") %}
+            <li class="mb-3">
+                <strong class="text-muted">{{ category if category else "" }}</strong>
+                <ul class="list-unstyled ms-3">
+                    {% for model in models if model.is_request %}
                     <li class="mb-2">
-                        <a href="/table{{ model.url }}" class="nav-link text-dark create-item"
-                            data-item="{{ model.name }}">
+                        <a href="/table{{ model.url }}" class="nav-link text-dark create-item" data-item="{{ model.name }}">
                             {{ model.name }}
                         </a>
                     </li>
-                    {% endif %}
                     {% endfor %}
                 </ul>
-            </div>
+            </li>
+            {% endfor %}
+        </ul>
+    </div>
+</li>
     </ul>
 
     <!-- Dark Mode Toggle Button -->

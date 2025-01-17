@@ -90,6 +90,33 @@
 
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script>
+// Listen for the keydown event on the document
+document.addEventListener('keydown', function (event) {
+    // Check if the pressed key combination is "CTRL + SHIFT + A"
+    if (event.ctrlKey && event.shiftKey && event.key.toLowerCase() === 'a') {
+        event.preventDefault(); // Prevent default browser behavior
+
+        // Select all row checkboxes
+        document.querySelectorAll('.row-checkbox').forEach(checkbox => {
+            checkbox.checked = true;
+        });
+
+        console.log('All rows selected with CTRL + SHIFT + A');
+    }
+
+    // Check if the pressed key combination is "CTRL + SHIFT + D"
+    if (event.ctrlKey && event.shiftKey && event.key.toLowerCase() === 'd') {
+        event.preventDefault(); // Prevent default browser behavior
+
+        // Deselect all row checkboxes
+        document.querySelectorAll('.row-checkbox').forEach(checkbox => {
+            checkbox.checked = false;
+        });
+
+        console.log('All rows deselected with CTRL + SHIFT + D');
+    }
+});
+
     $(document).ready(function () {
         // Apply stored group_id filter from sessionStorage
         const storedGroupId = sessionStorage.getItem("group_id");

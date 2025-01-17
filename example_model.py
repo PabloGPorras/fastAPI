@@ -117,8 +117,9 @@ class RuleRequest(Base):
     rule_id = Column(String)
     rule_version = Column(Integer)
     rms_request_id = Column(String, ForeignKey("request.unique_ref"), nullable=False)
-    rms_request = relationship("RmsRequest", backref="rule_requests", info={"exclude_from_form": True})
+    rms_request = relationship("RmsRequest", backref="rule_requests", info={"form_visibility":  {"create-new": False, "view-existing": False}})
     is_request = True
+    request_menu_category = "SASFM"
     request_status_config = {
         "PENDING APPROVAL": {"Roles": ["FS_Manager"], "Next": ["PENDING GOVERNANCE","APPROVAL REJECTED"], "Status_Type":["APPROVAL"]},
         "APPROVAL REJECTED": {"Roles": ["FS_Manager"], "Next": [], "Status_Type":["APPROVAL"]},  
@@ -140,8 +141,9 @@ class RuleConfigRequest(Base):
     config_id = Column(String)
     config_version = Column(Integer)
     rms_request_id = Column(String, ForeignKey("request.unique_ref"), nullable=False)
-    rms_request = relationship("RmsRequest", backref="rule_config_request", info={"exclude_from_form": True})
+    rms_request = relationship("RmsRequest", backref="rule_config_request", info={"form_visibility": {"create-new": False, "view-existing": False}})
     is_request = True
+    request_menu_category = "DMP"
     request_status_config = {
         "PENDING APPROVAL": {"Roles": ["FS_Manager"], "Next": ["PENDING GOVERNANCE","APPROVAL REJECTED"], "Status_Type":["APPROVAL"]},
         "APPROVAL REJECTED": {"Roles": ["FS_Manager"], "Next": [], "Status_Type":["APPROVAL"]},  
@@ -172,17 +174,17 @@ class Relative(Base):
     person_id = Column(String, ForeignKey("persons.unique_ref"))
     name = Column(String)
     relation_type = Column(String)
-    person = relationship("Person", back_populates="relatives", info={"exclude_from_form": True})
+    person = relationship("Person", back_populates="relatives", info={"form_visibility": {"create-new": False}})
 
 
 class User(Base):
     __tablename__ = "users"
-    user_id = Column(String, primary_key=True, default=id_method)
+    user_id = Column(String, primary_key=True, default=id_method, info={"form_visibility": {"create-new": False}})
     user_name = Column(String, nullable=False)
     email_from = Column(String, nullable=False)
     email_to = Column(String, nullable=False)
     email_cc = Column(String, nullable=False)
-    last_update_timestamp = Column(DateTime, default=datetime.utcnow)
+    last_update_timestamp = Column(DateTime, default=datetime.utcnow, info={"form_visibility": {"create-new": False}})
     user_role_expire_timestamp = Column(DateTime, default=datetime.utcnow)
 
     roles = Column(String, nullable=False)
