@@ -1,0 +1,292 @@
+<style>
+    .form-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 16px;
+    }
+
+    th {
+        text-align: left !important;
+    }
+
+    .relationship-container {
+        margin-bottom: 2rem;
+    }
+
+    .relationship-container .table th,
+    .relationship-container .table td {
+        vertical-align: middle;
+    }
+
+    .resizable {
+        resize: vertical;
+        /* Allow resizing only vertically */
+        min-height: 50px;
+        /* Minimum height for better UX */
+        max-height: 300px;
+        /* Optional: Limit maximum height */
+    }
+</style>
+
+<form id="detailsForm" 
+      hx-post="/create-new/{{ model_name }}" 
+      hx-trigger="submit" 
+      hx-swap="none" 
+      hx-on="htmx:afterRequest:window.location.reload()">
+    <!-- Predefined Fields for "is_request" Models -->
+    {% if is_request %}
+    <div class="row g-3">
+        <!-- Organization -->
+        <div class="col-md-2">
+            <label for="organization" class="form-label">Organization</label>
+            <select class="form-select" id="organization" name="organization" required>
+                {% for option in RmsRequest.organization_options %}
+                <option value="{{ option }}">{{ option }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <!-- Sub Organization -->
+        <div class="col-md-2">
+            <label for="sub_organization" class="form-label">Sub Org</label>
+            <select class="form-select" id="sub_organization" name="sub_organization" required>
+                {% for option in RmsRequest.sub_organization_options %}
+                <option value="{{ option }}">{{ option }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <!-- Line of Business -->
+        <div class="col-md-2">
+            <label for="line_of_business" class="form-label">LOB</label>
+            <select class="form-select" id="line_of_business" name="line_of_business" required>
+                {% for option in RmsRequest.line_of_business_options %}
+                <option value="{{ option }}">{{ option }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <!-- Team -->
+        <div class="col-md-2">
+            <label for="team" class="form-label">Team</label>
+            <select class="form-select" id="team" name="team" required>
+                {% for option in RmsRequest.team_options %}
+                <option value="{{ option }}">{{ option }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <!-- Decision Engine -->
+        <div class="col-md-2">
+            <label for="decision_engine" class="form-label">Decision Engine</label>
+            <select class="form-select" id="decision_engine" name="decision_engine" required>
+                {% for option in RmsRequest.decision_engine_options %}
+                <option value="{{ option }}">{{ option }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <!-- Effort -->
+        <div class="col-md-2">
+            <label for="effort" class="form-label">Effort</label>
+            <select class="form-select" id="effort" name="effort" required>
+                {% for option in RmsRequest.effort_options %}
+                <option value="{{ option }}">{{ option }}</option>
+                {% endfor %}
+            </select>
+        </div>
+    </div>
+    {% endif %}
+
+
+    <!-- Existing Form Fields -->
+    {% for field in form_fields %}
+    {% if not field.is_foreign_key %}
+    <div class="mb-3">
+        <label for="{{ field.name }}" class="form-label">{{ field.name|capitalize }}</label>
+        {% if field.multi_options %}
+        <!-- Dropdown for predefined multi-options -->
+        <div>
+            <select class="form-select" id="{{ field.name }}" name="{{ field.name }}" multiple {% if field.required %}required{% endif %}>
+                {% for option in field.multi_options %}
+                <option value="{{ option }}" {% if option in field.value %}selected{% endif %}>{{ option }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        {% elif field.options %}
+        <!-- Dropdown for predefined options -->
+        <select class="form-select" id="{{ field.name }}" name="{{ field.name }}" {% if field.required %}required{% endif %}>
+            {% for option in field.options %}
+            <option value="{{ option }}" {% if option == field.value %}selected{% endif %}>{{ option }}</option>
+            {% endfor %}
+        </select>
+        {% elif "INTEGER" in field.type %}
+        <!-- Input for INTEGER -->
+        <input type="number" class="form-control" id="{{ field.name }}" name="{{ field.name }}" value="{{ field.value | default('') }}" {% if field.required %}required{% endif %}>
+        {% elif "BOOLEAN" in field.type %}
+        <!-- Dropdown for BOOLEAN -->
+        <select class="form-select" id="{{ field.name }}" name="{{ field.name }}" {% if field.required %}required{% endif %}>
+            <option value="true" {% if field.value == true %}selected{% endif %}>True</option>
+            <option value="false" {% if field.value == false %}selected{% endif %}>False</option>
+        </select>
+        {% elif "DATE" in field.type and not "DATETIME" in field.type %}
+        <!-- Input for DATE -->
+        <input type="date" class="form-control" id="{{ field.name }}" name="{{ field.name }}" value="{{ field.value | default('') }}" {% if field.required %}required{% endif %}>
+        {% elif "TIME" in field.type and not "DATETIME" in field.type %}
+        <!-- Input for TIME -->
+        <input type="time" class="form-control" id="{{ field.name }}" name="{{ field.name }}" value="{{ field.value | default('') }}" {% if field.required %}required{% endif %}>
+        {% elif "DATETIME" in field.type %}
+        <!-- Input for DATETIME -->
+        <input type="datetime-local" class="form-control" id="{{ field.name }}" name="{{ field.name }}" value="{{ field.value | default('') }}" {% if field.required %}required{% endif %}>
+        {% else %}
+        <!-- Textarea for TEXT or STRING with resizable style -->
+        <textarea class="form-control resizable" id="{{ field.name }}" name="{{ field.name }}" rows="1" {% if field.required %}required{% endif %}>{{ field.value | default('') }}</textarea>
+        {% endif %}
+        
+
+    </div>
+    {% endif %}
+    {% endfor %}
+
+    <!-- Dynamically Generated Relationship Subtables -->
+    {% for relationship in relationships if not relationship.info.get("form_visibility", {}).get("createNew", False) %}
+    <h5>{{ relationship.name|capitalize }}</h5>
+    <div id="{{ relationship.name }}-container" class="relationship-container">
+        <table class="table">
+            <thead>
+                <tr>
+                    {% for field in relationship.fields %}
+                    <th>{{ field.name|capitalize }}</th>
+                    {% endfor %}
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Rows added dynamically -->
+            </tbody>
+        </table>
+
+        <!-- Predefined Options Dropdown -->
+        {% if predefined_options[relationship.name] %}
+        <div class="mt-2">
+            <label for="{{ relationship.name }}_options" class="form-label">{{ relationship.name|capitalize }}
+                Options</label>
+            <select class="form-select" id="{{ relationship.name }}_options">
+                {% for option in predefined_options[relationship.name] %}
+                <option value="{{ option.id }}">{{ option.name }}</option>
+                {% endfor %}
+            </select>
+            <button type="button" class="btn btn-secondary btn-sm mt-2 add-predefined-btn"
+                data-relationship="{{ relationship.name }}">
+                Add Selected {{ relationship.name|capitalize }}
+            </button>
+        </div>
+        {% else %}
+        <!-- Add button for user-defined relationships -->
+        <button type="button" class="btn btn-secondary btn-sm mt-2 add-row-btn"
+            data-relationship="{{ relationship.name }}">
+            Add {{ relationship.name|capitalize }}
+        </button>
+        {% endif %}
+    </div>
+    {% endfor %}
+
+
+
+
+    <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+        <button type="submit" class="btn btn-primary">Save</button>
+    </div>
+</form>
+<script id="detailsForm" type="application/json">
+    {{ {"form_fields": form_fields, "relationships": relationships, "predefined_options": predefined_options} | tojson | safe }}
+</script>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+    document.body.addEventListener('htmx:afterRequest', function (event) {
+        // Check if the event was triggered by the detailsForm
+        const target = event.target;
+
+        if (target && target.id === 'detailsForm') {
+            // Close the modal programmatically
+            const modalElement = document.getElementById('createNewModal');
+
+            if (modalElement) {
+                const modalInstance = bootstrap.Modal.getInstance(modalElement);
+
+                if (modalInstance) {
+                    modalInstance.hide();
+                }
+            }
+        }
+    });
+    
+
+
+    $(document).ready(function () {
+        // Add New Multi-Options to Fields
+        $(".add-option-btn").click(function () {
+            const fieldName = $(this).data("field"); // Field name for which options are being added
+            const input = $(this).prev(".add-option-input"); // Input element for adding new options
+            const newOption = input.val().trim(); // Get the entered option
+
+            if (!newOption) {
+                alert("Option cannot be empty.");
+                return;
+            }
+
+            // Get the corresponding select element
+            const select = $(`#${fieldName}`);
+            if (!select.length) {
+                alert("Select element not found.");
+                return;
+            }
+
+            // Check for duplicates
+            if (select.find(`option[value="${newOption}"]`).length) {
+                alert("Option already exists.");
+                return;
+            }
+
+            // Add the new option to the select dropdown
+            select.append(new Option(newOption, newOption));
+
+            // Clear the input field
+            input.val("");
+        });
+
+
+
+
+        // Add Predefined Options as Rows
+        $(".add-predefined-btn").click(function () {
+            const relationship = $(this).data("relationship");
+            const container = $(`#${relationship}-container tbody`);
+            const dropdown = $(`#${relationship}_options`);
+            const selectedValue = dropdown.val();
+            const selectedText = dropdown.find("option:selected").text();
+
+            if (!selectedValue) return;
+
+            // Check for duplicates before adding
+            if (container.find(`tr[data-value="${selectedValue}"]`).length) {
+                alert(`This ${relationship} is already added.`);
+                return;
+            }
+
+            // Add new row
+            const row = $(`<tr data-value="${selectedValue}"></tr>`);
+            row.append(`<td>${selectedText}</td>`);
+            row.append('<td><button type="button" class="btn btn-danger btn-sm remove-row-btn">Remove</button></td>');
+            container.append(row);
+        });
+
+        // Handle Row Removal
+        $("body").on("click", ".remove-row-btn", function () {
+            $(this).closest("tr").remove();
+        });
+    });
+
+</script>

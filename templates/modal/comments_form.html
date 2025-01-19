@@ -1,0 +1,195 @@
+<style>
+    #comments-list {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    /* Base styling for comment items */
+    .comment-item {
+        display: flex;
+        flex-direction: column;
+        max-width: 60%;
+        padding: 10px;
+        border-radius: 15px;
+        margin: 5px 0;
+        position: relative;
+    }
+
+    /* Timestamp styling */
+    .comment-item .timestamp {
+        font-size: 0.75rem;
+        color: #b0b0b0;
+        margin-bottom: 5px;
+    }
+
+    /* User info styling */
+    .comment-item .user-info {
+        font-size: 0.85rem;
+        font-weight: bold;
+        color: #a0d1f7;
+    }
+
+    /* Comment text styling */
+    .comment-item .comment-text {
+        font-size: 1rem;
+        line-height: 1.5;
+    }
+
+    /* Current user comments */
+    .comment-item.right {
+        align-self: flex-end;
+        background-color: #1e3a8a;
+        /* Dark blue for current user */
+        color: #ffffff;
+        /* White text */
+    }
+
+    /* Other user comments */
+    .comment-item.left {
+        align-self: flex-start;
+        background-color: #374151;
+        /* Dark gray for other users */
+        color: #ffffff;
+        /* White text */
+    }
+
+    /* Input field and button adjustments for dark mode */
+    #commentText {
+        background-color: #1f2937;
+        /* Darker gray for input field */
+        color: #e0e0e0;
+        border: 1px solid #4b5563;
+    }
+
+    #addCommentButton {
+        background-color: #2563eb;
+        /* Bright blue for button */
+        color: #ffffff;
+        border: none;
+    }
+
+    #addCommentButton:hover {
+        background-color: #1e40af;
+        /* Slightly darker blue on hover */
+    }
+</style>
+
+<div class="tab-pane fade" id="comments-tab-pane" role="tabpanel" aria-labelledby="comments-tab">
+    <h5>Comments</h5>
+    <ul id="comments-list" class="list-group mb-3">
+        <!-- Comments will be dynamically added here -->
+    </ul>
+    <!-- Add Comment Form -->
+    <!-- Add Comment Form -->
+    <form
+        hx-post="/requests/{{ unique_ref }}/comments"
+        hx-target="#comments-list"
+        hx-swap="beforeend"
+        class="d-flex gap-2"
+    >
+        <input type="text" name="comment_text" class="form-control" placeholder="Enter your comment" required>
+        <button type="submit" class="btn btn-primary">Add Comment</button>
+    </form>
+</div>
+
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+<script>
+    $(document).ready(async function () {
+
+
+        // Load comments dynamically for the current item
+        async function loadComments(itemId) {
+            console.log(`Loading comments for item: ${itemId}`); // Log the function call
+            const $commentsList = $("#comments-list");
+            $commentsList.empty();
+
+            try {
+                const response = await fetch(`/requests/${itemId}/comments`);
+                if (!response.ok) {
+                    throw new Error(`Failed to fetch comments. HTTP Status: ${response.status}`);
+                }
+
+                const comments = await response.json();
+                console.log("Fetched comments:", comments); // Log fetched comments
+
+                if (comments.length === 0) {
+                    $commentsList.append('<div class="no-comments">No comments available.</div>');
+                    return;
+                }
+
+                comments.forEach((comment) => {
+                    const alignmentClass = comment.user_name === currentUserId ? "right" : "left";
+                    const commentItem = `
+            <div class="comment-item ${alignmentClass}">
+                <div class="timestamp">${new Date(comment.comment_timestamp).toLocaleString()}</div>
+                <div class="user-info">User: ${comment.user_name}</div>
+                <div class="comment-text">${comment.comment}</div>
+            </div>
+        `;
+                    $commentsList.append(commentItem);
+                });
+            } catch (error) {
+                console.error("Error loading comments:", error);
+                alert("Failed to load comments. Please try again.");
+            }
+        }
+
+
+        // Add a new comment
+        $("#addCommentButton").off("click").on("click", async function () {
+            const commentText = $("#commentText").val().trim();
+            const $modal = $("#createNewModal");
+            const itemId = $modal.attr("data-id");
+
+            if (!commentText) {
+                alert("Comment text cannot be empty.");
+                return;
+            }
+
+            try {
+                const response = await fetch(`/requests/${itemId}/comments`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ comment_text: commentText, username: currentUserId }),
+                });
+
+                if (!response.ok) {
+                    throw new Error(`Failed to submit comment: ${response.statusText}`);
+                }
+
+                //         const newComment = await response.json();
+                //         const alignmentClass = newComment.username === currentUserId ? "right" : "left";
+                //         const commentItem = `
+                //     <div class="comment-item ${alignmentClass}">
+                //         <div class="timestamp">${new Date(newComment.comment_timestamp).toLocaleString()}</div>
+                //         <div class="user-info">User: ${newComment.username}</div>
+                //         <div class="comment-text">${newComment.comment_text}</div>
+                //     </div>
+                // `;
+                //         $("#comments-list").append(commentItem);
+                loadComments(itemId);
+                $("#commentText").val(""); // Clear input
+            } catch (error) {
+                console.error("Error adding comment:", error);
+                alert("Failed to add comment.");
+            }
+        });
+
+
+        $("#createNewModal").off("shown.bs.modal").on("shown.bs.modal", function () {
+            const itemId = $(this).attr("data-id");
+            console.log(`Modal shown for item: ${itemId}`); // Debugging log
+            if (itemId) {
+                loadComments(itemId);
+            }
+        });
+
+        // Initialize by fetching the current user
+        await fetchCurrentUser();
+    });
+
+
+</script>

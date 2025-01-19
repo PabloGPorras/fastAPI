@@ -1,4 +1,6 @@
 from datetime import datetime, timedelta
+import logging
+import sys
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from example_model import Base, User, id_method
@@ -9,7 +11,17 @@ engine = create_engine("sqlite:///example.db")
 SessionLocal = sessionmaker(autocommit=False, autoflush=True, bind=engine)
 Base.metadata.create_all(engine)
 
+# Configure logging
+logging.basicConfig(
+    level=logging.DEBUG,  # Set to DEBUG for detailed logs, INFO for general, ERROR for minimal
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+    handlers=[
+        logging.StreamHandler(sys.stdout),  # Log to standard output
+        logging.FileHandler("app.log", mode="a"),  # Log to a file
+    ],
+)
 
+logger = logging.getLogger(__name__)
 
 # Create a new user
 def insert_user():

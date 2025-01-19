@@ -1,23 +1,17 @@
 import os
 import random
 from time import strftime
-import uuid
-from sqlalchemy import Boolean, Column, Integer, String,ForeignKey, Table, create_engine
+from sqlalchemy import Column, Integer, String,ForeignKey, func
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import sessionmaker
 from sqlalchemy.orm import relationship
 from sqlalchemy.orm import validates
-
-
-
 from sqlalchemy import Column, Integer, String, ForeignKey, Text, DateTime
 from sqlalchemy.orm import relationship
 from datetime import datetime
 
 Base = declarative_base()
+
 # Models
-
-
 def id_method():
     unique_ref = str(os.getlogin()).upper() + "-" + strftime("%Y%m%d%H%M%S") + str(random.randint(10000, 99999))
     return unique_ref
@@ -40,6 +34,7 @@ line_of_business_list = ["CREDIT", "DEBIT", "DEPOSIT"]
 team_list = ["IMPL", "CPT", "CNP", "ATO","FPF"]
 decision_engine_list = ["SASFM", "DMP"]
 effort_list = ["BAU", "QUICK", "Other"]
+
 # Helper function for generating unique IDs
 def id_method():
     unique_ref = str(os.getlogin()).upper() + "-" + strftime("%Y%m%d%H%M%S") + str(random.randint(10000, 99999))
@@ -102,8 +97,8 @@ class RmsRequest(Base):
     
 class RmsRequestStatus(Base):
     __tablename__ = "request_status"
-    unique_ref = Column(String, primary_key=True, default=id_method)
-    request_id = Column(String, ForeignKey("request.unique_ref", ondelete="CASCADE"), nullable=False)
+    status_id = Column(String, primary_key=True, default=id_method)
+    unique_ref = Column(String, ForeignKey("request.unique_ref", ondelete="CASCADE"), nullable=False)
     status = Column(String, nullable=False)
     user_name = Column(String(50), default=os.getlogin().upper())
     timestamp = Column(DateTime, default=datetime.utcnow, nullable=False)
@@ -158,8 +153,6 @@ class RuleConfigRequest(Base):
 
 
 
-
-
 class Person(Base):
     __tablename__ = "persons"
     unique_ref = Column(String, primary_key=True, default=id_method)
@@ -177,6 +170,14 @@ class Relative(Base):
     person = relationship("Person", back_populates="relatives", info={"form_visibility": {"create-new": False}})
 
 
+class UserPreference(Base):
+    __tablename__ = "user_preferences"
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, index=True)
+    preference_key = Column(String(100))
+    preference_value = Column(Text)
+    last_updated = Column(DateTime, server_default=func.now(), onupdate=func.now())
+    
 class User(Base):
     __tablename__ = "users"
     user_id = Column(String, primary_key=True, default=id_method, info={"form_visibility": {"create-new": False}})
