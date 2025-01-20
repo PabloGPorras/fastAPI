@@ -1,0 +1,120 @@
+<div class="modal fade" id="viewExistingModal" tabindex="-1" aria-labelledby="viewExistingModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="viewExistingModalLabel">Request Details</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <!-- Tabs Navigation -->
+                <ul class="nav nav-tabs mb-3" id="viewDetailsTabPane" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active" id="details-tab" data-bs-toggle="tab"
+                            data-bs-target="#details-tab-pane" type="button" role="tab" aria-controls="details-tab-pane"
+                            aria-selected="true">
+                            Details
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="comments-tab" data-bs-toggle="tab"
+                            data-bs-target="#comments-tab-pane" type="button" role="tab"
+                            aria-controls="comments-tab-pane" aria-selected="false">
+                            Comments
+                        </button>
+                    </li>
+                </ul>
+
+                <!-- Tab Content -->
+                <div class="tab-content">
+                    <!-- Details Tab -->
+                    <div class="tab-pane fade show active" id="details-tab-pane" role="tabpanel"
+                        aria-labelledby="details-tab">
+                        <form id="detailsForm">
+                            <!-- Predefined Fields for "is_request" Models -->
+                            {% include "modal/form_fields.html" %}
+
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                            </div>
+                        </form>
+                    </div>
+
+                    <!-- Comments Tab -->
+                    {% include "modal/comments_form.html" %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+<script id="detailsForm" type="application/json">
+    {{ {"form_fields": form_fields, "relationships": relationships, "predefined_options": predefined_options} | tojson | safe }}
+</script>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+
+    $(document).ready(function () {
+        // Add New Multi-Options to Fields
+        $(".add-option-btn").click(function () {
+            const fieldName = $(this).data("field"); // Field name for which options are being added
+            const input = $(this).prev(".add-option-input"); // Input element for adding new options
+            const newOption = input.val().trim(); // Get the entered option
+
+            if (!newOption) {
+                alert("Option cannot be empty.");
+                return;
+            }
+
+            // Get the corresponding select element
+            const select = $(`#${fieldName}`);
+            if (!select.length) {
+                alert("Select element not found.");
+                return;
+            }
+
+            // Check for duplicates
+            if (select.find(`option[value="${newOption}"]`).length) {
+                alert("Option already exists.");
+                return;
+            }
+
+            // Add the new option to the select dropdown
+            select.append(new Option(newOption, newOption));
+
+            // Clear the input field
+            input.val("");
+        });
+
+        // Add Predefined Options as Rows
+        $(".add-predefined-btn").click(function () {
+            const relationship = $(this).data("relationship");
+            const container = $(`#${relationship}-container tbody`);
+            const dropdown = $(`#${relationship}_options`);
+            const selectedValue = dropdown.val();
+            const selectedText = dropdown.find("option:selected").text();
+
+            if (!selectedValue) return;
+
+            // Check for duplicates before adding
+            if (container.find(`tr[data-value="${selectedValue}"]`).length) {
+                alert(`This ${relationship} is already added.`);
+                return;
+            }
+
+            // Add new row
+            const row = $(`<tr data-value="${selectedValue}"></tr>`);
+            row.append(`<td>${selectedText}</td>`);
+            row.append('<td><button type="button" class="btn btn-danger btn-sm remove-row-btn">Remove</button></td>');
+            container.append(row);
+        });
+
+        // Handle Row Removal
+        $("body").on("click", ".remove-row-btn", function () {
+            $(this).closest("tr").remove();
+        });
+    });
+
+</script>

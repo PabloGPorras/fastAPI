@@ -8,8 +8,8 @@ from routers.bulk_update_status import router as bulk_update_status_router
 from routers.comments import router as comments_router
 from routers.create_new import router as create_new_router
 from routers.current_user import router as current_user_router
-from routers.get_details import router as get_details_router
-from routers.get_form import router as get_form_router
+from routers.get_view_existing_form import router as get_details_router
+from routers.get_create_new_form import router as get_create_new_form_router
 from routers.get_row import router as get_row_router
 from routers.refresh_table import router as refresh_table_router
 from routers.status_transitions import router as status_transitions_router
@@ -33,7 +33,7 @@ app.include_router(comments_router)
 app.include_router(create_new_router)
 app.include_router(current_user_router)
 app.include_router(get_details_router)
-app.include_router(get_form_router)
+app.include_router(get_create_new_form_router)
 app.include_router(get_row_router)
 app.include_router(refresh_table_router)
 app.include_router(status_transitions_router)
@@ -52,3 +52,5 @@ MODEL_PERMISSIONS = {
     "applications": "admin",
     "requests": "user",  # Example: Regular users can access 'requests'
 }
+
+

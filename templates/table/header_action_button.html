@@ -4,12 +4,11 @@
     <!-- Primary Action Button -->
     {% if model_name != "request"%}
         <button class="btn btn-success btn-sm"
-        hx-post="/get-form" 
-        hx-target="#detailsForm" 
-        hx-trigger="click" 
+        hx-post="/get-create-new-form"
+        hx-target="#createNewModalContainer"
+        hx-trigger="click"
         hx-swap="innerHTML"
-        hx-vals='{"model_name": "{{ model_name }}"}'
-        onclick="showModal()">Create New</button>
+        hx-vals='{"model_name": "{{ model_name }}"}'>Create New</button>
     {% else %}
     <button class="btn btn-success btn-sm">
         Referesh
@@ -54,8 +53,11 @@
         {% endif %}
     </ul>
 
+    <div id="createNewModalContainer"></div>
+
+
     {% set model_name = model_name %}
-    {% include "bulk_update_modal.html" with context %}
+    {% include "table/bulk_update_modal.html" with context %}
 
 
 </div>
@@ -65,6 +67,16 @@
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 
 <script>
+    document.body.addEventListener("htmx:afterSwap", (event) => {
+        if (event.detail.target.id === "createNewModalContainer") {
+            const modalElement = document.getElementById("createNewModal");
+            if (modalElement) {
+                const modal = new bootstrap.Modal(modalElement);
+                modal.show();
+            }
+        }
+    });
+
     $(document).ready(async function () {
         const $tableBody = $("#tableBody");
         const $checkboxes = $tableBody.find(".row-checkbox");
@@ -77,46 +89,6 @@
         // Fetch current user roles using fetchCurrentUser
         await fetchCurrentUser();
         currentUserRoles = currentUserRoles ? currentUserRoles : [];
-
-        async function updateStatusChangeButtons() {
-            const $selectedRows = $tableBody.find("tr.selected-row");
-            const currentStatuses = $selectedRows.map(function () {
-                const statusCell = $(this).find(".request_status-column");
-                return statusCell.length ? statusCell.text().trim() : null;
-            }).get();
-
-            if (currentStatuses.length === 0) {
-                $statusChangeButtons.hide();
-                return;
-            }
-
-            const validTransitions = await fetchValidTransitions(currentStatuses);
-
-            // Show/Hide buttons based on valid transitions
-            $statusChangeButtons.each(function () {
-                const nextStatus = $(this).data("nextStatus");
-                $(this).toggle(validTransitions.includes(nextStatus));
-            });
-        }
-
-
-        if ($selectAllCheckbox.length) {
-            $selectAllCheckbox.on("change", function () {
-                const isChecked = $(this).is(":checked");
-                $checkboxes.prop("checked", isChecked);
-                $checkboxes.each(function () {
-                    const $row = $(this).closest("tr");
-                    $row.toggleClass("selected-row", isChecked);
-                });
-                updateStatusChangeButtons();
-            });
-        }
-
-        $checkboxes.on("change", function () {
-            const $row = $(this).closest("tr");
-            $row.toggleClass("selected-row", $(this).is(":checked"));
-            updateStatusChangeButtons();
-        });
 
         // Event listener for status change buttons
         $statusChangeButtons.on("click", function () {
@@ -156,66 +128,6 @@
             });
         });
 
-        // Event listener for primary-action-btn
-        $("#primary-action-btn").on("click", function () {
-            const endpoint = $(this).data("endpoint");
-
-            if (endpoint === "/create-new-modal") {
-                console.log("Primary action: Create New");
-
-                // Reset the form
-                const $form = $("#detailsForm");
-                if (!$form.length) {
-                    console.error("Form with ID 'detailsForm' not found.");
-                    return;
-                }
-                $form[0].reset();
-
-                // Clear relationship tables
-                $(".relationship-container tbody").empty();
-
-                // Enable all form fields
-                $form.find("input, select, textarea").prop("disabled", false);
-
-                // Show Add buttons for relationships
-                $(".add-predefined-btn, .add-row-btn").show();
-
-                // Reset modal title and button
-                $("#createNewModalLabel").text("Create New Entry");
-                const $saveButton = $("#createNewModal .btn-primary");
-                $saveButton.text("Save").removeData("id").show();
-
-                // Show the modal
-                const modal = new bootstrap.Modal($("#createNewModal")[0]);
-                modal.show();
-            } else if (endpoint === "/refresh") {
-                console.log("Primary action: Refresh");
-
-                // Fetch updated data
-                $.getJSON(endpoint, function (data) {
-                    console.log("Refreshed data:", data);
-
-                    // Replace table body with updated rows
-                    const $tableBody = $("#tableBody");
-                    $tableBody.empty(); // Clear the table
-                    data.rows.forEach(row => {
-                        const rowElement = $(`
-                            <tr>
-                                <td>${row.id}</td>
-                                <td>${row.name}</td>
-                                <td>${row.status}</td>
-                                <!-- Add other columns as needed -->
-                            </tr>
-                        `);
-                        $tableBody.append(rowElement);
-                    });
-                }).fail(function (error) {
-                    console.error("Error refreshing data:", error);
-                });
-            } else {
-                console.error("Unknown primary action endpoint:", endpoint);
-            }
-        });
     });
 
 </script>

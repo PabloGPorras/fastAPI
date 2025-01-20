@@ -152,25 +152,49 @@ class DatabaseService:
         return models_with_metadata
 
     @staticmethod
-    def gather_model_metadata(model, session: Session, form_name: str = None):
+    def gather_model_metadata(
+        model,
+        session: Session,
+        form_name: str = None,
+        visited_models=None,
+        max_depth: int = 4  # example: limit recursion depth to 4
+    ):
         """
-        Gather metadata from the given SQLAlchemy model.
+        Gather metadata from the given SQLAlchemy model, optionally recursing 
+        into its relationships up to `max_depth` levels deep.
+
         Args:
             model: SQLAlchemy model class.
             session: SQLAlchemy session for querying related data.
             form_name: The name of the form to filter fields and relationships based on visibility.
+            visited_models: A set of models we've already visited to prevent infinite loops.
+            max_depth: The maximum recursion depth (optional).
 
         Returns:
             dict: A dictionary containing metadata (columns, form fields, relationships, etc.).
         """
+
+        # 1) Setup / prevent loops
         if not model:
             raise ValueError("Model cannot be None.")
+        if visited_models is None:
+            visited_models = set()
 
+        # If we've visited this model class already, return a minimal marker
+        if model in visited_models:
+            return {
+                "already_visited": True,
+                "model_name": model.__name__
+            }
+
+        # Mark this model as visited
+        visited_models.add(model)
+
+        # 2) Inspect model
         mapper = inspect(model)
-        is_request = getattr(model, "is_request", False)
-        logger.debug(f"Retrieved 'is_request' for model '{model.__name__}': {is_request}")
 
         metadata = {
+            "model_name": model.__name__,
             "columns": [],
             "form_fields": [],
             "relationships": [],
@@ -179,24 +203,16 @@ class DatabaseService:
             "request_menu_category": getattr(model, "request_menu_category", None),
             "request_status_config": getattr(model, "request_status_config", None),
         }
-        logger.debug(f"Retrieved 'metadata' for model '{model.__name__}': {metadata}")
 
-
+        # Optional helper to check if a field/relationship is visible for this form
         def is_visible(info):
-            """
-            Determine if a field or relationship is visible for the given form.
-            """
             if not form_name:
-                logger.debug("No form_name provided. Defaulting to visible.")
-                return True  # Default to visible if no form_name provided
+                return True
             if info and "form_visibility" in info:
-                visibility = info["form_visibility"].get(form_name, True)
-                logger.debug(f"Visibility for {form_name}: {visibility}")
-                return visibility
-            logger.debug("Info missing or no form_visibility specified. Defaulting to visible.")
+                return info["form_visibility"].get(form_name, True)
             return True
 
-        # Extract column metadata
+        # 3) Columns + form fields
         for column in mapper.columns:
             column_info = {
                 "name": column.name,
@@ -205,46 +221,54 @@ class DatabaseService:
                 "multi_options": getattr(model, f"{column.name}_multi_options", None),
                 "is_foreign_key": bool(column.foreign_keys),
             }
+
+            # Skip the column entirely if it’s not visible for this form
+            if not is_visible(getattr(column, "info", {})):
+                continue
+
+            # Also skip if it’s "unique_ref"
+            if column.name in ["unique_ref"]:
+                continue
+
+            # Otherwise, add it to columns
             metadata["columns"].append(column_info)
-            logger.debug(f"Retrieved {column.name} metadata: %s", column_info)
 
-            # Include in form fields only if visible for the given form
-            if is_visible(getattr(column, "info", {})) and column.name not in ["unique_ref"]:
-                metadata["form_fields"].append(column_info)
-                logger.debug(f"Added {column.name} to form fields: {is_visible(getattr(column, 'info', {}))}")
+            # Potentially add it to form_fields as well
+            metadata["form_fields"].append(column_info)
 
-        # Add `group_id` column for is_request models
+        # Extra columns for "is_request"
         if metadata["is_request"]:
             metadata["columns"].insert(1, {"name": "group_id", "type": "String", "options": None})
-
-        # Add a dynamic column for `request_status` if relevant
-        if metadata["is_request"]:
             metadata["columns"].insert(1, {"name": "request_status", "type": "String", "options": None})
 
-        # Extract relationship data dynamically
-        for rel in mapper.relationships:
-            relationship_info = {
-                "name": rel.key,
-                "fields": [
-                    {"name": col.name, "type": str(col.type)}
-                    for col in rel.mapper.columns if col.name != "id"
-                ],
-                "info": rel.info,  # Include additional info if available
-            }
+        # 4) Relationships + recursion
+        #    If we've reached 0, skip. Otherwise, go through relationships
+        if max_depth > 0:
+            for rel in mapper.relationships:
+                # Only proceed if visible
+                if is_visible(rel.info):
+                    # Build minimal relationship info
+                    relationship_info = {
+                        "name": rel.key,
+                        "nested_metadata": {}
+                    }
 
-            # Include in relationships only if visible for the given form
-            if is_visible(rel.info):
-                metadata["relationships"].append(relationship_info)
+                    # If we still have depth left, recurse
+                    if max_depth > 1:
+                        related_model = rel.mapper.class_
+                        nested_meta = DatabaseService.gather_model_metadata(
+                            model=related_model,
+                            session=session,
+                            form_name=form_name,
+                            visited_models=visited_models,
+                            max_depth=max_depth - 1
+                        )
+                        relationship_info["nested_metadata"] = nested_meta
 
-            # Fetch predefined options for relationships
-            if is_visible(rel.info) and rel.info.get("predefined_options", False):
-                related_model = rel.mapper.class_
-                metadata["predefined_options"][rel.key] = [
-                    {"id": obj.unique_ref, "name": getattr(obj, "name", str(obj.unique_ref))}
-                    for obj in session.query(related_model).all()
-                ]
+                    metadata["relationships"].append(relationship_info)
 
         return metadata
+
     
     @staticmethod
     def get_model_by_tablename(tablename: str) -> DeclarativeMeta:

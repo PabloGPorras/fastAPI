@@ -93,11 +93,11 @@
 
     <div class="mb-3 d-flex gap-2">
         <!-- Manage Columns Button -->
-        {% include "manage_columns_button.html" %}
+        {% include "table/manage_columns_button.html" %}
 
         <!-- Include header action button -->
         {% set model_name = model_name %}
-        {% include "header_action_button.html" with context %}
+        {% include "table/header_action_button.html" with context %}
     </div>
 
     <div id="manage-columns-menu" class="border p-2"
@@ -117,12 +117,12 @@
     <div class="table-responsive" style="overflow-y: auto;">
         <form id="status-form">
             <table class="table table-bordered">
-                {% include "table_headers.html" %}
+                {% include "table/table_headers.html" %}
                 <tbody id="tableBody">
                     {% for row in rows %}
                     <tr data-id="{{ row.get('unique_ref', 'N/A') }}">
                         
-                        {% include "row_action_button.html" %}
+                        {% include "table/row_action_button.html" %}
                         <!-- Dynamic Row Data -->
                         {% for column in columns %}
                         {% if not column.is_foreign_key %}
@@ -141,7 +141,22 @@
 </div>
 
 
-<div id="createNewModalContainer"></div>
+<div id="viewExistingModalContainer"></div>
+<script>
+    document.body.addEventListener("htmx:afterSwap", (event) => {
+        if (event.detail.target.id === "viewExistingModalContainer") {
+            const modalElement = document.getElementById("viewExistingModal");
+            if (modalElement) {
+                const modal = new bootstrap.Modal(modalElement, {
+                    backdrop: true, // Force backdrop
+                    keyboard: true, // Close on escape key press
+                });
+                modal.show();
+            }
+        }
+    });
+    
+</script>
 
 
 

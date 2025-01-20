@@ -141,7 +141,7 @@
         // Add a new comment
         $("#addCommentButton").off("click").on("click", async function () {
             const commentText = $("#commentText").val().trim();
-            const $modal = $("#createNewModal");
+            const $modal = $("#viewExistingModal");
             const itemId = $modal.attr("data-id");
 
             if (!commentText) {
@@ -179,7 +179,7 @@
         });
 
 
-        $("#createNewModal").off("shown.bs.modal").on("shown.bs.modal", function () {
+        $("#viewExistingModal").off("shown.bs.modal").on("shown.bs.modal", function () {
             const itemId = $(this).attr("data-id");
             console.log(`Modal shown for item: ${itemId}`); // Debugging log
             if (itemId) {

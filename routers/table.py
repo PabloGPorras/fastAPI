@@ -8,6 +8,16 @@ from fastapi import status
 
 router = APIRouter()
 
+from fastapi import APIRouter, Depends, HTTPException, Request, Response
+from core.templates import templates
+from services.database_service import DatabaseService
+from example_model import RmsRequest, User
+from get_current_user import get_current_user
+from database import logger, SessionLocal
+from fastapi import status
+
+router = APIRouter()
+
 @router.get("/table/{model_name}")
 async def get_table(
     model_name: str,
@@ -39,39 +49,38 @@ async def get_table(
         model = DatabaseService.get_model_by_tablename(model_name)
         if not model:
             logger.warning(f"Model '{model_name}' not found.")
-            raise HTTPException(status_code=404, detail=f"Model not found {model_name}")
+            raise HTTPException(status_code=404, detail=f"Model not found: {model_name}")
         logger.debug(f"Model resolved: {model}")
 
-        # Fetch rows using `database_service`
+        # Fetch rows using `fetch_model_rows`
         rows = DatabaseService.fetch_model_rows(model_name, session, model)
         logger.debug(f"Fetched rows: {rows}")
 
-        # Transform rows to dictionaries using `database_service`
+        # Transform rows to dictionaries
         row_dicts = DatabaseService.transform_rows_to_dicts(rows, model)
 
-        # Fetch model metadata dynamically using `gather_model_metadata`
+        # Gather model metadata
         metadata = DatabaseService.gather_model_metadata(model, session)
 
-        # Add request status config and `is_request` flag
         request_status_config = getattr(model, "request_status_config", None)
         is_request = getattr(model, "is_request", False)
 
-        # Return the rendered template response
+        # Render the template response
         return templates.TemplateResponse(
-            "dynamic_table_.html",
+            "table/dynamic_table_.html",
             {
                 "request": request,
                 "rows": row_dicts,
                 "columns": metadata["columns"],
-                "form_fields": metadata["form_fields"],
                 "relationships": metadata["relationships"],
                 "model_name": model_name,
                 "model": model,
                 "RmsRequest": RmsRequest,
                 "request_status_config": request_status_config,
                 "is_request": is_request,
-                "predefined_options": metadata["predefined_options"],  # Pass predefined options
+                "predefined_options": metadata["predefined_options"],  # pass predefined options
                 "all_models": all_models,
+                "user": user,
             },
         )
 

@@ -152,21 +152,62 @@ class RuleConfigRequest(Base):
     }
 
 
-
 class Person(Base):
     __tablename__ = "persons"
     unique_ref = Column(String, primary_key=True, default=id_method)
     name = Column(String)
     age = Column(Integer)
     gender = Column(String)
+    gender_options = ["Male","Female","Other","Lizard"]
+    rms_request_id = Column(String, ForeignKey("request.unique_ref"), nullable=False)
+    rms_request = relationship("RmsRequest", backref="persons", info={"form_visibility": {"create-new": False, "view-existing": False}})
     relatives = relationship("Relative", back_populates="person", cascade="all, delete-orphan", info={"predefined_options": False})
+    is_request = True
+    request_menu_category = "DMP"
+    request_status_config = {
+        "PENDING APPROVAL": {"Roles": ["FS_Manager"], "Next": ["PENDING GOVERNANCE","APPROVAL REJECTED"], "Status_Type":["APPROVAL"]},
+        "APPROVAL REJECTED": {"Roles": ["FS_Manager"], "Next": [], "Status_Type":["APPROVAL"]},  
+        
+        "PENDING GOVERNANCE": {"Roles": ["FS_Manager"], "Next": ["PENDING UAT TABLE DETAIL","GOVERNANCE REJECTED"], "Status_Type":["GOVERNANCE"]},
+        "PENDING UAT TABLE DETAIL": {"Roles": ["IMPL_Specialist"], "Next": ["COMPLETED","GOVERNANCE REJECTED"], "Status_Type":[]},
+        "GOVERNANCE REJECTED": {"Roles": ["IMPL_Specialist"], "Next": [], "Status_Type":["GOVERNANCE REJECTED"]}, 
 
+        "COMPLETED": {"Roles": ["IMPL_Specialist"], "Next": [], "Status_Type":[]},  
+        "USER REJECTED": {"Roles": ["FS_Analyst"], "Next": [], "Status_Type":["APPROVAL"]},  
+    }
+    
 class Relative(Base):
     __tablename__ = "relatives"
     unique_ref = Column(String, primary_key=True, default=id_method)
-    person_id = Column(String, ForeignKey("persons.unique_ref"))
+    person_id = Column(String, ForeignKey("persons.unique_ref"), info={"form_visibility": {"create-new": False, "view-existing": False}})
     name = Column(String)
     relation_type = Column(String)
+    gender = Column(String)
+    gender_options = ["Male","Female","Other","Lizard"]
+    gender2 = Column(String)
+    gender2_options = ["Male","Female","Other","Lizard"]
+    gender3 = Column(String)
+    gender3_options = ["Male","Female","Other","Lizard"]
+    gender4 = Column(String)
+    gender4_options = ["Male","Female","Other","Lizard"]
+    gender5 = Column(String)
+    gender5_options = ["Male","Female","Other","Lizard"]
+    gender6 = Column(String)
+    gender6_options = ["Male","Female","Other","Lizard"]
+    gender7 = Column(String)
+    gender7_options = ["Male","Female","Other","Lizard"]
+    gender8 = Column(String)
+    gender8_options = ["Male","Female","Other","Lizard"]
+    gender9 = Column(String)
+    gender9_options = ["Male","Female","Other","Lizard"]
+    gender10 = Column(String)
+    gender10_options = ["Male","Female","Other","Lizard"]
+    gender11 = Column(String)
+    gender11_options = ["Male","Female","Other","Lizard"]
+    gender12 = Column(String)
+    gender12_options = ["Male","Female","Other","Lizard"]
+    gender13 = Column(String)
+    gender13_options = ["Male","Female","Other","Lizard"]
     person = relationship("Person", back_populates="relatives", info={"form_visibility": {"create-new": False}})
 
 

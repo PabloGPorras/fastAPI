@@ -1,0 +1,310 @@
+<style>
+    .form-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 16px;
+    }
+
+    th {
+        text-align: left !important;
+    }
+
+    .relationship-container {
+        margin-bottom: 2rem;
+    }
+
+    .relationship-container .table th,
+    .relationship-container .table td {
+        vertical-align: middle;
+    }
+
+    .resizable {
+        resize: vertical;
+        /* Allow resizing only vertically */
+        min-height: 50px;
+        /* Minimum height for better UX */
+        max-height: 300px;
+        /* Optional: Limit maximum height */
+    }
+
+    .minwidth-cell {
+        min-width: 150px;  /* Adjust as desired */
+        white-space: nowrap; /* Optional to prevent wrapping */
+      }
+</style>
+
+{% if is_request %}
+<div class="row g-3">
+    <!-- Organization -->
+    <div class="col-md-2">
+        <label for="organization" class="form-label">Organization</label>
+        <select class="form-select" id="organization" name="organization" required>
+            {% for option in RmsRequest.organization_options %}
+            <option value="{{ option }}" {% if item_data.organization == option %}selected{% endif %}>
+                {{ option }}
+            </option>
+            {% endfor %}
+        </select>
+    </div>
+
+    <!-- Sub Organization -->
+    <div class="col-md-2">
+        <label for="sub_organization" class="form-label">Sub Org</label>
+        <select class="form-select" id="sub_organization" name="sub_organization" required>
+            {% for option in RmsRequest.sub_organization_options %}
+            <option value="{{ option }}" {% if item_data.sub_organization == option %}selected{% endif %}>
+                {{ option }}
+            </option>
+            {% endfor %}
+        </select>
+    </div>
+
+    <!-- Line of Business -->
+    <div class="col-md-2">
+        <label for="line_of_business" class="form-label">LOB</label>
+        <select class="form-select" id="line_of_business" name="line_of_business" required>
+            {% for option in RmsRequest.line_of_business_options %}
+            <option value="{{ option }}" {% if item_data.line_of_business == option %}selected{% endif %}>
+                {{ option }}
+            </option>
+            {% endfor %}
+        </select>
+    </div>
+
+    <!-- Team -->
+    <div class="col-md-2">
+        <label for="team" class="form-label">Team</label>
+        <select class="form-select" id="team" name="team" required>
+            {% for option in RmsRequest.team_options %}
+            <option value="{{ option }}" {% if item_data.team == option %}selected{% endif %}>
+                {{ option }}
+            </option>
+            {% endfor %}
+        </select>
+    </div>
+
+    <!-- Decision Engine -->
+    <div class="col-md-2">
+        <label for="decision_engine" class="form-label">Decision Engine</label>
+        <select class="form-select" id="decision_engine" name="decision_engine" required>
+            {% for option in RmsRequest.decision_engine_options %}
+            <option value="{{ option }}" {% if item_data.decision_engine == option %}selected{% endif %}>
+                {{ option }}
+            </option>
+            {% endfor %}
+        </select>
+    </div>
+
+    <!-- Effort -->
+    <div class="col-md-2">
+        <label for="effort" class="form-label">Effort</label>
+        <select class="form-select" id="effort" name="effort" required>
+            {% for option in RmsRequest.effort_options %}
+            <option value="{{ option }}" {% if item_data.effort == option %}selected{% endif %}>
+                {{ option }}
+            </option>
+            {% endfor %}
+        </select>
+    </div>
+</div>
+{% endif %}
+
+
+<!-- Existing Form Fields -->
+{% for field in form_fields %}
+{% if not field.is_foreign_key %}
+<div class="mb-3">
+    <label for="{{ field.name }}" class="form-label">{{ field.name|capitalize }}</label>
+    {% if field.multi_options %}
+    <!-- Dropdown for predefined multi-options -->
+    <select class="form-select" id="{{ field.name }}" name="{{ field.name }}" multiple {% if field.required %}required{%
+        endif %}>
+        {% for option in field.multi_options %}
+        <option value="{{ option }}" {% if item_data[field.name] and option in item_data[field.name] %}selected{% endif
+            %}>
+            {{ option }}
+        </option>
+        {% endfor %}
+    </select>
+    {% elif field.options %}
+    <!-- Dropdown for predefined options -->
+    <select class="form-select" id="{{ field.name }}" name="{{ field.name }}" {% if field.required %}required{% endif
+        %}>
+        {% for option in field.options %}
+        <option value="{{ option }}" {% if item_data[field.name]==option %}selected{% endif %}>
+            {{ option }}
+        </option>
+        {% endfor %}
+    </select>
+    {% elif "INTEGER" in field.type %}
+    <!-- Input for INTEGER -->
+    <input type="number" class="form-control" id="{{ field.name }}" name="{{ field.name }}"
+        value="{{ item_data[field.name] | default('') }}" {% if field.required %}required{% endif %}>
+    {% elif "BOOLEAN" in field.type %}
+    <!-- Dropdown for BOOLEAN -->
+    <select class="form-select" id="{{ field.name }}" name="{{ field.name }}" {% if field.required %}required{% endif
+        %}>
+        <option value="true" {% if item_data[field.name]==true %}selected{% endif %}>True</option>
+        <option value="false" {% if item_data[field.name]==false %}selected{% endif %}>False</option>
+    </select>
+    {% elif "DATE" in field.type and not "DATETIME" in field.type %}
+    <!-- Input for DATE -->
+    <input type="date" class="form-control" id="{{ field.name }}" name="{{ field.name }}"
+        value="{{ item_data[field.name] | default('') }}" {% if field.required %}required{% endif %}>
+    {% elif "TIME" in field.type and not "DATETIME" in field.type %}
+    <!-- Input for TIME -->
+    <input type="time" class="form-control" id="{{ field.name }}" name="{{ field.name }}"
+        value="{{ item_data[field.name] | default('') }}" {% if field.required %}required{% endif %}>
+    {% elif "DATETIME" in field.type %}
+    <!-- Input for DATETIME -->
+    <input type="datetime-local" class="form-control" id="{{ field.name }}" name="{{ field.name }}"
+        value="{{ item_data[field.name] | default('') }}" {% if field.required %}required{% endif %}>
+    {% else %}
+    <!-- Textarea for TEXT or STRING -->
+    <textarea class="form-control resizable" id="{{ field.name }}" name="{{ field.name }}" rows="1" {% if field.required
+        %}required{% endif %}>{{ item_data[field.name] | default('') | e }}</textarea>
+    {% endif %}
+</div>
+{% endif %}
+{% endfor %}
+
+    <!-- Now handle relationships with the new structure -->
+    {% for relationship in metadata.relationships %}
+      <h5>Relationship: {{ relationship.name|capitalize }}</h5>
+
+      {% set nested = relationship.nested_metadata %}
+
+      {% if nested.already_visited %}
+        <!-- We reached a model we've already visited, so skip deeper display -->
+        <p>Already visited {{ nested.model_name }}...</p>
+      {% else %}
+        <div class="table-responsive">
+          <table class="table table-bordered">
+            <thead>
+              <tr>
+                <!-- Render column headers from nested.columns -->
+                {% for col in nested.columns %}
+                  <th class="minwidth-cell">{{ col.name|capitalize }}</th>
+                {% endfor %}
+                <th class="minwidth-cell">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {# 
+                Because your new function doesn't return "item_data" or
+                existing related rows, you can't pre-populate them here
+                unless you pass that data separately from your route.
+              #}
+            </tbody>
+            <tfoot>
+                <tr>
+                  {% for col in nested.columns %}
+                    <td class="minwidth-cell">
+                      {# Same logic as your main fields, except no item_data, so we do value="" #}
+              
+                      {% if col.multi_options %}
+                        <!-- Dropdown for predefined multi-options -->
+                        <select class="form-select add-field-input" data-field="{{ col.name }}" multiple>
+                          {% for option in col.multi_options %}
+                            <option value="{{ option }}">{{ option }}</option>
+                          {% endfor %}
+                        </select>
+              
+                      {% elif col.options %}
+                        <!-- Dropdown for predefined options -->
+                        <select class="form-select add-field-input" data-field="{{ col.name }}">
+                          <option value="">--Select--</option>
+                          {% for option in col.options %}
+                            <option value="{{ option }}">{{ option }}</option>
+                          {% endfor %}
+                        </select>
+              
+                      {% elif "INTEGER" in col.type %}
+                        <!-- Input for INTEGER -->
+                        <input
+                          type="number"
+                          class="form-control add-field-input"
+                          data-field="{{ col.name }}"
+                          value=""
+                        >
+              
+                      {% elif "BOOLEAN" in col.type %}
+                        <!-- Dropdown for BOOLEAN -->
+                        <select class="form-select add-field-input" data-field="{{ col.name }}">
+                          <option value="">--Select--</option>
+                          <option value="true">True</option>
+                          <option value="false">False</option>
+                        </select>
+              
+                      {% elif "DATE" in col.type and not "DATETIME" in col.type %}
+                        <!-- Input for DATE -->
+                        <input
+                          type="date"
+                          class="form-control add-field-input"
+                          data-field="{{ col.name }}"
+                          value=""
+                        >
+              
+                      {% elif "TIME" in col.type and not "DATETIME" in col.type %}
+                        <!-- Input for TIME -->
+                        <input
+                          type="time"
+                          class="form-control add-field-input"
+                          data-field="{{ col.name }}"
+                          value=""
+                        >
+              
+                      {% elif "DATETIME" in col.type %}
+                        <!-- Input for DATETIME -->
+                        <input
+                          type="datetime-local"
+                          class="form-control add-field-input"
+                          data-field="{{ col.name }}"
+                          value=""
+                        >
+              
+                      {% else %}
+                        <!-- Textarea for TEXT or STRING -->
+                        <textarea
+                          class="form-control resizable add-field-input"
+                          rows="1"
+                          data-field="{{ col.name }}"
+                        ></textarea>
+                      {% endif %}
+                    </td>
+                  {% endfor %}
+              
+                  <td>
+                    <button
+                      type="button"
+                      class="btn btn-primary btn-sm add-row-btn"
+                      data-relationship="{{ relationship.name }}"
+                    >
+                      Add
+                    </button>
+                  </td>
+                </tr>
+              </tfoot>
+              
+          </table>
+
+          {# 
+            Optionally, show sub-relationships of the nested model if max_depth > 1 
+            and the function recurses. You can do a mini-recursive block, or
+            just display them inline:
+          #}
+          {% if nested.relationships %}
+            <div class="nested-relationships">
+              <h6>{{ nested.model_name }} has more relationships:</h6>
+              <ul>
+                {% for subrel in nested.relationships %}
+                  <li>{{ subrel.name }} 
+                      {# We could nest again if you want multi-level rendering #}
+                  </li>
+                {% endfor %}
+              </ul>
+            </div>
+          {% endif %}
+        </div>
+      {% endif %}
+    {% endfor %}
