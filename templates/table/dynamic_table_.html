@@ -101,17 +101,19 @@
     </div>
 
     <div id="manage-columns-menu" class="border p-2"
-        style="display: none; max-height: 200px; overflow-y: auto; width: 250px;">
-        <form>
-            {% for column in columns %}
-            <div class="form-check">
-                <input class="form-check-input column-toggle" type="checkbox" id="toggle-{{ column.name }}"
-                    data-column="{{ column.name }}" checked>
-                <label class="form-check-label" for="toggle-{{ column.name }}">{{ column.name|capitalize }}</label>
-            </div>
-            {% endfor %}
-        </form>
-    </div>
+    style="display: none; max-height: 200px; overflow-y: auto; width: 250px;">
+    <form>
+        {% if rows and rows[0] %}
+        {% for key in rows[0].keys() %}
+        <div class="form-check">
+            <input class="form-check-input column-toggle" type="checkbox" id="toggle-{{ key }}"
+                data-column="{{ key }}" checked>
+            <label class="form-check-label" for="toggle-{{ key }}">{{ key|capitalize }}</label>
+        </div>
+        {% endfor %}
+        {% endif %}
+    </form>
+</div>
 
     <!-- Table -->
     <div class="table-responsive" style="overflow-y: auto;">
@@ -121,15 +123,13 @@
                 <tbody id="tableBody">
                     {% for row in rows %}
                     <tr data-id="{{ row.get('unique_ref', 'N/A') }}">
-                        
+                        <!-- Include row action button -->
                         {% include "table/row_action_button.html" %}
                         <!-- Dynamic Row Data -->
-                        {% for column in columns %}
-                        {% if not column.is_foreign_key %}
-                        <td class="{{ column.name }}-column">
-                            {{ row.get(column.name, "N/A") }}
+                        {% for key, value in row.items() %}
+                        <td class="{{ key }}-column">
+                            {{ value if value is not none else "N/A" }}
                         </td>
-                        {% endif %}
                         {% endfor %}
                     </tr>
                     {% endfor %}

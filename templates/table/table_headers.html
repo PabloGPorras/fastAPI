@@ -52,38 +52,29 @@
 <thead>
     <tr>
         <!-- Blank Header for the First Column -->
-        <th >
+        <th>
         </th>
-        {% for column in columns %}
-        {% if not column.is_foreign_key %}
-        <th class="{{ column.name }}-column">
-            {{ column.name|capitalize }}
-            <button class="btn btn-link sort-btn" data-column="{{ column.name }}" data-order="asc">
-                <span id="sort-{{ column.name }}" class="sort-icon">⬆</span>
+        {% if rows and rows[0] %}
+        {% for key in rows[0].keys() %}
+        <th class="{{ key }}-column">
+            {{ key|capitalize }}
+            <button class="btn btn-link sort-btn" data-column="{{ key }}" data-order="asc">
+                <span id="sort-{{ key }}" class="sort-icon">⬆</span>
             </button>
-            <span class="filter-icon" data-column="{{ column.name }}" id="filter-icon-{{ column.name }}"
-                title="Filter">🔍</span>
-            <div class="filter-menu" id="filter-{{ column.name }}">
-                {% if column.options %}
-                <select class="form-select form-select-sm filter-select mb-2" data-column="{{ column.name }}" multiple>
-                    {% for option in column.options %}
-                    <option value="{{ option }}">{{ option }}</option>
-                    {% endfor %}
-                </select>
-                {% else %}
+            <span class="filter-icon" data-column="{{ key }}" id="filter-icon-{{ key }}" title="Filter">🔍</span>
+            <div class="filter-menu" id="filter-{{ key }}">
                 <input type="text" class="form-control form-control-sm filter-input mb-2"
-                    data-column="{{ column.name }}" placeholder="Filter {{ column.name|capitalize }}">
-                {% endif %}
+                    data-column="{{ key }}" placeholder="Filter {{ key|capitalize }}">
                 <div class="d-flex justify-content-between">
                     <button class="btn btn-primary btn-sm apply-filter-btn"
-                        data-column="{{ column.name }}">Apply</button>
+                        data-column="{{ key }}">Apply</button>
                     <button class="btn btn-secondary btn-sm clear-filter-btn"
-                        data-column="{{ column.name }}">Clear</button>
+                        data-column="{{ key }}">Clear</button>
                 </div>
             </div>
         </th>
-        {% endif %}
         {% endfor %}
+        {% endif %}
     </tr>
 </thead>
 

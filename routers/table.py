@@ -57,10 +57,12 @@ async def get_table(
         logger.debug(f"Fetched rows: {rows}")
 
         # Transform rows to dictionaries
-        row_dicts = DatabaseService.transform_rows_to_dicts(rows, model)
-
+        row_dicts = DatabaseService.transform_rows_to_dicts(rows)
+        if row_dicts:
+            logger.debug(f"First row_dict: {row_dicts}")
         # Gather model metadata
         metadata = DatabaseService.gather_model_metadata(model, session)
+        logger.debug(f"Metadata columns: {metadata['columns']}")
 
         request_status_config = getattr(model, "request_status_config", None)
         is_request = getattr(model, "is_request", False)

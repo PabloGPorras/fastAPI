@@ -1,10 +1,12 @@
 from datetime import datetime
 from sqlalchemy.orm import Session, joinedload
-from sqlalchemy import func
+from sqlalchemy import func, literal
 from sqlalchemy.inspection import inspect
 from example_model import Base, RmsRequest, RmsRequestStatus
 from sqlalchemy.ext.declarative import DeclarativeMeta
 import logging
+from sqlalchemy.engine import Row
+
 
 logger = logging.getLogger(__name__)
 
@@ -37,8 +39,9 @@ class DatabaseService:
         if model_name == "request":
             rows = (
                 session.query(
-                    RmsRequest,  # Directly query RmsRequest
-                    RmsRequestStatus.status.label("request_status"),  # Fetch the status
+                    RmsRequest,                  # The ORM object
+                    RmsRequestStatus,            # The ORM object
+                    literal(None).label("group_id")  # Placeholder for group_id
                 )
                 .join(subquery, RmsRequest.unique_ref == subquery.c.unique_ref)  # Join with subquery
                 .all()
@@ -47,85 +50,138 @@ class DatabaseService:
             try:
                 rows = (
                     session.query(
-                        model,  # Dynamic model (e.g., RuleRequest)
-                        RmsRequestStatus.status.label("request_status"),  # Explicitly fetch the status
-                        RmsRequest.group_id.label("group_id"),  # Fetch group_id from RmsRequest
+                        model,                       # Dynamic model (e.g., RuleConfigRequest)
+                        RmsRequestStatus,            # The ORM object
+                        RmsRequest  # Fetch group_id from RmsRequest
                     )
                     .join(RmsRequest, model.rms_request_id == RmsRequest.unique_ref)  # Join with RmsRequest
+                    .join(RmsRequestStatus, RmsRequest.unique_ref == RmsRequestStatus.unique_ref)  # Join to RmsRequestStatus
                     .join(subquery, RmsRequest.unique_ref == subquery.c.unique_ref)  # Join to find latest status
                     .all()
                 )
-            except:
+            except Exception as e:
+                logger.error(f"Error during fetch_model_rows: {e}", exc_info=True)
                 rows = session.query(model).all()
 
         return rows
 
     @staticmethod
-    def transform_rows_to_dicts(rows, model):
-        """
-        Transform rows into a dictionary format with transitions.
-
-        Args:
-            rows: List of database rows to transform.
-            model: SQLAlchemy model class associated with the rows.
-
-        Returns:
-            list: Transformed list of dictionaries with row data and transitions.
-        """
+    def transform_rows_to_dicts(rows):
         row_dicts = []
-        mapper = inspect(model)
+        from sqlalchemy.orm import object_mapper
 
         for row in rows:
-            try:
-                # Handle rows with additional metadata (e.g., status and group_id)
-                if len(row) == 3:  # Assume structure: (ModelInstance, request_status, group_id)
-                    model_obj, request_status, group_id = row
-                elif len(row) == 2:  # Assume structure: (ModelInstance, request_status)
-                    model_obj, request_status = row
-                    group_id = getattr(model_obj, "group_id", None)
-                else:  # Assume single-object rows
-                    model_obj = row
-                    request_status = None
-                    group_id = getattr(model_obj, "group_id", None)
+            # Now each row has exactly 3 elements
+            first_obj, second_obj, third_obj = row
 
-                # Extract column data from the model
-                row_data = {}
-                for col in mapper.columns:
-                    val = getattr(model_obj, col.name, None)
-                    # Convert datetime objects to ISO 8601 strings
-                    if isinstance(val, datetime):
-                        val = val.isoformat()
-                    row_data[col.name] = val
+            # Flatten the first object
+            flattened = {}
+            if first_obj is not None and hasattr(first_obj, '__table__'):
+                # It's an ORM object
+                for col in object_mapper(first_obj).columns:
+                    flattened[col.name] = getattr(first_obj, col.name, None)
+            else:
+                flattened["object1"] = first_obj  # if it's None or some literal
 
-                # Add request_status and group_id
-                row_data["request_status"] = request_status
-                row_data["group_id"] = group_id
+            # Flatten the second object
+            if second_obj is not None and hasattr(second_obj, '__table__'):
+                # It's an ORM object, e.g. RmsRequestStatus
+                for col in object_mapper(second_obj).columns:
+                    flattened[f"status_{col.name}"] = getattr(second_obj, col.name, None)
+            else:
+                flattened["object2"] = second_obj
 
-                # Fetch transitions based on the current request_status
-                if request_status and hasattr(model, "request_status_config"):
-                    transitions = model.request_status_config.get(request_status, {}).get("Next", [])
-                    row_data["transitions"] = [
-                        {"next_status": next_status, "action_label": f"Change to {next_status}"}
-                        for next_status in transitions
-                    ]
-                else:
-                    row_data["transitions"] = []
+            # Flatten the third object
+            if third_obj is not None and hasattr(third_obj, '__table__'):
+                # Another ORM object, e.g. RmsRequest
+                for col in object_mapper(third_obj).columns:
+                    flattened[f"rms_{col.name}"] = getattr(third_obj, col.name, None)
+            else:
+                flattened["object3"] = third_obj
 
-            except (TypeError, ValueError):
-                # Handle errors gracefully for single-object rows
-                row_data = {}
-                for col in mapper.columns:
-                    val = getattr(row, col.name, None)
-                    row_data[col.name] = val
-
-                # Default values for rows without explicit metadata
-                row_data["request_status"] = None
-                row_data["group_id"] = getattr(row, "group_id", None)
-                row_data["transitions"] = []
-
-            row_dicts.append(row_data)
-
+            row_dicts.append(flattened)
         return row_dicts
+
+
+
+    @staticmethod
+    def _row_to_dict(row):
+        """
+        Internal method that converts a single row into a dictionary, handling
+        different row types:
+            - SQLAlchemy Row/RowProxy
+            - Single mapped object
+            - Tuple of items
+            - Plain Python object
+        """
+        if DatabaseService._is_sa_row(row):
+            # SQLAlchemy Row (2.0) or RowProxy (1.x)
+            row_dict = dict(row._mapping) if hasattr(row, '_mapping') else row._asdict()
+
+        elif DatabaseService._is_mapped_object(row):
+            # Single mapped ORM object
+            mapper = inspect(row)
+            row_dict = {}
+            for col in mapper.columns:
+                val = getattr(row, col.name, None)
+                row_dict[col.name] = DatabaseService._convert_if_datetime(val)
+
+        elif isinstance(row, (tuple, list)):
+            # A tuple or list of items (could be a mix of mapped objects, scalars, etc.)
+            # We convert each item individually and store them in a list
+            row_dict = [DatabaseService._row_to_dict(item) for item in row]
+
+        else:
+            # As a fallback, try using the generic Python object approach
+            # We'll skip any private/internal attributes
+            row_dict = {}
+            for attr in dir(row):
+                # Skip dunder/magic attributes and private ones
+                if not attr.startswith("_"):
+                    val = getattr(row, attr, None)
+                    # Sometimes these might be methods or descriptors; skip non-values
+                    if not callable(val):
+                        row_dict[attr] = DatabaseService._convert_if_datetime(val)
+
+            # If that yields nothing, maybe use __dict__ directly (if available)
+            if not row_dict and hasattr(row, '__dict__'):
+                row_dict = {
+                    k: DatabaseService._convert_if_datetime(v) 
+                    for k, v in row.__dict__.items() 
+                    if not k.startswith("_")
+                }
+
+        return row_dict
+
+    @staticmethod
+    def _convert_if_datetime(value):
+        """
+        Convert datetime objects to ISO 8601 string, leave other types unchanged.
+        """
+        if isinstance(value, datetime):
+            return value.isoformat()
+        return value
+
+    @staticmethod
+    def _is_sa_row(item):
+        """
+        Check if the item is a SQLAlchemy Row / RowProxy (1.x) or Row (2.0).
+        """
+        # Adjust as needed depending on your SQLAlchemy version
+        return isinstance(item, Row) or hasattr(item, '_mapping') or hasattr(item, '_asdict')
+
+    @staticmethod
+    def _is_mapped_object(item):
+        """
+        Check if the item is a SQLAlchemy ORM-mapped object.
+        """
+        try:
+            # If we can retrieve a mapper, it's likely a mapped object.
+            inspect(item)
+            return True
+        except:
+            return False
+
     
     @staticmethod
     def get_all_models():
