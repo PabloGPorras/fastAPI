@@ -93,7 +93,16 @@ class DatabaseService:
                 if column_attr is None:
                     logger.warning(f"Filter column '{column}' not found in model '{model_name}'.")
                     continue
-                query = query.filter(column_attr.like(f"%{value}%"))
+                
+                # Dynamically determine the operator based on column type
+                try:
+                    column_type = str(column_attr.type)
+                    if "String" in column_type or "Text" in column_type:
+                        query = query.filter(column_attr.like(f"%{value}%"))
+                    else:
+                        query = query.filter(column_attr == value)
+                except Exception as e:
+                    logger.warning(f"Failed to apply filter on column '{column}' with value '{value}': {e}")
 
         # Apply sorting
         if sort_by:
@@ -115,6 +124,7 @@ class DatabaseService:
         ]
 
         return row_dicts
+
 
 
     @staticmethod
@@ -226,6 +236,7 @@ class DatabaseService:
                 "options": getattr(model, f"{column.name}_options", None),
                 "multi_options": getattr(model, f"{column.name}_multi_options", None),
                 "is_foreign_key": bool(column.foreign_keys),
+                "model_name": model.__name__,
             }
 
             column_visibility = column.info.get("form_visibility", {}) if hasattr(column, "info") else {}

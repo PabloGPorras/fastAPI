@@ -2,6 +2,18 @@
 
 <script>
     document.addEventListener("DOMContentLoaded", function () {
+            document.querySelectorAll(".column-toggle").forEach((checkbox) => {
+            checkbox.addEventListener("change", (e) => {
+                const columnKey = e.target.dataset.column;
+                const isVisible = e.target.checked;
+
+                document.querySelectorAll(`.${columnKey}-column`).forEach((col) => {
+                    col.style.display = isVisible ? "" : "none";
+                });
+            });
+        });
+
+
         // Manage Columns Menu Toggle
         document.getElementById("manage-columns-btn").addEventListener("click", () => {
             const menu = document.getElementById("manage-columns-menu");

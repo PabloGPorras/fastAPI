@@ -29,38 +29,28 @@ async def get_details(
             form_name="create-new"
         )
 
-        # 3) If your template still expects separate variables,
-        #    you can pull them out safely from `metadata`
+        # 3) Extract data for template rendering
         form_fields = metadata.get("form_fields", [])
         relationships = metadata.get("relationships", [])
         predefined_options = metadata.get("predefined_options", {})
         is_request = metadata.get("is_request", False)
 
-        # 4) Build or clear `item_data` if your template references it
-        #    (Optional step, if you still pre-fill new forms)
-        item_data = {}
-        for field in form_fields:
-            item_data[field["name"]] = ""  # default empty
+        # 4) Prepare item_data for pre-filled form (optional)
+        item_data = {field["name"]: "" for field in form_fields}
         for rel in relationships:
             item_data[rel["name"]] = []
 
-        # 5) Provide ALL needed data in the context,
-        #    INCLUDING the entire `metadata` dict so that
-        #    `{% for relationship in metadata.relationships %}` works.
+        # 5) Provide context for the template
         context = {
             "request": request,
             "model_name": model_name.lower(),
             "RmsRequest": RmsRequest,
-
-            # Pass the entire metadata so you can do {{ metadata.xxx }} in Jinja
             "metadata": metadata,
-
-            # Also pass sub-keys if your template still references them individually
             "form_fields": form_fields,
             "relationships": relationships,
             "predefined_options": predefined_options,
             "is_request": is_request,
-            "item_data": item_data
+            "item_data": item_data,
         }
 
         logger.debug("Rendering create_new_modal.html with context:")
@@ -68,8 +58,15 @@ async def get_details(
 
         return templates.TemplateResponse("modal/create_new_modal.html", context)
 
+    except HTTPException as e:
+        # Handle HTTPExceptions specifically
+        logger.error(f"HTTPException: {e.detail}")
+        return HTMLResponse(content=f"Error: {e.detail}", status_code=e.status_code)
     except Exception as e:
-        logger.error(f"Error processing model data: {str(e)}", exc_info=True)
-        raise HTTPException(status_code=500, detail="Internal Server Error")
+        # Handle other exceptions
+        error_message = f"Unexpected error occurred: {str(e)}"
+        logger.error(error_message, exc_info=True)
+        return HTMLResponse(content=error_message, status_code=500)
     finally:
         session.close()
+

@@ -109,40 +109,45 @@
         </li>
         {% endif %}
 
-        <!-- Create New Button with Dynamic Submenu -->
-        <!-- 
-<li class="nav-item position-relative">
-    <a href="#" class="nav-link text-dark" id="createNewBtn">
-        <i class="fas fa-plus-circle"></i>
-        <span>Create New</span>
-    </a>
-    <div class="sub-side-menu" id="createNewSubMenu">
-        <ul class="list-unstyled m-0 p-2">
-            {% for category, models in all_models|groupby("request_menu_category") %}
-            <li class="mb-3">
-                <strong class="text-muted">{{ category if category else "Uncategorized" }}</strong>
-                <ul class="list-unstyled ms-3">
-                    {% for model in models %}
-                    {% if model.is_request %}
-                    <li class="mb-2">
-                        <a href="#" class="nav-link text-dark create-item" data-item="{{ model.url }}">
-                            {{ model.name }}
-                        </a>
+        <!-- Quick Create with Dynamic Submenu -->
+        <li class="nav-item position-relative">
+            <a href="#" class="nav-link text-dark" id="createNewBtn">
+                <i class="fas fa-plus-circle"></i>
+                <span>Quick Create</span>
+            </a>
+            <div class="sub-side-menu" id="createNewSubMenu">
+                <ul class="list-unstyled m-0 p-2">
+                    {% for category, models in all_models|groupby("request_menu_category") %}
+                    <li class="mb-3">
+                        <strong class="text-muted">{{ category if category else "" }}</strong>
+                        <ul class="list-unstyled ms-3">
+                            {% for model in models if model.is_request and model.name != "Request" %}
+                            <li class="mb-2">
+                                <button 
+                                    class="btn btn-link nav-link text-dark create-item"
+                                    hx-post="/get-create-new-form"
+                                    hx-target="#createNewModalContainer"
+                                    hx-trigger="click"
+                                    hx-swap="innerHTML"
+                                    hx-vals='{"model_name": "{{ model.model_name }}"}'>
+                                    {{ model.name }}
+                                </button>
+                            </li>
+                            {% endfor %}
+                        </ul>
                     </li>
-                    {% endif %}
                     {% endfor %}
                 </ul>
-            </li>
-            {% endfor %}
-        </ul>
-    </div>
-</li>-->
+            </div>
+        </li>
+
+        
 
         <!-- Request Tables with Dynamic Submenu -->
         <li class="nav-item position-relative">
             <a href="#" class="nav-link text-dark" id="tableBtn">
                 <i class="fas fa-table"></i>
-                <span>Requests</span>
+                <span>Detail Tables</span>
             </a>
             <div class="sub-side-menu" id="tableSubMenu">
                 <ul class="list-unstyled m-0 p-2">

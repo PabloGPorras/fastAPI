@@ -1,9 +1,10 @@
+import json
 from typing import Dict, Optional
 from fastapi import APIRouter, Depends, HTTPException, Query, Request, Response
 from pydantic import BaseModel
 from core.templates import templates
 from services.database_service import DatabaseService
-from example_model import RmsRequest, User
+from example_model import RmsRequest, User, UserPreference
 from get_current_user import get_current_user
 from database import logger,SessionLocal
 from fastapi import status
@@ -35,6 +36,20 @@ async def get_table(
     logger.debug(f"Authenticated user: {user.user_name}")
     session = SessionLocal()
 
+    # Fetch user preferences for visible columns
+    user_preferences = (
+        session.query(UserPreference)
+        .filter(UserPreference.user_id == user.user_id, UserPreference.preference_key == "visible_columns")
+        .first()
+    )
+    visible_columns = [
+        "Status"
+    ]
+    if user_preferences and user_preferences.preference_value:
+        # Parse the preference value (assumed to be a JSON string)
+        visible_columns = json.loads(user_preferences.preference_value)
+
+        
     # Restrict access for certain models
     is_admin = "Admin" in user.roles
     ADMIN_MODELS = {"users"}
@@ -88,6 +103,7 @@ async def get_table(
                 "filters": filters or {},  # Ensure filters are passed to the template
                 "sort_by": sort_by,
                 "sort_order": sort_order,
+                "visible_columns": visible_columns,
             },
         )
     
