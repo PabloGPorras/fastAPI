@@ -110,6 +110,8 @@ class RuleRequest(Base):
     unique_ref = Column(String, primary_key=True, default=id_method)
     rule_name = Column(String)
     rule_id = Column(String)
+    estimation_id = Column(String, info={"form_visibility":  {"check-list": True}})
+    governance = Column(String, info={"form_visibility":  {"check-list": True}})
     rule_version = Column(Integer)
     rms_request_id = Column(String, ForeignKey("request.unique_ref"), nullable=False)
     rms_request = relationship("RmsRequest", backref="rule_requests", info={"form_visibility":  {"create-new": False, "view-existing": False}})
@@ -126,6 +128,17 @@ class RuleRequest(Base):
         "COMPLETED": {"Roles": ["IMPL_Specialist"], "Next": [], "Status_Type":[]},  
         "USER REJECTED": {"Roles": ["FS_Analyst"], "Next": [], "Status_Type":["APPROVAL"]},  
     }
+    check_list = {
+        "Section 1": [
+            "Check 1",
+            "Check 2",
+        ],
+        "Section 2": [
+            "Check 3",
+            "Check 4"
+        ]
+    }
+
 
 
 class RuleConfigRequest(Base):
@@ -213,7 +226,7 @@ class Relative(Base):
 
 class UserPreference(Base):
     __tablename__ = "user_preferences"
-    id = Column(String, primary_key=True, iprimary_key=True, default=id_method)
+    id = Column(String, primary_key=True, default=id_method)
     user_id = Column(Integer)
     preference_key = Column(String(100))
     preference_value = Column(Text)

@@ -207,6 +207,7 @@ class DatabaseService:
             "is_request": getattr(model, "is_request", False),
             "request_menu_category": getattr(model, "request_menu_category", None),
             "request_status_config": getattr(model, "request_status_config", None),
+            "checklist_fields": [],  # New attribute for check-list fields
         }
 
         # Optional helper to check if a field/relationship is visible for this form
@@ -227,33 +228,40 @@ class DatabaseService:
                 "is_foreign_key": bool(column.foreign_keys),
             }
 
+            column_visibility = column.info.get("form_visibility", {}) if hasattr(column, "info") else {}
+
+            # Check if the column is for check-list
+            if column_visibility.get("check-list", False):
+                metadata["checklist_fields"].append(column.name)
+                # Assume False for create-new and view-existing
+                column_visibility.setdefault("create-new", False)
+                column_visibility.setdefault("view-existing", False)
+
+            # Add debugging
+            print(f"Inspecting column: {column.name}, visibility: {column_visibility}")
+
             # Skip the column entirely if it’s not visible for this form
-            if not is_visible(getattr(column, "info", {})):
+            if not is_visible(column_visibility):
                 continue
 
-            # Also skip if it’s "unique_ref"
-            if column.name in ["unique_ref"] or bool(column.foreign_keys):
-                continue
-                
             # Otherwise, add it to columns
             metadata["columns"].append(column_info)
 
             # Potentially add it to form_fields as well
-            metadata["form_fields"].append(column_info)
+            if column.name not in metadata["checklist_fields"]:
+                metadata["form_fields"].append(column_info)
+
+        # Log checklist fields
+        print(f"Check-list fields gathered: {metadata['checklist_fields']}")
 
         # 4) Relationships + recursion
-        #    If we've reached 0, skip. Otherwise, go through relationships
         if max_depth > 0:
             for rel in mapper.relationships:
-                # Only proceed if visible
                 if is_visible(rel.info):
-                    # Build minimal relationship info
                     relationship_info = {
                         "name": rel.key,
                         "nested_metadata": {}
                     }
-
-                    # If we still have depth left, recurse
                     if max_depth > 1:
                         related_model = rel.mapper.class_
                         nested_meta = DatabaseService.gather_model_metadata(
@@ -268,6 +276,8 @@ class DatabaseService:
                     metadata["relationships"].append(relationship_info)
 
         return metadata
+
+
 
     
     @staticmethod

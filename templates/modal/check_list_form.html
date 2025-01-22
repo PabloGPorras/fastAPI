@@ -1,0 +1,121 @@
+{% if "IMPL_Specialist" in user.roles.split(",") %}
+<div class="tab-pane fade" id="checklist-tab-pane" role="tabpanel" aria-labelledby="checklist-tab">
+    <h5>Checklist</h5>
+    <form id="checklistForm">
+        <!-- Pass the unique_ref -->
+        <input type="hidden" name="unique_ref" value="{{ unique_ref }}">
+    
+        <!-- Dynamically Generated Fields -->
+        <ul>
+            {% for field_name in metadata["checklist_fields"] %}
+            <div class="mb-3">
+                <label for="{{ field_name }}" class="form-label">{{ field_name|capitalize }}</label>
+                {% set field = metadata["columns"] | selectattr("name", "equalto", field_name) | first %}
+                {% if field.multi_options %}
+                <!-- Dropdown for predefined multi-options -->
+                <select class="form-select" id="{{ field_name }}" name="{{ field_name }}" multiple {% if field.required %}required{% endif %}>
+                    {% for option in field.multi_options %}
+                    <option value="{{ option }}" {% if item_data[field_name] and option in item_data[field_name] %}selected{% endif %}>
+                        {{ option }}
+                    </option>
+                    {% endfor %}
+                </select>
+                {% elif field.options %}
+                <!-- Dropdown for predefined options -->
+                <select class="form-select" id="{{ field_name }}" name="{{ field_name }}" {% if field.required %}required{% endif %}>
+                    {% for option in field.options %}
+                    <option value="{{ option }}" {% if item_data[field_name] == option %}selected{% endif %}>
+                        {{ option }}
+                    </option>
+                    {% endfor %}
+                </select>
+                {% elif "INTEGER" in field.type %}
+                <!-- Input for INTEGER -->
+                <input type="number" class="form-control" id="{{ field_name }}" name="{{ field_name }}" value="{{ item_data[field_name] | default('') }}" {% if field.required %}required{% endif %}>
+                {% elif "BOOLEAN" in field.type %}
+                <!-- Dropdown for BOOLEAN -->
+                <select class="form-select" id="{{ field_name }}" name="{{ field_name }}" {% if field.required %}required{% endif %}>
+                    <option value="true" {% if item_data[field_name] == true %}selected{% endif %}>True</option>
+                    <option value="false" {% if item_data[field_name] == false %}selected{% endif %}>False</option>
+                </select>
+                {% elif "DATE" in field.type and not "DATETIME" in field.type %}
+                <!-- Input for DATE -->
+                <input type="date" class="form-control" id="{{ field_name }}" name="{{ field_name }}" value="{{ item_data[field_name] | default('') }}" {% if field.required %}required{% endif %}>
+                {% elif "TIME" in field.type and not "DATETIME" in field.type %}
+                <!-- Input for TIME -->
+                <input type="time" class="form-control" id="{{ field_name }}" name="{{ field_name }}" value="{{ item_data[field_name] | default('') }}" {% if field.required %}required{% endif %}>
+                {% elif "DATETIME" in field.type %}
+                <!-- Input for DATETIME -->
+                <input type="datetime-local" class="form-control" id="{{ field_name }}" name="{{ field_name }}" value="{{ item_data[field_name] | default('') }}" {% if field.required %}required{% endif %}>
+                {% else %}
+                <!-- Textarea for TEXT or STRING -->
+                <textarea class="form-control resizable" id="{{ field_name }}" name="{{ field_name }}" rows="1" {% if field.required %}required{% endif %}>{{ item_data[field_name] | default('') | e }}</textarea>
+                {% endif %}
+            </div>
+            {% endfor %}
+        </ul>
+    
+        <hr>
+    
+        <!-- Checklist Values -->
+        {% for section, checks in check_list.items() %}
+        <h6>{{ section }}</h6>
+        <div>
+            {% for check in checks %}
+            <div class="form-check">
+                <!-- Hidden input for unchecked values -->
+                <input type="hidden" name="checklist_values[{{ check }}]" value="false">
+                <input
+                    class="form-check-input"
+                    type="checkbox"
+                    id="{{ check }}"
+                    name="checklist_values[{{ check }}]"
+                    value="true"
+                    style="width: 25px; height: 25px;"
+                    {% if item_data.get(check) %}checked{% endif %}
+                >
+                <label class="form-check-label" for="{{ check }}" style="font-size: 1.2em;">{{ check }}</label>
+            </div>
+            {% endfor %}
+        </div>
+        {% endfor %}
+    
+        <!-- Update Button -->
+        <div class="modal-footer mt-3">
+            <button
+                type="button"
+                class="btn btn-primary"
+                id="updateChecklistButton"
+                hx-post="/update-checklist/{{ model_name }}" 
+                hx-include="#checklistForm"
+                hx-headers='{"Content-Type": "application/x-www-form-urlencoded"}'
+                hx-trigger="click"
+                hx-swap="innerHTML"
+            >
+                Update
+            </button>
+        </div>
+    </form>
+    
+    
+    
+</div>
+{% endif %}
+
+<script>
+document.getElementById("updateChecklistButton").addEventListener("click", function () {
+    const checkboxes = document.querySelectorAll("#checklistForm .form-check-input");
+    const governanceData = {};
+
+    // Combine checkbox values into governanceData
+    checkboxes.forEach((checkbox) => {
+        const key = checkbox.getAttribute("data-governance-key");
+        governanceData[key] = checkbox.checked;
+    });
+
+    // Update the hidden input value
+    const governanceInput = document.getElementById("governance");
+    governanceInput.value = JSON.stringify(governanceData);
+});
+
+</script>

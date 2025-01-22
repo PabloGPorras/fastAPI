@@ -35,6 +35,8 @@ async def get_view_existing_form(request: Request, unique_ref: str = Form(...), 
         # Gather metadata
         metadata = DatabaseService.gather_model_metadata(model, session, "view-existing")
 
+        check_list = getattr(model, "check_list", {})
+
         # Build item_data
         item_data = {col.name: getattr(item, col.name, "") for col in inspect(model).columns}
         item_data.update({
@@ -92,7 +94,8 @@ async def get_view_existing_form(request: Request, unique_ref: str = Form(...), 
                 "model_name": model_name,
                 "RmsRequest": RmsRequest,
                 "unique_ref": unique_ref,
-                "user": user
+                "user": user,
+                "check_list": check_list,
             },
         )
     except Exception as e:
