@@ -15,6 +15,7 @@ from routers.refresh_table import router as refresh_table_router
 from routers.status_transitions import router as status_transitions_router
 from routers.table import router as table_router
 from routers.update_row import router as update_row_router
+from routers.user_preferences import router as user_preferences_router
 
 app = FastAPI()
 app.add_middleware(
@@ -26,6 +27,7 @@ app.add_middleware(
 )
 
 # Register routers
+app.include_router(user_preferences_router)
 app.include_router(bulk_import_router)
 app.include_router(bulk_import_template)
 app.include_router(bulk_update_status_router)

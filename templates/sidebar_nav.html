@@ -93,6 +93,7 @@
             </a>
         </li>
         <!-- Admin Button with Sub-side Menu -->
+        {% if is_admin %}
         <li class="nav-item position-relative">
             <a href="#" class="nav-link text-dark" id="adminBtn">
                 <i class="fas fa-user-shield"></i>
@@ -106,9 +107,10 @@
                 </ul>
             </div>
         </li>
+        {% endif %}
 
-<!-- Create New Button with Dynamic Submenu -->
- <!-- 
+        <!-- Create New Button with Dynamic Submenu -->
+        <!-- 
 <li class="nav-item position-relative">
     <a href="#" class="nav-link text-dark" id="createNewBtn">
         <i class="fas fa-plus-circle"></i>
@@ -136,31 +138,32 @@
     </div>
 </li>-->
 
-<!-- Request Tables with Dynamic Submenu -->
-<li class="nav-item position-relative">
-    <a href="#" class="nav-link text-dark" id="tableBtn">
-        <i class="fas fa-table"></i>
-        <span>Requests</span>
-    </a>
-    <div class="sub-side-menu" id="tableSubMenu">
-        <ul class="list-unstyled m-0 p-2">
-            {% for category, models in all_models|groupby("request_menu_category") %}
-            <li class="mb-3">
-                <strong class="text-muted">{{ category if category else "" }}</strong>
-                <ul class="list-unstyled ms-3">
-                    {% for model in models if model.is_request %}
-                    <li class="mb-2">
-                        <a href="/table{{ model.url }}" class="nav-link text-dark create-item" data-item="{{ model.name }}">
-                            {{ model.name }}
-                        </a>
+        <!-- Request Tables with Dynamic Submenu -->
+        <li class="nav-item position-relative">
+            <a href="#" class="nav-link text-dark" id="tableBtn">
+                <i class="fas fa-table"></i>
+                <span>Requests</span>
+            </a>
+            <div class="sub-side-menu" id="tableSubMenu">
+                <ul class="list-unstyled m-0 p-2">
+                    {% for category, models in all_models|groupby("request_menu_category") %}
+                    <li class="mb-3">
+                        <strong class="text-muted">{{ category if category else "" }}</strong>
+                        <ul class="list-unstyled ms-3">
+                            {% for model in models if model.is_request %}
+                            <li class="mb-2">
+                                <a href="/table{{ model.url }}" class="nav-link text-dark create-item"
+                                    data-item="{{ model.name }}">
+                                    {{ model.name }}
+                                </a>
+                            </li>
+                            {% endfor %}
+                        </ul>
                     </li>
                     {% endfor %}
                 </ul>
-            </li>
-            {% endfor %}
-        </ul>
-    </div>
-</li>
+            </div>
+        </li>
     </ul>
 
     <!-- Dark Mode Toggle Button -->

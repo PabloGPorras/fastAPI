@@ -213,8 +213,8 @@ class Relative(Base):
 
 class UserPreference(Base):
     __tablename__ = "user_preferences"
-    id = Column(Integer, primary_key=True, index=True)
-    user_id = Column(Integer, index=True)
+    id = Column(String, primary_key=True, iprimary_key=True, default=id_method)
+    user_id = Column(Integer)
     preference_key = Column(String(100))
     preference_value = Column(Text)
     last_updated = Column(DateTime, server_default=func.now(), onupdate=func.now())

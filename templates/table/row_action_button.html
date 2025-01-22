@@ -1,25 +1,50 @@
+<style>
+    #row-action-container .row-checkbox {
+        height: 100%;
+        width: 40px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    #row-action-container .btn-group {
+        height: 100%;
+        width: 40px;
+    }
+
+    #row-action-container {
+        gap: 10px;
+        height: 40px;
+    }
+</style>
 <td>
-    <!-- Flex container to align items horizontally -->
-    <div class="d-flex align-items-center">
+    <!-- Scoped container for specific styling -->
+    <div id="row-action-container" class="d-flex align-items-center" style="gap: 10px; height: 40px;">
         <!-- Checkbox -->
-        <input type="checkbox" class="form-check-input me-2 row-checkbox" name="selected_rows" value="{{ row }}">
+        <input type="checkbox" class="form-check-input row-checkbox" 
+               name="selected_rows" 
+               value="{{ row }}" 
+               style="height: 100%; width: 40px; display: flex; align-items: center; justify-content: center;">
 
         <!-- Button Group -->
-        <div class="btn-group">
+        <div class="btn-group" style="height: 100%; width: 40px;">
             <!-- Primary Button with Bolt Icon -->
-            <button type="button" class="btn btn-primary btn-sm dropdown-toggle" data-bs-toggle="dropdown"
-                aria-expanded="false">
+            <button type="button" 
+                    class="btn btn-primary btn-sm dropdown-toggle" 
+                    data-bs-toggle="dropdown"
+                    aria-expanded="false" 
+                    style="height: 100%; width: 100%;">
                 <i class="fas fa-bolt"></i>
             </button>
             <!-- Dropdown Menu -->
             <ul class="dropdown-menu dropdown-menu-end">
                 <li>
                     <button class="dropdown-item text-primary" 
-                        hx-post="/get-view-existing-form" 
-                        hx-target="#viewExistingModalContainer" 
-                        hx-trigger="click" 
-                        hx-swap="innerHTML"
-                        hx-vals='{"unique_ref": "{{ row.unique_ref }}"}'>
+                            hx-post="/get-view-existing-form" 
+                            hx-target="#viewExistingModalContainer" 
+                            hx-trigger="click" 
+                            hx-swap="innerHTML"
+                            hx-vals='{"unique_ref": "{{ row.unique_ref }}"}'>
                         <i class="fas fa-eye"></i> View
                     </button>
                 </li>
@@ -27,4 +52,3 @@
         </div>
     </div>
 </td>
-

@@ -33,11 +33,8 @@ async def refresh_table(
         logger.debug(f"Model resolved: {model}")
 
         # --- Fetch rows using the DatabaseService ---
-        rows = DatabaseService.fetch_model_rows(model_name, session, model)
-        logger.debug(f"Fetched rows: {rows}")
+        row_dicts = DatabaseService.fetch_model_rows(model_name, session, model)
 
-        # --- Transform rows using the DatabaseService ---
-        row_dicts = DatabaseService.transform_rows_to_dicts(rows)
 
         # --- Return updated rows ---
         return templates.TemplateResponse(

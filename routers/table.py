@@ -30,6 +30,7 @@ async def get_table(
     session = SessionLocal()
 
     # Restrict access for certain models
+    is_admin = "Admin" in user.roles
     ADMIN_MODELS = {"users"}
     if model_name in ADMIN_MODELS and "Admin" not in user.roles:
         raise HTTPException(
@@ -50,19 +51,12 @@ async def get_table(
         if not model:
             logger.warning(f"Model '{model_name}' not found.")
             raise HTTPException(status_code=404, detail=f"Model not found: {model_name}")
-        logger.debug(f"Model resolved: {model}")
 
         # Fetch rows using `fetch_model_rows`
-        rows = DatabaseService.fetch_model_rows(model_name, session, model)
-        logger.debug(f"Fetched rows: {rows}")
+        row_dicts = DatabaseService.fetch_model_rows(model_name, session, model)
 
-        # Transform rows to dictionaries
-        row_dicts = DatabaseService.transform_rows_to_dicts(rows)
-        if row_dicts:
-            logger.debug(f"First row_dict: {row_dicts}")
         # Gather model metadata
         metadata = DatabaseService.gather_model_metadata(model, session)
-        logger.debug(f"Metadata columns: {metadata['columns']}")
 
         request_status_config = getattr(model, "request_status_config", None)
         is_request = getattr(model, "is_request", False)
@@ -83,9 +77,10 @@ async def get_table(
                 "predefined_options": metadata["predefined_options"],  # pass predefined options
                 "all_models": all_models,
                 "user": user,
+                "is_admin": is_admin
             },
         )
-
+    
     except Exception as e:
         logger.error(f"Error fetching table data for model '{model_name}': {e}", exc_info=True)
         raise HTTPException(status_code=500, detail="Internal Server Error")

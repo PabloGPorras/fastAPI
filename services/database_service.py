@@ -22,9 +22,15 @@ class DatabaseService:
             model: SQLAlchemy model class.
 
         Returns:
-            list: Rows fetched from the database.
+            list: Rows fetched from the database as dictionaries.
         """
+        is_request = getattr(model, "is_request", False)
 
+        # Get columns for the main model and related tables
+        model_columns = list(model.__table__.columns)  # Get all columns from the model's table
+        rms_request_columns = list(RmsRequest.__table__.columns)  # Columns from RmsRequest
+
+        # Define the subquery to get the latest status and its timestamp
         subquery = (
             session.query(
                 RmsRequestStatus.unique_ref,
@@ -33,154 +39,70 @@ class DatabaseService:
             .group_by(RmsRequestStatus.unique_ref)
             .subquery()
         )
-        
-        rows = []
-        # Query data based on the model name
+
+        # Join the subquery with RmsRequestStatus to get the latest status
+        latest_status_query = (
+            session.query(
+                RmsRequestStatus.unique_ref,
+                RmsRequestStatus.status,
+                subquery.c.latest_timestamp,
+            )
+            .join(subquery, (RmsRequestStatus.unique_ref == subquery.c.unique_ref) &
+                (RmsRequestStatus.timestamp == subquery.c.latest_timestamp))
+            .subquery()
+        )
+
+        # Join the subquery with RmsRequestStatus to get the latest status
+        latest_status_query = (
+            session.query(
+                RmsRequestStatus.unique_ref,
+                RmsRequestStatus.status,
+                subquery.c.latest_timestamp,
+            )
+            .join(subquery, (RmsRequestStatus.unique_ref == subquery.c.unique_ref) &
+                (RmsRequestStatus.timestamp == subquery.c.latest_timestamp))
+            .subquery()
+        )
+
+        # Fetch data based on conditions
         if model_name == "request":
             rows = (
                 session.query(
-                    RmsRequest,                  # The ORM object
-                    RmsRequestStatus,            # The ORM object
-                    literal(None).label("group_id")  # Placeholder for group_id
+                    latest_status_query.c.status,
+                    *rms_request_columns,
                 )
-                .join(subquery, RmsRequest.unique_ref == subquery.c.unique_ref)  # Join with subquery
+                .join(latest_status_query, RmsRequest.unique_ref == latest_status_query.c.unique_ref)
                 .all()
             )
-        else:
-            try:
-                rows = (
-                    session.query(
-                        model,                       # Dynamic model (e.g., RuleConfigRequest)
-                        RmsRequestStatus,            # The ORM object
-                        RmsRequest  # Fetch group_id from RmsRequest
-                    )
-                    .join(RmsRequest, model.rms_request_id == RmsRequest.unique_ref)  # Join with RmsRequest
-                    .join(RmsRequestStatus, RmsRequest.unique_ref == RmsRequestStatus.unique_ref)  # Join to RmsRequestStatus
-                    .join(subquery, RmsRequest.unique_ref == subquery.c.unique_ref)  # Join to find latest status
-                    .all()
+
+            # Define the columns for the dictionary conversion
+            all_columns = [latest_status_query.c.status] + rms_request_columns
+        elif is_request:
+            rows = (
+                session.query(
+                    latest_status_query.c.status,
+                    *model_columns,
+                    *rms_request_columns,
                 )
-            except Exception as e:
-                logger.error(f"Error during fetch_model_rows: {e}", exc_info=True)
-                rows = session.query(model).all()
+                .join(RmsRequest, model.rms_request_id == RmsRequest.unique_ref)
+                .join(latest_status_query, RmsRequest.unique_ref == latest_status_query.c.unique_ref)
+                .all()
+            )
 
-        return rows
-
-    @staticmethod
-    def transform_rows_to_dicts(rows):
-        row_dicts = []
-        from sqlalchemy.orm import object_mapper
-
-        for row in rows:
-            # Now each row has exactly 3 elements
-            first_obj, second_obj, third_obj = row
-
-            # Flatten the first object
-            flattened = {}
-            if first_obj is not None and hasattr(first_obj, '__table__'):
-                # It's an ORM object
-                for col in object_mapper(first_obj).columns:
-                    flattened[col.name] = getattr(first_obj, col.name, None)
-            else:
-                flattened["object1"] = first_obj  # if it's None or some literal
-
-            # Flatten the second object
-            if second_obj is not None and hasattr(second_obj, '__table__'):
-                # It's an ORM object, e.g. RmsRequestStatus
-                for col in object_mapper(second_obj).columns:
-                    flattened[f"status_{col.name}"] = getattr(second_obj, col.name, None)
-            else:
-                flattened["object2"] = second_obj
-
-            # Flatten the third object
-            if third_obj is not None and hasattr(third_obj, '__table__'):
-                # Another ORM object, e.g. RmsRequest
-                for col in object_mapper(third_obj).columns:
-                    flattened[f"rms_{col.name}"] = getattr(third_obj, col.name, None)
-            else:
-                flattened["object3"] = third_obj
-
-            row_dicts.append(flattened)
-        return row_dicts
-
-
-
-    @staticmethod
-    def _row_to_dict(row):
-        """
-        Internal method that converts a single row into a dictionary, handling
-        different row types:
-            - SQLAlchemy Row/RowProxy
-            - Single mapped object
-            - Tuple of items
-            - Plain Python object
-        """
-        if DatabaseService._is_sa_row(row):
-            # SQLAlchemy Row (2.0) or RowProxy (1.x)
-            row_dict = dict(row._mapping) if hasattr(row, '_mapping') else row._asdict()
-
-        elif DatabaseService._is_mapped_object(row):
-            # Single mapped ORM object
-            mapper = inspect(row)
-            row_dict = {}
-            for col in mapper.columns:
-                val = getattr(row, col.name, None)
-                row_dict[col.name] = DatabaseService._convert_if_datetime(val)
-
-        elif isinstance(row, (tuple, list)):
-            # A tuple or list of items (could be a mix of mapped objects, scalars, etc.)
-            # We convert each item individually and store them in a list
-            row_dict = [DatabaseService._row_to_dict(item) for item in row]
-
+            # Define the columns for the dictionary conversion
+            all_columns = [latest_status_query.c.status] + model_columns + rms_request_columns
         else:
-            # As a fallback, try using the generic Python object approach
-            # We'll skip any private/internal attributes
-            row_dict = {}
-            for attr in dir(row):
-                # Skip dunder/magic attributes and private ones
-                if not attr.startswith("_"):
-                    val = getattr(row, attr, None)
-                    # Sometimes these might be methods or descriptors; skip non-values
-                    if not callable(val):
-                        row_dict[attr] = DatabaseService._convert_if_datetime(val)
+            rows = session.query(*model_columns).all()  # Query only the main model's columns
+            # Define the columns for the dictionary conversion
+            all_columns = model_columns
 
-            # If that yields nothing, maybe use __dict__ directly (if available)
-            if not row_dict and hasattr(row, '__dict__'):
-                row_dict = {
-                    k: DatabaseService._convert_if_datetime(v) 
-                    for k, v in row.__dict__.items() 
-                    if not k.startswith("_")
-                }
+        # Convert tuples to dictionaries
+        row_dicts = [
+            dict(zip([col.key if hasattr(col, "key") else col.name for col in all_columns], row))
+            for row in rows
+        ]
 
-        return row_dict
-
-    @staticmethod
-    def _convert_if_datetime(value):
-        """
-        Convert datetime objects to ISO 8601 string, leave other types unchanged.
-        """
-        if isinstance(value, datetime):
-            return value.isoformat()
-        return value
-
-    @staticmethod
-    def _is_sa_row(item):
-        """
-        Check if the item is a SQLAlchemy Row / RowProxy (1.x) or Row (2.0).
-        """
-        # Adjust as needed depending on your SQLAlchemy version
-        return isinstance(item, Row) or hasattr(item, '_mapping') or hasattr(item, '_asdict')
-
-    @staticmethod
-    def _is_mapped_object(item):
-        """
-        Check if the item is a SQLAlchemy ORM-mapped object.
-        """
-        try:
-            # If we can retrieve a mapper, it's likely a mapped object.
-            inspect(item)
-            return True
-        except:
-            return False
+        return row_dicts
 
     
     @staticmethod

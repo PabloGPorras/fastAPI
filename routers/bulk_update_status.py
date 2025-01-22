@@ -16,7 +16,7 @@ def bulk_update_status(
     next_status: str = Form(...),  # Status to update to
     user: User = Depends(get_current_user),  # Authenticated user
 ):
-    session = SessionLocal() 
+    session = SessionLocal()
     logger = logging.getLogger("bulk_update_status")
     try:
         logger.info("Bulk status update request received.")
@@ -28,8 +28,8 @@ def bulk_update_status(
             logger.error("Invalid input data.")
             raise HTTPException(status_code=400, detail="Invalid request data.")
 
-        # Fetch the configuration for the request type
-        model =  DatabaseService.get_model_by_tablename(request_type.lower())
+        # Step 1: Fetch the configuration for the request type
+        model = DatabaseService.get_model_by_tablename(request_type.lower())
         if not model or not hasattr(model, "request_status_config"):
             logger.error(f"Model '{request_type}' not found or has no status configuration.")
             raise HTTPException(
@@ -39,25 +39,37 @@ def bulk_update_status(
         request_status_config = model.request_status_config
         logger.debug(f"Request status configuration: {request_status_config}")
 
-        # Validate transitions
-        current_statuses = [
-            session.query(RmsRequestStatus.status)
-            .filter(RmsRequestStatus.request_id == unique_ref)
-            .order_by(RmsRequestStatus.timestamp.desc())
-            .first()[0]
-            for unique_ref in ids
-        ]
+        # Step 2: Validate current status for all IDs and log each status
+        current_statuses = {}
+        for unique_ref in ids:
+            current_status_row = (
+                session.query(RmsRequestStatus.status)
+                .filter(RmsRequestStatus.unique_ref == unique_ref)
+                .order_by(RmsRequestStatus.timestamp.desc())
+                .first()
+            )
+            if current_status_row:
+                current_status = current_status_row[0]
+                current_statuses[unique_ref] = current_status
+                logger.debug(f"Request {unique_ref} current status: {current_status}")
+            else:
+                logger.warning(f"No status found for request {unique_ref}")
 
-        if not all(status == current_statuses[0] for status in current_statuses):
+        # Ensure all requests share the same current status
+        unique_statuses = set(current_statuses.values())
+        if len(unique_statuses) > 1:
             logger.error("Not all requests share the same current status.")
+            logger.debug(f"Mixed statuses detected: {current_statuses}")
             raise HTTPException(
-                status_code=400, detail="All requests must share the same current status."
+                status_code=400,
+                detail="All requests must share the same current status. "
+                       f"Statuses: {unique_statuses}.",
             )
 
-        current_status = current_statuses[0]
-        logger.debug(f"Current status: {current_status}")
+        current_status = unique_statuses.pop()
+        logger.debug(f"Validated single current status: {current_status}")
 
-        # Validate user roles
+        # Step 3: Validate user roles
         valid_roles = request_status_config.get(current_status, {}).get("Roles", [])
         user_roles = set(user.roles.split(","))
 
@@ -66,24 +78,26 @@ def bulk_update_status(
             raise HTTPException(
                 status_code=403,
                 detail=(
-                    f"User does not have the required roles for status '{current_status}'. Required roles: {valid_roles}."
+                    f"User does not have the required roles for status '{current_status}'. "
+                    f"Required roles: {valid_roles}."
                 ),
             )
 
-        # Validate next status
+        # Step 4: Validate next status
         valid_transitions = request_status_config.get(current_status, {}).get("Next", [])
         if next_status not in valid_transitions:
             logger.error(f"Invalid transition from {current_status} to {next_status}.")
             raise HTTPException(
                 status_code=400,
                 detail=(
-                    f"Invalid transition from {current_status} to {next_status}. Valid transitions: {valid_transitions}."
+                    f"Invalid transition from {current_status} to {next_status}. "
+                    f"Valid transitions: {valid_transitions}."
                 ),
             )
 
-        # Update requests
+        # Step 5: Perform the update and log each update
         updated_count = 0
-        for unique_ref in ids:
+        for unique_ref, status in current_statuses.items():
             request = session.query(RmsRequest).filter(RmsRequest.unique_ref == unique_ref).first()
 
             if not request:
@@ -92,7 +106,7 @@ def bulk_update_status(
 
             # Update RmsRequestStatus
             new_status = RmsRequestStatus(
-                request_id=unique_ref, status=next_status, user_name=user.user_name
+                unique_ref=unique_ref, status=next_status, user_name=user.user_name
             )
             session.add(new_status)
 
@@ -109,12 +123,17 @@ def bulk_update_status(
                 request.governed_by = user.user_name
                 logger.debug(f"Request ID {unique_ref}: Governance details updated.")
 
+            logger.info(f"Request ID {unique_ref} successfully updated to status {next_status}.")
             updated_count += 1
 
         session.commit()
         logger.info(f"Bulk update completed. {updated_count} rows updated successfully.")
 
-        return {"success": True, "updated_count": updated_count, "message": f"{updated_count} rows updated successfully."}
+        return {
+            "success": True,
+            "updated_count": updated_count,
+            "message": f"{updated_count} rows updated successfully.",
+        }
 
     except Exception as e:
         logger.error(f"Error during bulk status update: {str(e)}", exc_info=True)
