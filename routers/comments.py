@@ -1,7 +1,7 @@
 from datetime import datetime
 from fastapi import APIRouter, Depends, Form, HTTPException
 from fastapi.responses import HTMLResponse
-from example_model import Comment, RmsRequest, User
+from example_model import Comment, RmsRequest, RmsRequestStatus, User
 from core.templates import templates
 from get_current_user import get_current_user
 from database import logger,SessionLocal
@@ -10,6 +10,28 @@ router = APIRouter()
 
 
 from fastapi import Request  # Import Request for context
+
+def fetch_and_serialize_comments(session, unique_ref):
+    """
+    Fetch and serialize comments for a given unique_ref.
+
+    Args:
+        session (Session): SQLAlchemy session.
+        unique_ref (str): The unique reference of the RmsRequest.
+
+    Returns:
+        list: Serialized comments.
+    """
+    comments = session.query(Comment).filter(Comment.unique_ref == unique_ref).all()
+    return [
+        {
+            "comment": comment.comment,
+            "user_name": comment.user_name,
+            "comment_timestamp": comment.comment_timestamp.strftime('%Y-%m-%d %H:%M:%S') if comment.comment_timestamp else None,
+        }
+        for comment in comments
+    ]
+
 
 @router.post("/requests/{unique_ref}/comments", response_class=HTMLResponse)
 async def add_comment(
@@ -77,29 +99,13 @@ async def get_comments(unique_ref: str):
     session = SessionLocal()
     try:
         logger.debug(f"Fetching comments for unique_ref: {unique_ref}")
-
-        # Query comments related to the RmsRequest
-        comments = session.query(Comment).filter(Comment.unique_ref == unique_ref).all()
-        if not comments:
-            logger.debug(f"No comments found for unique_ref: {unique_ref}")
-            return []  # Return an empty list if no comments exist
-
-        # Serialize comments
-        serialized_comments = [
-            {
-                "comment": comment.comment,
-                "user_name": comment.user_name,
-                "comment_timestamp": comment.comment_timestamp.isoformat() if comment.comment_timestamp else None,
-            }
-            for comment in comments
-        ]
-
+        serialized_comments = fetch_and_serialize_comments(session, unique_ref)
         logger.debug(f"Fetched and serialized comments: {serialized_comments}")
         return serialized_comments
-
     except Exception as e:
         logger.error(f"Error fetching comments for unique_ref {unique_ref}: {str(e)}", exc_info=True)
         raise HTTPException(status_code=500, detail="Failed to fetch comments")
     finally:
         session.close()
         logger.debug(f"Database session closed for unique_ref: {unique_ref}")
+

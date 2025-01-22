@@ -41,14 +41,6 @@ def id_method():
     return unique_ref
 
 # Models
-class Comment(Base):
-    __tablename__ = "comments"
-    comment_id = Column(String, primary_key=True, default=id_method)
-    unique_ref = Column(String, ForeignKey("request.unique_ref", ondelete="CASCADE"), nullable=False)
-    comment = Column(Text, nullable=False)
-    user_name = Column(String(50), nullable=False)
-    comment_timestamp = Column(DateTime, default=datetime.utcnow, nullable=False)
-    request = relationship("RmsRequest", back_populates="comments")
 
 class RmsRequest(Base):
     __tablename__ = "request"
@@ -91,9 +83,17 @@ class RmsRequest(Base):
     team_options = team_list
     decision_engine_options = decision_engine_list
     effort_options = effort_list
-    request_type_options = ["RULE DEPLOYMENT", "RULE DEACTIVATION", "RULE CONFIG"]
     is_request = True
     request_status_config = {}
+    
+class Comment(Base):
+    __tablename__ = "comments"
+    comment_id = Column(String, primary_key=True, default=id_method)
+    unique_ref = Column(String, ForeignKey("request.unique_ref", ondelete="CASCADE"), nullable=False)
+    comment = Column(Text, nullable=False)
+    user_name = Column(String(50), nullable=False)
+    comment_timestamp = Column(DateTime, default=datetime.utcnow, nullable=False)
+    request = relationship("RmsRequest", back_populates="comments")
     
 class RmsRequestStatus(Base):
     __tablename__ = "request_status"

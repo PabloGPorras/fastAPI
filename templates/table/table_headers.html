@@ -43,6 +43,8 @@
         border: 1px solid #ccc;
         padding: 10px;
         z-index: 10;
+        transform: translateX(0);
+        /* Ensure no offset initially */
     }
 
     .filter-menu.show {
@@ -57,20 +59,44 @@
         {% if rows and rows[0] %}
         {% for key in rows[0].keys() %}
         <th class="{{ key }}-column">
+            <!-- Column Header -->
             {{ key|capitalize }}
-            <button class="btn btn-link sort-btn" data-column="{{ key }}" data-order="asc">
+
+            <!-- Sorting Button -->
+            <a href="/table/{{ model_name }}?sort_by={{ key }}&sort_order=asc" class="btn btn-link sort-btn">
                 <span id="sort-{{ key }}" class="sort-icon">⬆</span>
-            </button>
-            <span class="filter-icon" data-column="{{ key }}" id="filter-icon-{{ key }}" title="Filter">🔍</span>
+            </a>
+
+            <!-- Filter Icon with Active Indicator -->
+            <span class="filter-icon {% if filters[key] %}active{% endif %}" 
+                data-column="{{ key }}" 
+                id="filter-icon-{{ key }}" 
+                title="Filter">
+                🔍
+            </span>
+
             <div class="filter-menu" id="filter-{{ key }}">
-                <input type="text" class="form-control form-control-sm filter-input mb-2"
-                    data-column="{{ key }}" placeholder="Filter {{ key|capitalize }}">
-                <div class="d-flex justify-content-between">
-                    <button class="btn btn-primary btn-sm apply-filter-btn"
-                        data-column="{{ key }}">Apply</button>
-                    <button class="btn btn-secondary btn-sm clear-filter-btn"
-                        data-column="{{ key }}">Clear</button>
-                </div>
+                <form action="/table/{{ model_name }}" method="GET">
+                    <!-- Preserve Other Filters -->
+                    {% for f_key, f_value in filters.items() if f_key != key %}
+                    <input type="hidden" name="filters[{{ f_key }}]" value="{{ f_value }}">
+                    {% endfor %}
+
+                    <!-- Current Filter Input -->
+                    <input 
+                        type="text" 
+                        class="form-control form-control-sm filter-input mb-2" 
+                        name="filters[{{ key }}]" 
+                        placeholder="Filter {{ key|capitalize }}"
+                        value="{{ filters[key] if filters[key] else '' }}">
+
+                    <!-- Filter Buttons -->
+                    <div class="d-flex justify-content-between">
+                        <button type="submit" class="btn btn-primary btn-sm apply-filter-btn">Apply</button>
+                        <a href="/table/{{ model_name }}?{% for f_key, f_value in filters.items() if f_key != key %}filters[{{ f_key }}]={{ f_value }}&{% endfor %}" 
+                            class="btn btn-secondary btn-sm clear-filter-btn">Clear</a>
+                    </div>
+                </form>
             </div>
         </th>
         {% endfor %}
@@ -79,210 +105,194 @@
 </thead>
 
 
+
+
+
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script>
-// Listen for the keydown event on the document
-document.addEventListener('keydown', function (event) {
-    // Check if the pressed key combination is "CTRL + SHIFT + A"
-    if (event.ctrlKey && event.shiftKey && event.key.toLowerCase() === 'a') {
-        event.preventDefault(); // Prevent default browser behavior
-
-        // Select all row checkboxes
-        document.querySelectorAll('.row-checkbox').forEach(checkbox => {
-            checkbox.checked = true;
-        });
-
-        console.log('All rows selected with CTRL + SHIFT + A');
-    }
-
-    // Check if the pressed key combination is "CTRL + SHIFT + D"
-    if (event.ctrlKey && event.shiftKey && event.key.toLowerCase() === 'd') {
-        event.preventDefault(); // Prevent default browser behavior
-
-        // Deselect all row checkboxes
-        document.querySelectorAll('.row-checkbox').forEach(checkbox => {
-            checkbox.checked = false;
-        });
-
-        console.log('All rows deselected with CTRL + SHIFT + D');
-    }
-});
-
-document.addEventListener("DOMContentLoaded", async () => {
-    // Fetch filters from the backend and apply them
-    try {
-        const response = await fetch("/api/get-user-preferences");
-        const serverFilters = await response.json();
-        localStorage.setItem("filters", JSON.stringify(serverFilters)); // Sync to local storage
-
-        applyFilters(serverFilters);
-    } catch (error) {
-        console.error("Error fetching user preferences:", error);
-    }
-
-    // Restore filters from local storage and apply them
-    const localFilters = JSON.parse(localStorage.getItem("filters") || "{}");
-    applyFilters(localFilters);
-
-    // Attach event listeners to filter buttons
-    document.querySelectorAll(".apply-filter-btn").forEach((button) => {
-        button.addEventListener("click", () => handleApplyFilter(button));
-    });
-
-    document.querySelectorAll(".clear-filter-btn").forEach((button) => {
-        button.addEventListener("click", () => handleClearFilter(button));
-    });
-
-    // Attach event listeners for showing/hiding filter menus
-    document.querySelectorAll(".filter-icon").forEach((icon) => {
-        icon.addEventListener("click", (event) => toggleFilterMenu(event, icon));
-    });
-
-    // Close filter menus when clicking outside
-    document.addEventListener("click", (event) => {
-        if (!event.target.closest(".filter-icon, .filter-menu")) {
-            document.querySelectorAll(".filter-menu").forEach((menu) => menu.classList.remove("show"));
+    document.addEventListener("DOMContentLoaded", async () => {
+        try {
+            // Fetch and apply filters from backend
+            const response = await fetch("/api/get-user-preferences");
+            const serverFilters = await response.json();
+            localStorage.setItem("filters", JSON.stringify(serverFilters));
+            // applyFilters(serverFilters);
+        } catch (error) {
+            console.error("Error fetching user preferences:", error);
         }
+
+        // Apply local filters stored in localStorage
+        const localFilters = JSON.parse(localStorage.getItem("filters") || "{}");
+        // applyFilters(localFilters);
+
+        // // Attach event listeners to filter and sort buttons
+        // document.querySelectorAll(".apply-filter-btn").forEach((button) => {
+        //     button.addEventListener("click", (event) => {
+        //         event.preventDefault(); // Prevent refresh
+        //         handleApplyFilter(button);
+        //     });
+        // });
+
+        // document.querySelectorAll(".clear-filter-btn").forEach((button) => {
+        //     button.addEventListener("click", (event) => {
+        //         event.preventDefault(); // Prevent refresh
+        //         handleClearFilter(button);
+        //     });
+        // });
+
+        document.querySelectorAll(".filter-icon").forEach((icon) => {
+            icon.addEventListener("click", (event) => toggleFilterMenu(event, icon));
+        });
+
+        document.addEventListener("click", (event) => {
+            if (!event.target.closest(".filter-icon, .filter-menu")) {
+                document.querySelectorAll(".filter-menu").forEach((menu) => menu.classList.remove("show"));
+            }
+        });
+
+        // document.querySelectorAll(".sort-btn").forEach((button) => {
+        //     button.addEventListener("click", (event) => handleSort(event, button));
+        // });
+
+        document.addEventListener("keydown", handleKeyboardShortcuts);
     });
 
-    // Handle CTRL + SHIFT shortcuts for selecting/deselecting rows
-    document.addEventListener("keydown", (event) => handleKeyboardShortcuts(event));
+    // Function to apply filters
+    // function applyFilters(filters) {
+    //     for (const [column, value] of Object.entries(filters)) {
+    //         const input = document.querySelector(`.filter-input[data-column="${column}"]`);
+    //         if (input) {
+    //             input.value = value;
+
+    //             // Apply filter logic
+    //             const rows = document.querySelectorAll(`#tableBody .${column}-column`);
+    //             rows.forEach((row) => {
+    //                 const cellValue = row.textContent.toLowerCase();
+    //                 const parentRow = row.closest("tr");
+    //                 parentRow.style.display = value && !cellValue.includes(value.toLowerCase()) ? "none" : "";
+    //             });
+
+    //             // Mark the filter as active
+    //             const filterIcon = document.querySelector(`#filter-icon-${column}`);
+    //             if (filterIcon) filterIcon.classList.add("active");
+    //         }
+    //     }
+    // }
+
+    // Handle applying a filter
+    // function handleApplyFilter(button) {
+    //     const column = button.dataset.column;
+    //     const input = document.querySelector(`.filter-input[data-column="${column}"]`);
+    //     if (input) {
+    //         const filters = JSON.parse(localStorage.getItem("filters") || "{}");
+    //         filters[column] = input.value;
+    //         localStorage.setItem("filters", JSON.stringify(filters));
+    //         syncFiltersToServer(filters);
+    //         applyFilters({ [column]: input.value });
+    //     }
+    // }
+
+    // Handle clearing a filter
+    // function handleClearFilter(button) {
+    //     const column = button.dataset.column;
+    //     const filters = JSON.parse(localStorage.getItem("filters") || "{}");
+    //     delete filters[column];
+    //     localStorage.setItem("filters", JSON.stringify(filters));
+    //     syncFiltersToServer(filters);
+
+    //     // Reset UI
+    //     const input = document.querySelector(`.filter-input[data-column="${column}"]`);
+    //     if (input) input.value = "";
+
+    //     const rows = document.querySelectorAll(`#tableBody .${column}-column`);
+    //     rows.forEach((row) => row.closest("tr").style.display = "");
+
+    //     const filterIcon = document.querySelector(`#filter-icon-${column}`);
+    //     if (filterIcon) filterIcon.classList.remove("active");
+    // }
+
+    // Toggle filter menu visibility
+    function toggleFilterMenu(event, icon) {
+        event.stopPropagation();
+        const column = icon.dataset.column;
+        const filterMenu = document.querySelector(`#filter-${column}`);
+    
+        // Hide other menus and toggle this one
+        document.querySelectorAll(".filter-menu").forEach((menu) => {
+            if (menu !== filterMenu) menu.classList.remove("show");
+        });
+    
+        if (filterMenu.classList.contains("show")) {
+            filterMenu.classList.remove("show");
+        } else {
+            // Get the bounding rectangle of the filter icon
+            const iconRect = icon.getBoundingClientRect();
+            const tableBody = document.querySelector("#tableBody"); // Adjust if your table scroll container differs
+    
+            // Calculate the position for the filter menu
+            const scrollOffset = tableBody.scrollLeft || 0; // Adjust for horizontal scroll
+            filterMenu.style.top = `${iconRect.bottom}px`;
+            filterMenu.style.left = `${iconRect.left + scrollOffset}px`;
+    
+            filterMenu.classList.add("show");
+        }
+    }
+    
+
+    // Sync filters to backend
+    function syncFiltersToServer(filters) {
+        fetch("/api/save-user-preferences", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(filters),
+        }).catch((error) => console.error("Error syncing filters:", error));
+    }
+
+    // Handle keyboard shortcuts
+    function handleKeyboardShortcuts(event) {
+        if (event.ctrlKey && event.shiftKey) {
+            const key = event.key.toLowerCase();
+
+            // Select only visible checkboxes
+            const visibleCheckboxes = Array.from(document.querySelectorAll(".row-checkbox"))
+                .filter(checkbox => checkbox.closest("tr").style.display !== "none");
+
+            if (key === "a") {
+                event.preventDefault();
+                visibleCheckboxes.forEach((checkbox) => (checkbox.checked = true));
+            } else if (key === "d") {
+                event.preventDefault();
+                visibleCheckboxes.forEach((checkbox) => (checkbox.checked = false));
+            }
+        }
+    }
 
     // Handle sorting logic
-    document.querySelectorAll(".sort-btn").forEach((button) => {
-        button.addEventListener("click", (event) => handleSort(event, button));
-    });
-});
+    function handleSort(event, button) {
+        event.preventDefault();
+        const column = button.dataset.column;
+        const order = button.dataset.order;
+        const rows = Array.from(document.querySelectorAll("#tableBody tr"));
 
-// Apply filters to the table rows
-function applyFilters(filters) {
-    for (const [column, value] of Object.entries(filters)) {
-        const input = document.querySelector(`.filter-input[data-column="${column}"]`);
-        if (input) {
-            input.value = value;
+        const isNumeric = rows.some((row) => {
+            const cell = row.querySelector(`.${column}-column`);
+            return cell && !isNaN(parseFloat(cell.textContent));
+        });
 
-            // Apply filter logic to rows
-            const rows = document.querySelectorAll(`#tableBody .${column}-column`);
-            rows.forEach((row) => {
-                const cellValue = row.textContent.toLowerCase();
-                const parentRow = row.closest("tr");
-                parentRow.style.display = value && !cellValue.includes(value.toLowerCase()) ? "none" : ""; // Toggle row visibility
-            });
+        rows.sort((a, b) => {
+            const aValue = a.querySelector(`.${column}-column`).textContent.trim();
+            const bValue = b.querySelector(`.${column}-column`).textContent.trim();
+            return isNumeric
+                ? order === "asc"
+                    ? parseFloat(aValue) - parseFloat(bValue)
+                    : parseFloat(bValue) - parseFloat(aValue)
+                : order === "asc"
+                    ? aValue.localeCompare(bValue)
+                    : bValue.localeCompare(aValue);
+        });
 
-            // Mark the filter as active
-            const filterIcon = document.querySelector(`#filter-icon-${column}`);
-            if (filterIcon) filterIcon.classList.add("active");
-        }
+        rows.forEach((row) => document.querySelector("#tableBody").appendChild(row));
+        button.dataset.order = order === "asc" ? "desc" : "asc";
     }
-}
-
-// Handle applying a filter
-function handleApplyFilter(button) {
-    const column = button.dataset.column;
-    const input = document.querySelector(`.filter-input[data-column="${column}"]`);
-    if (input) {
-        const filters = JSON.parse(localStorage.getItem("filters") || "{}");
-        filters[column] = input.value; // Save filter value
-        localStorage.setItem("filters", JSON.stringify(filters));
-        syncFiltersToServer(filters); // Sync filters with backend
-
-        applyFilters({ [column]: input.value }); // Apply this filter
-    }
-}
-
-// Handle clearing a filter
-function handleClearFilter(button) {
-    const column = button.dataset.column;
-    const filters = JSON.parse(localStorage.getItem("filters") || "{}");
-    delete filters[column]; // Remove filter
-    localStorage.setItem("filters", JSON.stringify(filters));
-    syncFiltersToServer(filters); // Sync filters with backend
-
-    // Clear the input and reset rows
-    const input = document.querySelector(`.filter-input[data-column="${column}"]`);
-    if (input) input.value = "";
-
-    const rows = document.querySelectorAll(`#tableBody .${column}-column`);
-    rows.forEach((row) => row.closest("tr").style.display = ""); // Show all rows
-
-    const filterIcon = document.querySelector(`#filter-icon-${column}`);
-    if (filterIcon) filterIcon.classList.remove("active");
-}
-
-// Toggle filter menu visibility
-function toggleFilterMenu(event, icon) {
-    event.stopPropagation();
-    const column = icon.dataset.column;
-    const filterMenu = document.querySelector(`#filter-${column}`);
-
-    // Hide other menus and toggle this one
-    document.querySelectorAll(".filter-menu").forEach((menu) => {
-        if (menu !== filterMenu) menu.classList.remove("show");
-    });
-    filterMenu.classList.toggle("show");
-}
-
-// Sync filters to backend
-function syncFiltersToServer(filters) {
-    fetch("/api/save-user-preferences", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ preferences: filters }),
-    }).catch((error) => console.error("Error syncing filters:", error));
-}
-
-// Handle keyboard shortcuts
-function handleKeyboardShortcuts(event) {
-    if (event.ctrlKey && event.shiftKey) {
-        const key = event.key.toLowerCase();
-        const checkboxes = document.querySelectorAll(".row-checkbox");
-
-        if (key === "a") {
-            event.preventDefault();
-            checkboxes.forEach((checkbox) => (checkbox.checked = true));
-            console.log("All rows selected with CTRL + SHIFT + A");
-        } else if (key === "d") {
-            event.preventDefault();
-            checkboxes.forEach((checkbox) => (checkbox.checked = false));
-            console.log("All rows deselected with CTRL + SHIFT + D");
-        }
-    }
-}
-
-// Handle sorting logic
-function handleSort(event, button) {
-    event.preventDefault();
-    const column = button.dataset.column;
-    const order = button.dataset.order;
-    const sortIcon = document.querySelector(`#sort-${column}`);
-    const rows = Array.from(document.querySelectorAll("#tableBody tr"));
-
-    // Determine if the column is numeric
-    const isNumeric = rows.some((row) => {
-        const cell = row.querySelector(`.${column}-column`);
-        return cell && !isNaN(parseFloat(cell.textContent));
-    });
-
-    // Sort rows
-    rows.sort((a, b) => {
-        const aValue = a.querySelector(`.${column}-column`).textContent.trim();
-        const bValue = b.querySelector(`.${column}-column`).textContent.trim();
-        return isNumeric
-            ? order === "asc"
-                ? parseFloat(aValue) - parseFloat(bValue)
-                : parseFloat(bValue) - parseFloat(aValue)
-            : order === "asc"
-            ? aValue.localeCompare(bValue)
-            : bValue.localeCompare(aValue);
-    });
-
-    // Append sorted rows back to the table
-    const tableBody = document.querySelector("#tableBody");
-    rows.forEach((row) => tableBody.appendChild(row));
-
-    // Toggle sort order and update icon
-    button.dataset.order = order === "asc" ? "desc" : "asc";
-    sortIcon.textContent = order === "asc" ? "⬇" : "⬆";
-}
 
 </script>

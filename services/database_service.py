@@ -12,14 +12,24 @@ logger = logging.getLogger(__name__)
 
 class DatabaseService:
     @staticmethod
-    def fetch_model_rows(model_name: str, session: Session, model):
+    def fetch_model_rows(
+        model_name: str,
+        session: Session,
+        model,
+        filters: dict = None,
+        sort_by: str = None,
+        sort_order: str = "asc",
+    ):
         """
-        Fetch rows for a given model dynamically. Handles special cases like 'request'.
+        Fetch rows for a given model dynamically with optional filtering and sorting.
 
         Args:
             model_name (str): Name of the model/table.
             session (Session): SQLAlchemy session.
             model: SQLAlchemy model class.
+            filters (dict): Dictionary of column-value pairs for filtering (optional).
+            sort_by (str): Column name to sort by (optional).
+            sort_order (str): Sorting order, "asc" or "desc" (default: "asc").
 
         Returns:
             list: Rows fetched from the database as dictionaries.
@@ -52,49 +62,51 @@ class DatabaseService:
             .subquery()
         )
 
-        # Join the subquery with RmsRequestStatus to get the latest status
-        latest_status_query = (
-            session.query(
-                RmsRequestStatus.unique_ref,
-                RmsRequestStatus.status,
-                subquery.c.latest_timestamp,
-            )
-            .join(subquery, (RmsRequestStatus.unique_ref == subquery.c.unique_ref) &
-                (RmsRequestStatus.timestamp == subquery.c.latest_timestamp))
-            .subquery()
-        )
+        query = None
+        all_columns = []
 
         # Fetch data based on conditions
         if model_name == "request":
-            rows = (
-                session.query(
-                    latest_status_query.c.status,
-                    *rms_request_columns,
-                )
-                .join(latest_status_query, RmsRequest.unique_ref == latest_status_query.c.unique_ref)
-                .all()
-            )
+            query = session.query(
+                latest_status_query.c.status,
+                *rms_request_columns,
+            ).join(latest_status_query, RmsRequest.unique_ref == latest_status_query.c.unique_ref)
 
-            # Define the columns for the dictionary conversion
             all_columns = [latest_status_query.c.status] + rms_request_columns
         elif is_request:
-            rows = (
-                session.query(
-                    latest_status_query.c.status,
-                    *model_columns,
-                    *rms_request_columns,
-                )
-                .join(RmsRequest, model.rms_request_id == RmsRequest.unique_ref)
+            query = session.query(
+                latest_status_query.c.status,
+                *model_columns,
+                *rms_request_columns,
+            ).join(RmsRequest, model.rms_request_id == RmsRequest.unique_ref)\
                 .join(latest_status_query, RmsRequest.unique_ref == latest_status_query.c.unique_ref)
-                .all()
-            )
 
-            # Define the columns for the dictionary conversion
             all_columns = [latest_status_query.c.status] + model_columns + rms_request_columns
         else:
-            rows = session.query(*model_columns).all()  # Query only the main model's columns
-            # Define the columns for the dictionary conversion
+            query = session.query(*model_columns)
             all_columns = model_columns
+
+        # Apply filters
+        if filters:
+            for column, value in filters.items():
+                column_attr = getattr(model, column, None)
+                if column_attr is None:
+                    logger.warning(f"Filter column '{column}' not found in model '{model_name}'.")
+                    continue
+                query = query.filter(column_attr.like(f"%{value}%"))
+
+        # Apply sorting
+        if sort_by:
+            sort_column = getattr(model, sort_by, None)
+            if sort_column is None:
+                logger.warning(f"Sort column '{sort_by}' not found in model '{model_name}'.")
+            else:
+                if sort_order == "desc":
+                    query = query.order_by(sort_column.desc())
+                else:
+                    query = query.order_by(sort_column.asc())
+
+        rows = query.all()
 
         # Convert tuples to dictionaries
         row_dicts = [
@@ -104,7 +116,22 @@ class DatabaseService:
 
         return row_dicts
 
-    
+
+    @staticmethod
+    def get_all_models_as_dict():
+        """
+        Returns a dictionary of all models with the model name as the key and the SQLAlchemy class as the value.
+
+        Returns:
+            dict: Dictionary mapping model names to SQLAlchemy model classes.
+        """
+        models_dict = {}
+        for mapper in Base.registry.mappers:  # Loop through all registered mappers
+            cls = mapper.class_
+            if isinstance(cls, DeclarativeMeta):  # Ensure it's a valid SQLAlchemy model
+                models_dict[cls.__tablename__] = cls
+        return models_dict
+
     @staticmethod
     def get_all_models():
         """
@@ -205,19 +232,14 @@ class DatabaseService:
                 continue
 
             # Also skip if it’s "unique_ref"
-            if column.name in ["unique_ref"]:
+            if column.name in ["unique_ref"] or bool(column.foreign_keys):
                 continue
-
+                
             # Otherwise, add it to columns
             metadata["columns"].append(column_info)
 
             # Potentially add it to form_fields as well
             metadata["form_fields"].append(column_info)
-
-        # Extra columns for "is_request"
-        if metadata["is_request"]:
-            metadata["columns"].insert(1, {"name": "group_id", "type": "String", "options": None})
-            metadata["columns"].insert(1, {"name": "request_status", "type": "String", "options": None})
 
         # 4) Relationships + recursion
         #    If we've reached 0, skip. Otherwise, go through relationships

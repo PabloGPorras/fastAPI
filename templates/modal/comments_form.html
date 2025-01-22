@@ -79,11 +79,17 @@
 <div class="tab-pane fade" id="comments-tab-pane" role="tabpanel" aria-labelledby="comments-tab">
     <h5>Comments</h5>
     <ul id="comments-list" class="list-group">
-        {% for comment in comments %}
-        <li class="comment-item {{ 'right' if comment.user_name == user.user_name else 'left' }}">
-            <div class="timestamp">{{ comment.comment_timestamp }}</div>
-            <div class="user-info">{{ comment.user_name }}</div>
-            <div class="comment-text">{{ comment.comment }}</div>
+        {% for entry in entries %}
+        <li class="comment-item {{ 'right' if entry.user_name == user.user_name else 'left' }}">
+            <div class="timestamp">{{ entry.timestamp.strftime('%Y-%m-%d %H:%M:%S') }}</div>
+            <div class="user-info">{{ entry.user_name }}</div>
+            <div class="entry-text">
+                {% if entry.type == 'comment' %}
+                Comment: {{ entry.text }}
+                {% elif entry.type == 'status' %}
+                Status changed to: {{ entry.text }}
+                {% endif %}
+            </div>
         </li>
         {% endfor %}
     </ul>

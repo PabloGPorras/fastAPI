@@ -1,4 +1,6 @@
-from fastapi import APIRouter, Depends, HTTPException, Request, Response
+from typing import Dict, Optional
+from fastapi import APIRouter, Depends, HTTPException, Query, Request, Response
+from pydantic import BaseModel
 from core.templates import templates
 from services.database_service import DatabaseService
 from example_model import RmsRequest, User
@@ -8,15 +10,6 @@ from fastapi import status
 
 router = APIRouter()
 
-from fastapi import APIRouter, Depends, HTTPException, Request, Response
-from core.templates import templates
-from services.database_service import DatabaseService
-from example_model import RmsRequest, User
-from get_current_user import get_current_user
-from database import logger, SessionLocal
-from fastapi import status
-
-router = APIRouter()
 
 @router.get("/table/{model_name}")
 async def get_table(
@@ -24,7 +17,20 @@ async def get_table(
     request: Request,
     response: Response,
     user: User = Depends(get_current_user),
+    sort_by: Optional[str] = Query(None),
+    sort_order: Optional[str] = Query("asc"),
 ):
+    # Parse filters correctly
+    filters = {
+        key[8:-1]: value  # Extract key name between 'filters[' and ']'
+        for key, value in request.query_params.items()
+        if key.startswith("filters[") and key.endswith("]")
+    }
+    
+    logger.debug(f"Filters received: {filters}")
+    logger.debug(f"Sort by: {sort_by}, Sort order: {sort_order}")
+
+
     logger.debug(f"Fetching table data for model: {model_name}")
     logger.debug(f"Authenticated user: {user.user_name}")
     session = SessionLocal()
@@ -52,32 +58,36 @@ async def get_table(
             logger.warning(f"Model '{model_name}' not found.")
             raise HTTPException(status_code=404, detail=f"Model not found: {model_name}")
 
-        # Fetch rows using `fetch_model_rows`
-        row_dicts = DatabaseService.fetch_model_rows(model_name, session, model)
-
-        # Gather model metadata
-        metadata = DatabaseService.gather_model_metadata(model, session)
+        # Fetch rows with optional filters and sorting
+        row_dicts = DatabaseService.fetch_model_rows(
+            model_name=model_name,
+            session=session,
+            model=model,
+            filters=filters or {},  # Pass empty dictionary if no filters provided
+            sort_by=sort_by,
+            sort_order=sort_order,
+        )
 
         request_status_config = getattr(model, "request_status_config", None)
         is_request = getattr(model, "is_request", False)
 
         # Render the template response
         return templates.TemplateResponse(
-            "table/dynamic_table_.html",
+            "main_content.html",
             {
                 "request": request,
                 "rows": row_dicts,
-                "columns": metadata["columns"],
-                "relationships": metadata["relationships"],
                 "model_name": model_name,
                 "model": model,
                 "RmsRequest": RmsRequest,
                 "request_status_config": request_status_config,
                 "is_request": is_request,
-                "predefined_options": metadata["predefined_options"],  # pass predefined options
                 "all_models": all_models,
                 "user": user,
-                "is_admin": is_admin
+                "is_admin": is_admin,
+                "filters": filters or {},  # Ensure filters are passed to the template
+                "sort_by": sort_by,
+                "sort_order": sort_order,
             },
         )
     

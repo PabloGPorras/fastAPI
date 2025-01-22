@@ -106,7 +106,7 @@
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/js/bootstrap.bundle.min.js"></script>
     <script id="model-data" type="application/json">
-        {{ {"model_name": model_name, "relationships": relationships} | tojson | safe }}
+        {{ {"model_name": model_name} | tojson | safe }}
     </script>
 
     <script>
@@ -127,73 +127,6 @@
             }
         }
 
-        // Populate Details Form
-        function populateDetailsForm(data, relationships) {
-            console.log("Populating details form with data:", data);
-            console.log("Populating relationships with:", relationships);
-
-            const form = $("#detailsForm");
-            if (!form.length) {
-                console.error("Form with ID 'detailsForm' not found in DOM.");
-                return;
-            }
-
-            // Reset the form to clear any previous data
-            form[0].reset();
-
-            // Populate simple form fields
-            $.each(data, function (key, value) {
-                const input = form.find(`[name="${key}"]`);
-                if (input.length) {
-                    input.val(value || "");
-                } else {
-                    console.warn(`Field with name '${key}' not found in the form.`);
-                }
-            });
-
-            // Disable all form inputs, selects, and textareas
-            form.find("input, select, textarea").prop("disabled", true);
-
-            // Hide or disable the "Save" button
-            form.find(".btn-primary").hide();
-
-            // Disable "Add" buttons for relationships
-            $(".add-predefined-btn, .add-row-btn").hide();
-
-            // Populate relationship data
-            if (relationships) {
-                const propsData = JSON.parse($("#props-data").text());
-
-                $.each(relationships, function (relKey, relValues) {
-                    const container = $(`#${relKey}-container tbody`);
-                    if (!container.length) {
-                        console.warn(`Relationship container for '${relKey}' not found.`);
-                        return;
-                    }
-
-                    // Clear existing rows
-                    container.empty();
-
-                    const relationshipConfig = propsData.relationships.find(rel => rel.name === relKey);
-                    if (!relationshipConfig || !relationshipConfig.fields) {
-                        console.warn(`No configuration found for relationship '${relKey}'.`);
-                        return;
-                    }
-
-                    // Populate new rows
-                    $.each(relValues, function (_, item) {
-                        const row = $("<tr></tr>");
-                        $.each(relationshipConfig.fields, function (_, fieldInfo) {
-                            const fieldName = fieldInfo.name;
-                            const fieldValue = item[fieldName] || "";
-                            row.append(`<td>${fieldValue}</td>`);
-                        });
-                        row.append("<td></td>"); // Empty actions cell
-                        container.append(row);
-                    });
-                });
-            }
-        }
 
 
         const adminBtn = document.getElementById("adminBtn");
