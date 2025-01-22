@@ -110,17 +110,38 @@ def bulk_update_status(
             )
             session.add(new_status)
 
-            # Update RmsRequest based on Status_Type
+            # Update RmsRequest based on Status_Type of the current status
             status_type = request_status_config.get(current_status, {}).get("Status_Type", [])
+            logger.debug(f"Request ID {unique_ref}, status_type: {status_type}, current_status: {current_status}")
+
+            if "APPROVAL REJECTED" in status_type:
+                request.approval_timestamp = datetime.utcnow()
+                request.approved = "N"
+                request.approver = user.user_name
+                request.request_status = 'REJECTED'
+                logger.debug(f"Request ID {unique_ref}: Approval details updated.")
             if "APPROVAL" in status_type:
-                request.approval_timesatmp = datetime.utcnow()
+                request.approval_timestamp = datetime.utcnow()
                 request.approved = "Y"
                 request.approver = user.user_name
+                request.request_status = 'PENDING GOVERNANCE'
                 logger.debug(f"Request ID {unique_ref}: Approval details updated.")
-            elif "GOVERNANCE" in status_type:
+            if "GOVERNANCE REJECTED" in status_type:
+                request.governed_timestamp = datetime.utcnow()
+                request.governed = "N"
+                request.governed_by = user.user_name
+                request.request_status = 'REJECTED'
+                logger.debug(f"Request ID {unique_ref}: Governance details updated.")
+            if "GOVERNANCE" in status_type:
                 request.governed_timestamp = datetime.utcnow()
                 request.governed = "Y"
                 request.governed_by = user.user_name
+                request.request_status = 'DEPLOYMENT READY'
+                logger.debug(f"Request ID {unique_ref}: Governance details updated.")
+            if "COMPLETED" in status_type:
+                request.deployment_timestamp = datetime.utcnow()
+                request.deployed = "Y"
+                request.request_status = 'COMPLETED'
                 logger.debug(f"Request ID {unique_ref}: Governance details updated.")
 
             logger.info(f"Request ID {unique_ref} successfully updated to status {next_status}.")

@@ -248,7 +248,7 @@ class DatabaseService:
             metadata["columns"].append(column_info)
 
             # Potentially add it to form_fields as well
-            if column.name not in metadata["checklist_fields"]:
+            if column.name not in metadata["checklist_fields"] + ["unique_ref"]:
                 metadata["form_fields"].append(column_info)
 
         # Log checklist fields
