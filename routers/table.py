@@ -21,6 +21,7 @@ async def get_table(
     sort_by: Optional[str] = Query(None),
     sort_order: Optional[str] = Query("asc"),
 ):
+
     # Parse filters correctly
     filters = {
         key[8:-1]: value  # Extract key name between 'filters[' and ']'
@@ -28,28 +29,8 @@ async def get_table(
         if key.startswith("filters[") and key.endswith("]")
     }
     
-    logger.debug(f"Filters received: {filters}")
-    logger.debug(f"Sort by: {sort_by}, Sort order: {sort_order}")
-
-
-    logger.debug(f"Fetching table data for model: {model_name}")
-    logger.debug(f"Authenticated user: {user.user_name}")
     session = SessionLocal()
 
-    # Fetch user preferences for visible columns
-    user_preferences = (
-        session.query(UserPreference)
-        .filter(UserPreference.user_id == user.user_id, UserPreference.preference_key == "visible_columns")
-        .first()
-    )
-    visible_columns = [
-        "Status"
-    ]
-    if user_preferences and user_preferences.preference_value:
-        # Parse the preference value (assumed to be a JSON string)
-        visible_columns = json.loads(user_preferences.preference_value)
-
-        
     # Restrict access for certain models
     is_admin = "Admin" in user.roles
     ADMIN_MODELS = {"users"}
@@ -73,6 +54,7 @@ async def get_table(
             logger.warning(f"Model '{model_name}' not found.")
             raise HTTPException(status_code=404, detail=f"Model not found: {model_name}")
 
+        metadata = DatabaseService.gather_model_metadata(model,session)
         # Fetch rows with optional filters and sorting
         row_dicts = DatabaseService.fetch_model_rows(
             model_name=model_name,
@@ -103,7 +85,7 @@ async def get_table(
                 "filters": filters or {},  # Ensure filters are passed to the template
                 "sort_by": sort_by,
                 "sort_order": sort_order,
-                "visible_columns": visible_columns,
+                "metadata": metadata
             },
         )
     

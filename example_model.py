@@ -50,7 +50,7 @@ class RmsRequest(Base):
     request_status = Column(String, default="PENDING APPROVAL")
     requester = Column(String, default=os.getlogin().upper())
     request_received_timestamp = Column(DateTime, default=datetime.utcnow)
-    effort = Column(String, nullable=False)
+    effort = Column(String, nullable=False,info={"options":effort_list,"required":True,"forms":["create-new","view-existing"]})
     approval_timesatmp = Column(DateTime)
     approved = Column(String, default="N")
     approver = Column(String)
@@ -69,20 +69,13 @@ class RmsRequest(Base):
     approval_sent = Column(String, default="N")
     expected_deployment_timestamp = Column(DateTime)
     expected_deployment_timestamp_updated = Column(String, default="N")
-    
-    organization = Column(String, nullable=False)
-    sub_organization = Column(String, nullable=False)
-    line_of_business = Column(String, nullable=False)
-    team = Column(String, nullable=False)
-    decision_engine = Column(String, nullable=False)
+    organization = Column(String, nullable=False,info={"options":organizations_multi_list,"required":True,"forms":["create-new","view-existing"]})
+    sub_organization = Column(String, nullable=False,info={"options":sub_organization_list,"required":True,"forms":["create-new","view-existing"]})
+    line_of_business = Column(String, nullable=False,info={"options":line_of_business_list,"required":True,"forms":["create-new","view-existing"]})
+    team = Column(String, nullable=False,info={"options":team_list,"required":True,"forms":["create-new","view-existing"]})
+    decision_engine = Column(String, nullable=False,info={"options":decision_engine_list,"required":True,"forms":["create-new","view-existing"]})
     status = relationship("RmsRequestStatus", back_populates="request", cascade="all, delete-orphan")
     comments = relationship("Comment", back_populates="request", cascade="all, delete-orphan")
-    organization_options = organizations_multi_list
-    sub_organization_options = sub_organization_list
-    line_of_business_options = line_of_business_list
-    team_options = team_list
-    decision_engine_options = decision_engine_list
-    effort_options = effort_list
     is_request = True
     request_status_config = {}
     
@@ -104,15 +97,17 @@ class RmsRequestStatus(Base):
     timestamp = Column(DateTime, default=datetime.utcnow, nullable=False)
     request = relationship("RmsRequest", back_populates="status")
 
+
+
 class RuleRequest(Base):
     __tablename__ = "rule_request"
     frontend_table_name = "Rule Requests"
     unique_ref = Column(String, primary_key=True, default=id_method)
-    rule_name = Column(String)
-    rule_id = Column(String)
-    estimation_id = Column(String, info={"form_visibility":  {"check-list": True}})
-    governance = Column(String, info={"form_visibility":  {"check-list": True}})
-    rule_version = Column(Integer)
+    rule_name = Column(String, info={"required":True,"forms":["create-new","view-existing"]})
+    rule_id = Column(String, info={"forms":["create-new","view-existing"]})
+    estimation_id = Column(String, info={"required":True,"forms":["check-list"]})
+    governance = Column(String, info={"required":True,"forms":[]})
+    rule_version = Column(Integer, info={"required":True,"forms":["create-new","view-existing"]})
     rms_request_id = Column(String, ForeignKey("request.unique_ref"), nullable=False)
     rms_request = relationship("RmsRequest", backref="rule_requests", info={"form_visibility":  {"create-new": False, "view-existing": False}})
     is_request = True
@@ -170,7 +165,7 @@ class Person(Base):
     unique_ref = Column(String, primary_key=True, default=id_method)
     name = Column(String)
     age = Column(Integer)
-    gender = Column(String)
+    gender = Column(String, info={"options":["Male","Female","Other","Lizard"],"multi_select":True,"required":True,"forms":["create-new"]})
     gender_options = ["Male","Female","Other","Lizard"]
     rms_request_id = Column(String, ForeignKey("request.unique_ref"), nullable=False)
     rms_request = relationship("RmsRequest", backref="persons", info={"form_visibility": {"create-new": False, "view-existing": False}})

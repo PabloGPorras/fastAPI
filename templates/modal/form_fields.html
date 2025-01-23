@@ -35,138 +35,37 @@
 
 {% if is_request %}
 <div class="row g-3">
-    <!-- Organization -->
-    <div class="col-md-2">
-        <label for="organization" class="form-label">Organization</label>
-        <select class="form-select" id="organization" name="organization" required>
-            {% for option in RmsRequest.organization_options %}
-            <option value="{{ option }}" {% if item_data.organization == option %}selected{% endif %}>
-                {{ option }}
-            </option>
-            {% endfor %}
-        </select>
-    </div>
+    {% set request_fields = {
+        "organization": "Organization",
+        "sub_organization": "Sub Org",
+        "line_of_business": "LOB",
+        "team": "Team",
+        "decision_engine": "Decision Engine",
+        "effort": "Effort"
+    } %}
 
-    <!-- Sub Organization -->
+    {% for field_name, label in request_fields.items() %}
     <div class="col-md-2">
-        <label for="sub_organization" class="form-label">Sub Org</label>
-        <select class="form-select" id="sub_organization" name="sub_organization" required>
-            {% for option in RmsRequest.sub_organization_options %}
-            <option value="{{ option }}" {% if item_data.sub_organization == option %}selected{% endif %}>
+        {% set field = request_columns | selectattr("name", "equalto", field_name) | first %}
+        {% if field %}
+        <label for="{{ field.name }}" class="form-label">{{ label }}</label>
+        <select class="form-select" id="{{ field.name }}" name="{{ field.name }}" {% if field.required %}required{% endif %}>
+            {% for option in field.column_options or [] %}
+            <option value="{{ option }}" {% if item_data[field.name] == option %}selected{% endif %}>
                 {{ option }}
             </option>
             {% endfor %}
         </select>
+        {% endif %}
     </div>
-
-    <!-- Line of Business -->
-    <div class="col-md-2">
-        <label for="line_of_business" class="form-label">LOB</label>
-        <select class="form-select" id="line_of_business" name="line_of_business" required>
-            {% for option in RmsRequest.line_of_business_options %}
-            <option value="{{ option }}" {% if item_data.line_of_business == option %}selected{% endif %}>
-                {{ option }}
-            </option>
-            {% endfor %}
-        </select>
-    </div>
-
-    <!-- Team -->
-    <div class="col-md-2">
-        <label for="team" class="form-label">Team</label>
-        <select class="form-select" id="team" name="team" required>
-            {% for option in RmsRequest.team_options %}
-            <option value="{{ option }}" {% if item_data.team == option %}selected{% endif %}>
-                {{ option }}
-            </option>
-            {% endfor %}
-        </select>
-    </div>
-
-    <!-- Decision Engine -->
-    <div class="col-md-2">
-        <label for="decision_engine" class="form-label">Decision Engine</label>
-        <select class="form-select" id="decision_engine" name="decision_engine" required>
-            {% for option in RmsRequest.decision_engine_options %}
-            <option value="{{ option }}" {% if item_data.decision_engine == option %}selected{% endif %}>
-                {{ option }}
-            </option>
-            {% endfor %}
-        </select>
-    </div>
-
-    <!-- Effort -->
-    <div class="col-md-2">
-        <label for="effort" class="form-label">Effort</label>
-        <select class="form-select" id="effort" name="effort" required>
-            {% for option in RmsRequest.effort_options %}
-            <option value="{{ option }}" {% if item_data.effort == option %}selected{% endif %}>
-                {{ option }}
-            </option>
-            {% endfor %}
-        </select>
-    </div>
+    {% endfor %}
 </div>
 {% endif %}
 
 
-<!-- Existing Form Fields -->
-{% for field in form_fields %}
-{% if not field.is_foreign_key %}
-<div class="mb-3">
-    <label for="{{ field.name }}" class="form-label">{{ field.name|capitalize }}</label>
-    {% if field.multi_options %}
-    <!-- Dropdown for predefined multi-options -->
-    <select class="form-select" id="{{ field.name }}" name="{{ field.name }}" multiple {% if field.required %}required{%
-        endif %}>
-        {% for option in field.multi_options %}
-        <option value="{{ option }}" {% if item_data[field.name] and option in item_data[field.name] %}selected{% endif
-            %}>
-            {{ option }}
-        </option>
-        {% endfor %}
-    </select>
-    {% elif field.options %}
-    <!-- Dropdown for predefined options -->
-    <select class="form-select" id="{{ field.name }}" name="{{ field.name }}" {% if field.required %}required{% endif
-        %}>
-        {% for option in field.options %}
-        <option value="{{ option }}" {% if item_data[field.name]==option %}selected{% endif %}>
-            {{ option }}
-        </option>
-        {% endfor %}
-    </select>
-    {% elif "INTEGER" in field.type %}
-    <!-- Input for INTEGER -->
-    <input type="number" class="form-control" id="{{ field.name }}" name="{{ field.name }}"
-        value="{{ item_data[field.name] | default('') }}" {% if field.required %}required{% endif %}>
-    {% elif "BOOLEAN" in field.type %}
-    <!-- Dropdown for BOOLEAN -->
-    <select class="form-select" id="{{ field.name }}" name="{{ field.name }}" {% if field.required %}required{% endif
-        %}>
-        <option value="true" {% if item_data[field.name]==true %}selected{% endif %}>True</option>
-        <option value="false" {% if item_data[field.name]==false %}selected{% endif %}>False</option>
-    </select>
-    {% elif "DATE" in field.type and not "DATETIME" in field.type %}
-    <!-- Input for DATE -->
-    <input type="date" class="form-control" id="{{ field.name }}" name="{{ field.name }}"
-        value="{{ item_data[field.name] | default('') }}" {% if field.required %}required{% endif %}>
-    {% elif "TIME" in field.type and not "DATETIME" in field.type %}
-    <!-- Input for TIME -->
-    <input type="time" class="form-control" id="{{ field.name }}" name="{{ field.name }}"
-        value="{{ item_data[field.name] | default('') }}" {% if field.required %}required{% endif %}>
-    {% elif "DATETIME" in field.type %}
-    <!-- Input for DATETIME -->
-    <input type="datetime-local" class="form-control" id="{{ field.name }}" name="{{ field.name }}"
-        value="{{ item_data[field.name] | default('') }}" {% if field.required %}required{% endif %}>
-    {% else %}
-    <!-- Textarea for TEXT or STRING -->
-    <textarea class="form-control resizable" id="{{ field.name }}" name="{{ field.name }}" rows="1" {% if field.required
-        %}required{% endif %}>{{ item_data[field.name] | default('') | e }}</textarea>
-    {% endif %}
-</div>
-{% endif %}
-{% endfor %}
+
+<!-- Auto Generate Model Fields -->
+{% include "modal/fields.html" %}
 
     <!-- Now handle relationships with the new structure -->
     {% for relationship in metadata.relationships %}

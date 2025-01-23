@@ -68,36 +68,9 @@
             </a>
 
             <!-- Filter Icon with Active Indicator -->
-            <span class="filter-icon {% if filters[key] %}active{% endif %}" 
-                data-column="{{ key }}" 
-                id="filter-icon-{{ key }}" 
-                title="Filter">
-                🔍
-            </span>
+            {% include "table/filter_button.html" %}
 
-            <div class="filter-menu" id="filter-{{ key }}">
-                <form action="/table/{{ model_name }}" method="GET">
-                    <!-- Preserve Other Filters -->
-                    {% for f_key, f_value in filters.items() if f_key != key %}
-                    <input type="hidden" name="filters[{{ f_key }}]" value="{{ f_value }}">
-                    {% endfor %}
-
-                    <!-- Current Filter Input -->
-                    <input 
-                        type="text" 
-                        class="form-control form-control-sm filter-input mb-2" 
-                        name="filters[{{ key }}]" 
-                        placeholder="Filter {{ key|capitalize }}"
-                        value="{{ filters[key] if filters[key] else '' }}">
-
-                    <!-- Filter Buttons -->
-                    <div class="d-flex justify-content-between">
-                        <button type="submit" class="btn btn-primary btn-sm apply-filter-btn">Apply</button>
-                        <a href="/table/{{ model_name }}?{% for f_key, f_value in filters.items() if f_key != key %}filters[{{ f_key }}]={{ f_value }}&{% endfor %}" 
-                            class="btn btn-secondary btn-sm clear-filter-btn">Clear</a>
-                    </div>
-                </form>
-            </div>
+            {% include "table/filter_menu.html" %}
         </th>
         {% endfor %}
         {% endif %}
@@ -111,142 +84,8 @@
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script>
     document.addEventListener("DOMContentLoaded", async () => {
-        try {
-            // Fetch and apply filters from backend
-            const response = await fetch("/api/get-user-preferences");
-            const serverFilters = await response.json();
-            localStorage.setItem("filters", JSON.stringify(serverFilters));
-            // applyFilters(serverFilters);
-        } catch (error) {
-            console.error("Error fetching user preferences:", error);
-        }
-
-        // Apply local filters stored in localStorage
-        const localFilters = JSON.parse(localStorage.getItem("filters") || "{}");
-        // applyFilters(localFilters);
-
-        // // Attach event listeners to filter and sort buttons
-        // document.querySelectorAll(".apply-filter-btn").forEach((button) => {
-        //     button.addEventListener("click", (event) => {
-        //         event.preventDefault(); // Prevent refresh
-        //         handleApplyFilter(button);
-        //     });
-        // });
-
-        // document.querySelectorAll(".clear-filter-btn").forEach((button) => {
-        //     button.addEventListener("click", (event) => {
-        //         event.preventDefault(); // Prevent refresh
-        //         handleClearFilter(button);
-        //     });
-        // });
-
-        document.querySelectorAll(".filter-icon").forEach((icon) => {
-            icon.addEventListener("click", (event) => toggleFilterMenu(event, icon));
-        });
-
-        document.addEventListener("click", (event) => {
-            if (!event.target.closest(".filter-icon, .filter-menu")) {
-                document.querySelectorAll(".filter-menu").forEach((menu) => menu.classList.remove("show"));
-            }
-        });
-
-        // document.querySelectorAll(".sort-btn").forEach((button) => {
-        //     button.addEventListener("click", (event) => handleSort(event, button));
-        // });
-
         document.addEventListener("keydown", handleKeyboardShortcuts);
     });
-
-    // Function to apply filters
-    // function applyFilters(filters) {
-    //     for (const [column, value] of Object.entries(filters)) {
-    //         const input = document.querySelector(`.filter-input[data-column="${column}"]`);
-    //         if (input) {
-    //             input.value = value;
-
-    //             // Apply filter logic
-    //             const rows = document.querySelectorAll(`#tableBody .${column}-column`);
-    //             rows.forEach((row) => {
-    //                 const cellValue = row.textContent.toLowerCase();
-    //                 const parentRow = row.closest("tr");
-    //                 parentRow.style.display = value && !cellValue.includes(value.toLowerCase()) ? "none" : "";
-    //             });
-
-    //             // Mark the filter as active
-    //             const filterIcon = document.querySelector(`#filter-icon-${column}`);
-    //             if (filterIcon) filterIcon.classList.add("active");
-    //         }
-    //     }
-    // }
-
-    // Handle applying a filter
-    // function handleApplyFilter(button) {
-    //     const column = button.dataset.column;
-    //     const input = document.querySelector(`.filter-input[data-column="${column}"]`);
-    //     if (input) {
-    //         const filters = JSON.parse(localStorage.getItem("filters") || "{}");
-    //         filters[column] = input.value;
-    //         localStorage.setItem("filters", JSON.stringify(filters));
-    //         syncFiltersToServer(filters);
-    //         applyFilters({ [column]: input.value });
-    //     }
-    // }
-
-    // Handle clearing a filter
-    // function handleClearFilter(button) {
-    //     const column = button.dataset.column;
-    //     const filters = JSON.parse(localStorage.getItem("filters") || "{}");
-    //     delete filters[column];
-    //     localStorage.setItem("filters", JSON.stringify(filters));
-    //     syncFiltersToServer(filters);
-
-    //     // Reset UI
-    //     const input = document.querySelector(`.filter-input[data-column="${column}"]`);
-    //     if (input) input.value = "";
-
-    //     const rows = document.querySelectorAll(`#tableBody .${column}-column`);
-    //     rows.forEach((row) => row.closest("tr").style.display = "");
-
-    //     const filterIcon = document.querySelector(`#filter-icon-${column}`);
-    //     if (filterIcon) filterIcon.classList.remove("active");
-    // }
-
-    // Toggle filter menu visibility
-    function toggleFilterMenu(event, icon) {
-        event.stopPropagation();
-        const column = icon.dataset.column;
-        const filterMenu = document.querySelector(`#filter-${column}`);
-    
-        // Hide other menus and toggle this one
-        document.querySelectorAll(".filter-menu").forEach((menu) => {
-            if (menu !== filterMenu) menu.classList.remove("show");
-        });
-    
-        if (filterMenu.classList.contains("show")) {
-            filterMenu.classList.remove("show");
-        } else {
-            // Get the bounding rectangle of the filter icon
-            const iconRect = icon.getBoundingClientRect();
-            const tableBody = document.querySelector("#tableBody"); // Adjust if your table scroll container differs
-    
-            // Calculate the position for the filter menu
-            const scrollOffset = tableBody.scrollLeft || 0; // Adjust for horizontal scroll
-            filterMenu.style.top = `${iconRect.bottom}px`;
-            filterMenu.style.left = `${iconRect.left + scrollOffset}px`;
-    
-            filterMenu.classList.add("show");
-        }
-    }
-    
-
-    // Sync filters to backend
-    function syncFiltersToServer(filters) {
-        fetch("/api/save-user-preferences", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(filters),
-        }).catch((error) => console.error("Error syncing filters:", error));
-    }
 
     // Handle keyboard shortcuts
     function handleKeyboardShortcuts(event) {

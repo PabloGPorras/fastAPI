@@ -100,20 +100,7 @@
         {% include "table/header_action_button.html" with context %}
     </div>
 
-    <div id="manage-columns-menu" class="border p-2"
-    style="display: none; max-height: 200px; overflow-y: auto; width: 250px;">
-    <form>
-        {% if rows and rows[0] %}
-        {% for key in rows[0].keys() %}
-        <div class="form-check">
-            <input class="form-check-input column-toggle" type="checkbox" id="toggle-{{ key }}"
-                data-column="{{ key }}" checked>
-            <label class="form-check-label" for="toggle-{{ key }}">{{ key|capitalize }}</label>
-        </div>
-        {% endfor %}
-        {% endif %}
-    </form>
-</div>
+    {% include "table/manage_columns_menu.html" %}
 
     <!-- Table -->
     {% include "table/table.html" %}

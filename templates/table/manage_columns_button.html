@@ -1,41 +1,10 @@
 <button id="manage-columns-btn" class="btn btn-primary btn-sm">Manage Columns</button>
 
 <script>
-    document.addEventListener("DOMContentLoaded", function () {
-            document.querySelectorAll(".column-toggle").forEach((checkbox) => {
-            checkbox.addEventListener("change", (e) => {
-                const columnKey = e.target.dataset.column;
-                const isVisible = e.target.checked;
-
-                document.querySelectorAll(`.${columnKey}-column`).forEach((col) => {
-                    col.style.display = isVisible ? "" : "none";
-                });
-            });
-        });
-
-
-        // Manage Columns Menu Toggle
-        document.getElementById("manage-columns-btn").addEventListener("click", () => {
-            const menu = document.getElementById("manage-columns-menu");
-            menu.style.display = menu.style.display === "none" ? "block" : "none";
-        });
-
-        // Column Toggle Logic
-        document.querySelectorAll(".column-toggle").forEach(toggle => {
-            toggle.addEventListener("change", function () {
-                const column = this.dataset.column;
-                const th = document.querySelector(`th.${column}-column`);
-                const tds = document.querySelectorAll(`td.${column}-column`);
-
-                if (this.checked) {
-                    th.style.display = ""; // Show column
-                    tds.forEach(td => td.style.display = "");
-                } else {
-                    th.style.display = "none"; // Hide column
-                    tds.forEach(td => td.style.display = "none");
-                }
-            });
-        });
+    // Manage Columns Menu Toggle
+    document.getElementById("manage-columns-btn").addEventListener("click", () => {
+        const menu = document.getElementById("manage-columns-menu");
+        menu.style.display = menu.style.display === "none" ? "block" : "none";
     });
 
 </script>

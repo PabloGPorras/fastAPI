@@ -7,52 +7,7 @@
     
         <!-- Dynamically Generated Fields -->
         <ul>
-            {% for field_name in metadata["checklist_fields"] %}
-            <div class="mb-3">
-                <label for="{{ field_name }}" class="form-label">{{ field_name|capitalize }}</label>
-                {% set field = metadata["columns"] | selectattr("name", "equalto", field_name) | first %}
-                {% if field.multi_options %}
-                <!-- Dropdown for predefined multi-options -->
-                <select class="form-select" id="{{ field_name }}" name="{{ field_name }}" multiple {% if field.required %}required{% endif %}>
-                    {% for option in field.multi_options %}
-                    <option value="{{ option }}" {% if item_data[field_name] and option in item_data[field_name] %}selected{% endif %}>
-                        {{ option }}
-                    </option>
-                    {% endfor %}
-                </select>
-                {% elif field.options %}
-                <!-- Dropdown for predefined options -->
-                <select class="form-select" id="{{ field_name }}" name="{{ field_name }}" {% if field.required %}required{% endif %}>
-                    {% for option in field.options %}
-                    <option value="{{ option }}" {% if item_data[field_name] == option %}selected{% endif %}>
-                        {{ option }}
-                    </option>
-                    {% endfor %}
-                </select>
-                {% elif "INTEGER" in field.type %}
-                <!-- Input for INTEGER -->
-                <input type="number" class="form-control" id="{{ field_name }}" name="{{ field_name }}" value="{{ item_data[field_name] | default('') }}" {% if field.required %}required{% endif %}>
-                {% elif "BOOLEAN" in field.type %}
-                <!-- Dropdown for BOOLEAN -->
-                <select class="form-select" id="{{ field_name }}" name="{{ field_name }}" {% if field.required %}required{% endif %}>
-                    <option value="true" {% if item_data[field_name] == true %}selected{% endif %}>True</option>
-                    <option value="false" {% if item_data[field_name] == false %}selected{% endif %}>False</option>
-                </select>
-                {% elif "DATE" in field.type and not "DATETIME" in field.type %}
-                <!-- Input for DATE -->
-                <input type="date" class="form-control" id="{{ field_name }}" name="{{ field_name }}" value="{{ item_data[field_name] | default('') }}" {% if field.required %}required{% endif %}>
-                {% elif "TIME" in field.type and not "DATETIME" in field.type %}
-                <!-- Input for TIME -->
-                <input type="time" class="form-control" id="{{ field_name }}" name="{{ field_name }}" value="{{ item_data[field_name] | default('') }}" {% if field.required %}required{% endif %}>
-                {% elif "DATETIME" in field.type %}
-                <!-- Input for DATETIME -->
-                <input type="datetime-local" class="form-control" id="{{ field_name }}" name="{{ field_name }}" value="{{ item_data[field_name] | default('') }}" {% if field.required %}required{% endif %}>
-                {% else %}
-                <!-- Textarea for TEXT or STRING -->
-                <textarea class="form-control resizable" id="{{ field_name }}" name="{{ field_name }}" rows="1" {% if field.required %}required{% endif %}>{{ item_data[field_name] | default('') | e }}</textarea>
-                {% endif %}
-            </div>
-            {% endfor %}
+            {% include "modal/fields.html" %}
         </ul>
     
         <hr>

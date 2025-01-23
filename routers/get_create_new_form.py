@@ -29,8 +29,13 @@ async def get_details(
             form_name="create-new"
         )
 
+        rms_request_metadata = DatabaseService.gather_model_metadata(RmsRequest,session)
         # 3) Extract data for template rendering
+        request_columns  = rms_request_metadata.get("columns", [])
+        logger.debug(f"request_fields: {request_columns}")
         form_fields = metadata.get("form_fields", [])
+        logger.debug(f"form_fields: {form_fields}")
+
         relationships = metadata.get("relationships", [])
         predefined_options = metadata.get("predefined_options", {})
         is_request = metadata.get("is_request", False)
@@ -47,14 +52,12 @@ async def get_details(
             "RmsRequest": RmsRequest,
             "metadata": metadata,
             "form_fields": form_fields,
+            "request_columns": request_columns,
             "relationships": relationships,
             "predefined_options": predefined_options,
             "is_request": is_request,
             "item_data": item_data,
         }
-
-        logger.debug("Rendering create_new_modal.html with context:")
-        logger.debug(context)
 
         return templates.TemplateResponse("modal/create_new_modal.html", context)
 

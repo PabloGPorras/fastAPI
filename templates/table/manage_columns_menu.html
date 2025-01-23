@@ -1,0 +1,74 @@
+<div id="manage-columns-menu" class="border p-2"
+    style="display: none; max-height: 200px; overflow-y: auto; width: 250px;">
+    <form>
+        {% if rows and rows[0] %}
+        {% for key in rows[0].keys() %}
+        <div class="form-check">
+            <input class="form-check-input column-toggle" type="checkbox" id="toggle-{{ key }}" data-column="{{ key }}"
+                checked>
+            <label class="form-check-label" for="toggle-{{ key }}">{{ key|capitalize }}</label>
+        </div>
+        {% endfor %}
+        {% endif %}
+    </form>
+</div>
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    const userId = "current_user_id"; // Replace with dynamic user ID
+
+    // Fetch and apply saved preferences
+    fetch("/api/get-user-preferences", {
+        method: "GET",
+        headers: {
+            "Content-Type": "application/json",
+        },
+    })
+        .then((response) => response.json())
+        .then((preferences) => {
+            const hiddenColumns = preferences.hidden_columns ? preferences.hidden_columns.split(",") : [];
+            hiddenColumns.forEach((columnKey) => {
+                document.querySelector(`#toggle-${columnKey}`).checked = false;
+                document.querySelectorAll(`.${columnKey}-column`).forEach((col) => {
+                    col.style.display = "none";
+                });
+            });
+        })
+        .catch((error) => {
+            console.error("Error fetching preferences:", error);
+        });
+
+    // Save preferences on column toggle change
+    document.querySelectorAll(".column-toggle").forEach((checkbox) => {
+        checkbox.addEventListener("change", (e) => {
+            const hiddenColumns = Array.from(document.querySelectorAll(".column-toggle:not(:checked)"))
+                .map((checkbox) => checkbox.dataset.column);
+
+            // Save updated preferences
+            fetch("/api/save-user-preferences", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({ hidden_columns: hiddenColumns.join(",") }),
+            })
+                .then((response) => {
+                    if (!response.ok) {
+                        console.error("Failed to save preferences");
+                    }
+                })
+                .catch((error) => {
+                    console.error("Error saving preferences:", error);
+                });
+
+            // Show or hide columns dynamically
+            const columnKey = e.target.dataset.column;
+            const isVisible = e.target.checked;
+            document.querySelectorAll(`.${columnKey}-column`).forEach((col) => {
+                col.style.display = isVisible ? "" : "none";
+            });
+        });
+    });
+});
+
+</script>

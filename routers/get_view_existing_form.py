@@ -85,7 +85,7 @@ async def get_view_existing_form(request: Request, unique_ref: str = Form(...), 
             {
                 "request": request,
                 "metadata": metadata,
-                "form_fields": metadata["form_fields"],
+                "form_fields": metadata.get("form_fields", []),
                 "relationships": metadata["relationships"],
                 "predefined_options": metadata["predefined_options"],
                 "is_request": metadata["is_request"],

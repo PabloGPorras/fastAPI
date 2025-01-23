@@ -188,6 +188,7 @@ class DatabaseService:
         Returns:
             dict: A dictionary containing metadata (columns, form fields, relationships, etc.).
         """
+        logger.info(f"Fetching data for model: {model}")
 
         # 1) Setup / prevent loops
         if not model:
@@ -220,58 +221,40 @@ class DatabaseService:
             "checklist_fields": [],  # New attribute for check-list fields
         }
 
-        # Optional helper to check if a field/relationship is visible for this form
-        def is_visible(info):
-            if not form_name:
-                return True
-            if info and "form_visibility" in info:
-                return info["form_visibility"].get(form_name, True)
-            return True
-
         # 3) Columns + form fields
         for column in mapper.columns:
             column_info = {
                 "name": column.name,
                 "type": str(column.type),
-                "options": getattr(model, f"{column.name}_options", None),
-                "multi_options": getattr(model, f"{column.name}_multi_options", None),
                 "is_foreign_key": bool(column.foreign_keys),
                 "model_name": model.__name__,
             }
 
-            column_visibility = column.info.get("form_visibility", {}) if hasattr(column, "info") else {}
-
-            # Check if the column is for check-list
-            if column_visibility.get("check-list", False):
-                metadata["checklist_fields"].append(column.name)
-                # Assume False for create-new and view-existing
-                column_visibility.setdefault("create-new", False)
-                column_visibility.setdefault("view-existing", False)
-
-            # Add debugging
-            print(f"Inspecting column: {column.name}, visibility: {column_visibility}")
-
-            # Skip the column entirely if it’s not visible for this form
-            if not is_visible(column_visibility):
-                continue
-
-            # Otherwise, add it to columns
-            metadata["columns"].append(column_info)
-
-            # Potentially add it to form_fields as well
-            if column.name not in metadata["checklist_fields"] + ["unique_ref"]:
+            # Extract options and multi-select from column.info
+            column_info["column_options"] = column.info.get("options") if hasattr(column, "info") else None
+            column_info["multi_select"] = column.info.get("multi_select", False) if hasattr(column, "info") else False
+            column_info["required"] = column.info.get("required", False) if hasattr(column, "info") else False
+            # Respect the "forms" key in column.info
+            allowed_forms = column.info.get("forms", []) if hasattr(column, "info") else []
+            if form_name and form_name in allowed_forms:
                 metadata["form_fields"].append(column_info)
 
-        # Log checklist fields
-        print(f"Check-list fields gathered: {metadata['checklist_fields']}")
+            # add it to columns
+            metadata["columns"].append(column_info)
 
-        # 4) Relationships + recursion
+        # Log checklist fields
+        logger.info(f'form_fields gathered: {metadata["form_fields"]}')
+        logger.info(f'columns gathered: {metadata["columns"]}')
+
+        # 4) One-to-Many Relationships + Recursion
         if max_depth > 0:
             for rel in mapper.relationships:
-                if is_visible(rel.info):
+                # Only include one-to-many relationships
+                if rel.direction.name == "ONETOMANY":
                     relationship_info = {
                         "name": rel.key,
-                        "nested_metadata": {}
+                        "target_model": rel.mapper.class_.__name__,
+                        "nested_metadata": {},
                     }
                     if max_depth > 1:
                         related_model = rel.mapper.class_
@@ -280,7 +263,7 @@ class DatabaseService:
                             session=session,
                             form_name=form_name,
                             visited_models=visited_models,
-                            max_depth=max_depth - 1
+                            max_depth=max_depth - 1,
                         )
                         relationship_info["nested_metadata"] = nested_meta
 
