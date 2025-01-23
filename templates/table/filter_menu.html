@@ -10,36 +10,29 @@
 
         {% if column_options %}
         <!-- Predefined Options (Always Multi-Select for columns with options) -->
-        <select 
-            name="filters[{{ key }}][]" 
-            class="form-control form-control-sm filter-select mb-2" 
-            multiple>
+        <select name="filters[{{ key }}][]" class="form-control form-control-sm filter-select mb-2" multiple>
             {% for option in column_options %}
-            <option 
-                value="{{ option }}" 
-                {% if filters[key] and option in filters[key] %}selected{% endif %}>
+            <option value="{{ option }}" {% if filters[key] and option in filters[key] %}selected{% endif %}>
                 {{ option|capitalize }}
             </option>
             {% endfor %}
         </select>
         {% else %}
         <!-- Default Free-Form Text Input -->
-        <input 
-            type="text" 
-            class="form-control form-control-sm filter-input mb-2" 
-            name="filters[{{ key }}]" 
-            placeholder="Filter {{ key|capitalize }}"
-            value="{{ filters[key] if filters[key] else '' }}">
+        <input type="text" class="form-control form-control-sm filter-input mb-2" name="filters[{{ key }}]"
+            placeholder="Filter {{ key|capitalize }}" value="{{ filters[key] if filters[key] else '' }}">
         {% endif %}
 
         <!-- Filter Buttons -->
         <div class="d-flex justify-content-between">
             <button type="submit" class="btn btn-primary btn-sm apply-filter-btn">Apply</button>
-            <a href="/table/{{ model_name }}?{% for f_key, f_value in filters.items() if f_key != key %}filters[{{ f_key }}]={{ f_value }}&{% endfor %}" 
+            <a href="/table/{{ model_name }}?{% for f_key, f_value in filters.items() if f_key != key %}filters[{{ f_key }}]={{ f_value }}&{% endfor %}"
                 class="btn btn-secondary btn-sm clear-filter-btn">Clear</a>
         </div>
     </form>
 </div>
 <script>
-    
+
+
+
 </script>

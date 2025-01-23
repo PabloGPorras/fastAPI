@@ -81,7 +81,7 @@ async def bulk_import(
                 "decision_engine": row.get("rms_request.decision_engine"),
                 "group_id": group_id,
                 "requester": user.user_name,
-                "request_type": model_name,
+                "request_type": model_name.upper(),
                 "effort": "BAU",
             }
 

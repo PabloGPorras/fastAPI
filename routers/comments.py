@@ -1,6 +1,7 @@
 from datetime import datetime
 from fastapi import APIRouter, Depends, Form, HTTPException
 from fastapi.responses import HTMLResponse
+from core.current_timestamp import get_current_timestamp
 from example_model import Comment, RmsRequest, RmsRequestStatus, User
 from core.templates import templates
 from get_current_user import get_current_user
@@ -60,7 +61,7 @@ async def add_comment(
             unique_ref=unique_ref,
             comment=comment_text,
             user_name=user.user_name,
-            comment_timestamp=datetime.utcnow(),
+            comment_timestamp=get_current_timestamp(),
         )
         session.add(new_comment)
         session.commit()

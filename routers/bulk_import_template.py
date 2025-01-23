@@ -29,7 +29,7 @@ async def download_template(model_name: str = Query(...)):
     headers = []
 
     # Include visible fields from the model
-    for column in metadata["columns"]:
+    for column in metadata["form_fields"]:
         headers.append(column["name"])
 
     # Add related fields if `is_request` is true

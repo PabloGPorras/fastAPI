@@ -9,6 +9,8 @@ from sqlalchemy import Column, Integer, String, ForeignKey, Text, DateTime
 from sqlalchemy.orm import relationship
 from datetime import datetime
 
+from core.current_timestamp import get_current_timestamp
+
 Base = declarative_base()
 
 # Models
@@ -49,7 +51,7 @@ class RmsRequest(Base):
     request_type = Column(String, nullable=False)
     request_status = Column(String, default="PENDING APPROVAL")
     requester = Column(String, default=os.getlogin().upper())
-    request_received_timestamp = Column(DateTime, default=datetime.utcnow)
+    request_received_timestamp = Column(DateTime, default=get_current_timestamp())
     effort = Column(String, nullable=False,info={"options":effort_list,"required":True,"forms":["create-new","view-existing"]})
     approval_timesatmp = Column(DateTime)
     approved = Column(String, default="N")
@@ -85,7 +87,7 @@ class Comment(Base):
     unique_ref = Column(String, ForeignKey("request.unique_ref", ondelete="CASCADE"), nullable=False)
     comment = Column(Text, nullable=False)
     user_name = Column(String(50), nullable=False)
-    comment_timestamp = Column(DateTime, default=datetime.utcnow, nullable=False)
+    comment_timestamp = Column(DateTime, default=get_current_timestamp(), nullable=False)
     request = relationship("RmsRequest", back_populates="comments")
     
 class RmsRequestStatus(Base):
@@ -94,7 +96,7 @@ class RmsRequestStatus(Base):
     unique_ref = Column(String, ForeignKey("request.unique_ref", ondelete="CASCADE"), nullable=False)
     status = Column(String, nullable=False)
     user_name = Column(String(50), default=os.getlogin().upper())
-    timestamp = Column(DateTime, default=datetime.utcnow, nullable=False)
+    timestamp = Column(DateTime, default=get_current_timestamp(), nullable=False)
     request = relationship("RmsRequest", back_populates="status")
 
 
@@ -234,8 +236,8 @@ class User(Base):
     email_from = Column(String, nullable=False)
     email_to = Column(String, nullable=False)
     email_cc = Column(String, nullable=False)
-    last_update_timestamp = Column(DateTime, default=datetime.utcnow, info={"form_visibility": {"create-new": False}})
-    user_role_expire_timestamp = Column(DateTime, default=datetime.utcnow)
+    last_update_timestamp = Column(DateTime, default=get_current_timestamp(), info={"form_visibility": {"create-new": False}})
+    user_role_expire_timestamp = Column(DateTime, default=get_current_timestamp())
 
     roles = Column(String, nullable=False)
     organizations = Column(String, nullable=False)

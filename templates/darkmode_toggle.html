@@ -1,0 +1,99 @@
+<!-- Dark Mode Toggle Button -->
+<div class="mt-auto p-3">
+    <a id="darkModeToggle" href="#" class="nav-link text-dark">
+        <i class="fas fa-moon"></i>
+        <span>Dark Mode</span>
+    </a>
+</div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const darkModeToggle = document.getElementById("darkModeToggle");
+
+        if (!darkModeToggle) {
+            console.error("Dark mode toggle button not found");
+            return;
+        }
+
+        function applyTheme(theme) {
+            const icon = darkModeToggle.querySelector("i");
+            const text = darkModeToggle.querySelector("span");
+            const sidebar = document.getElementById("sidebar");
+            const links = sidebar.querySelectorAll(".nav-link"); // Sidebar links
+
+            if (theme === "dark") {
+                sidebar.classList.remove("bg-light");
+                sidebar.classList.add("bg-dark", "text-white");
+                links.forEach(link => {
+                    link.classList.remove("text-dark");
+                    link.classList.add("text-white");
+                });
+
+                const subSideMenus = document.querySelectorAll(".sub-side-menu");
+                subSideMenus.forEach(menu => {
+                    menu.style.backgroundColor = "#333333";
+                    menu.style.color = "#f8f9fa";
+                    menu.style.border = "1px solid #444444";
+                });
+
+                icon.className = "fas fa-sun"; // Switch to sun icon
+                text.textContent = "Light Mode";
+                document.body.setAttribute("data-bs-theme", theme);
+            } else {
+                sidebar.classList.remove("bg-dark", "text-white");
+                sidebar.classList.add("bg-light");
+                links.forEach(link => {
+                    link.classList.remove("text-white");
+                    link.classList.add("text-dark");
+                });
+
+                const subSideMenus = document.querySelectorAll(".sub-side-menu");
+                subSideMenus.forEach(menu => {
+                    menu.style.backgroundColor = "#ffffff";
+                    menu.style.color = "#212529";
+                    menu.style.border = "1px solid #dee2e6";
+                });
+
+                icon.className = "fas fa-moon"; // Switch to moon icon
+                text.textContent = "Dark Mode";
+                document.body.setAttribute("data-bs-theme", theme);
+            }
+        }
+
+        async function fetchThemePreference() {
+            try {
+                const response = await fetch('/api/get-user-preferences');
+                const preferences = await response.json();
+                const savedTheme = preferences.theme || "light";
+                applyTheme(savedTheme);
+            } catch (error) {
+                console.error("Error fetching theme preference:", error);
+                applyTheme("light"); // Default to light mode on error
+            }
+        }
+
+        async function saveThemePreference(theme) {
+            try {
+                await fetch('/api/save-user-preferences', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ theme }),
+                });
+            } catch (error) {
+                console.error("Error saving theme preference:", error);
+            }
+        }
+
+        fetchThemePreference();
+
+        darkModeToggle.addEventListener("click", async (event) => {
+            event.preventDefault();
+            const currentTheme = document.body.getAttribute("data-bs-theme") || "light";
+            const newTheme = currentTheme === "light" ? "dark" : "light";
+            applyTheme(newTheme);
+            await saveThemePreference(newTheme); // Save the updated theme preference
+        });
+    });
+</script>

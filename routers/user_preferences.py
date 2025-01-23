@@ -24,6 +24,9 @@ def save_user_preferences(preferences: dict, user: User = Depends(get_current_us
         
         # Update or create new preferences
         for key, value in preferences.items():
+            # Serialize to JSON if the value is a dict or list
+            if isinstance(value, (dict, list)):
+                value = json.dumps(value)
             if key in existing_preferences_dict:
                 existing_preferences_dict[key].preference_value = value
             else:
@@ -48,11 +51,11 @@ def save_user_preferences(preferences: dict, user: User = Depends(get_current_us
 
 
 
+
 @router.get("/api/get-user-preferences")
 def get_user_preferences(user: User = Depends(get_current_user)):
     session = SessionLocal()
     try:
-        
         # Query all preferences for the user
         preferences = (
             session.query(UserPreference.preference_key, UserPreference.preference_value)
@@ -60,8 +63,19 @@ def get_user_preferences(user: User = Depends(get_current_user)):
             .all()
         )
 
-        # Convert to a dictionary
-        preferences_dict = {key: value for key, value in preferences}
+        # Convert to a dictionary and deserialize JSON strings
+        preferences_dict = {}
+        for key, value in preferences:
+            try:
+                # Attempt to deserialize JSON if it looks like JSON
+                if value.startswith("{") or value.startswith("["):
+                    preferences_dict[key] = json.loads(value)
+                else:
+                    preferences_dict[key] = value
+            except Exception:
+                # Fallback to raw value if deserialization fails
+                preferences_dict[key] = value
+
         return preferences_dict
 
     except Exception as e:
@@ -71,3 +85,4 @@ def get_user_preferences(user: User = Depends(get_current_user)):
         if session:
             session.close()
             logger.debug("Database session closed.")
+ 

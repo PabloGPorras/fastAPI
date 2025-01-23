@@ -242,10 +242,6 @@ class DatabaseService:
             # add it to columns
             metadata["columns"].append(column_info)
 
-        # Log checklist fields
-        logger.info(f'form_fields gathered: {metadata["form_fields"]}')
-        logger.info(f'columns gathered: {metadata["columns"]}')
-
         # 4) One-to-Many Relationships + Recursion
         if max_depth > 0:
             for rel in mapper.relationships:

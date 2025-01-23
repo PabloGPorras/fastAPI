@@ -2,6 +2,7 @@ from datetime import datetime
 import logging
 from typing import List
 from fastapi import APIRouter, Depends, Form, HTTPException
+from core.current_timestamp import get_current_timestamp
 from get_current_user import get_current_user
 from services.database_service import DatabaseService
 from example_model import RmsRequest, RmsRequestStatus, User
@@ -115,31 +116,31 @@ def bulk_update_status(
             logger.debug(f"Request ID {unique_ref}, status_type: {status_type}, current_status: {current_status}")
 
             if "APPROVAL REJECTED" in status_type:
-                request.approval_timestamp = datetime.utcnow()
+                request.approval_timestamp = get_current_timestamp()
                 request.approved = "N"
                 request.approver = user.user_name
                 request.request_status = 'REJECTED'
                 logger.debug(f"Request ID {unique_ref}: Approval details updated.")
             if "APPROVAL" in status_type:
-                request.approval_timestamp = datetime.utcnow()
+                request.approval_timestamp = get_current_timestamp()
                 request.approved = "Y"
                 request.approver = user.user_name
                 request.request_status = 'PENDING GOVERNANCE'
                 logger.debug(f"Request ID {unique_ref}: Approval details updated.")
             if "GOVERNANCE REJECTED" in status_type:
-                request.governed_timestamp = datetime.utcnow()
+                request.governed_timestamp = get_current_timestamp()
                 request.governed = "N"
                 request.governed_by = user.user_name
                 request.request_status = 'REJECTED'
                 logger.debug(f"Request ID {unique_ref}: Governance details updated.")
             if "GOVERNANCE" in status_type:
-                request.governed_timestamp = datetime.utcnow()
+                request.governed_timestamp = get_current_timestamp()
                 request.governed = "Y"
                 request.governed_by = user.user_name
                 request.request_status = 'DEPLOYMENT READY'
                 logger.debug(f"Request ID {unique_ref}: Governance details updated.")
             if "COMPLETED" in status_type:
-                request.deployment_timestamp = datetime.utcnow()
+                request.deployment_timestamp = get_current_timestamp()
                 request.deployed = "Y"
                 request.request_status = 'COMPLETED'
                 logger.debug(f"Request ID {unique_ref}: Governance details updated.")

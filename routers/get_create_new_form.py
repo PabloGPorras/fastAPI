@@ -32,9 +32,7 @@ async def get_details(
         rms_request_metadata = DatabaseService.gather_model_metadata(RmsRequest,session)
         # 3) Extract data for template rendering
         request_columns  = rms_request_metadata.get("columns", [])
-        logger.debug(f"request_fields: {request_columns}")
         form_fields = metadata.get("form_fields", [])
-        logger.debug(f"form_fields: {form_fields}")
 
         relationships = metadata.get("relationships", [])
         predefined_options = metadata.get("predefined_options", {})
@@ -44,6 +42,21 @@ async def get_details(
         item_data = {field["name"]: "" for field in form_fields}
         for rel in relationships:
             item_data[rel["name"]] = []
+
+        # Fetch the user's most recent RmsRequest
+        current_user = get_current_user()
+        recent_request = (
+            session.query(RmsRequest)
+            .filter(RmsRequest.requester == current_user.user_name)
+            .order_by(RmsRequest.request_received_timestamp.desc())
+            .first()
+        )
+        logger.debug(f"recent_request: {recent_request}")
+        # Populate item_data with values from the most recent request if available
+        if recent_request:
+            logger.debug(f"Populating form with recent RmsRequest: {recent_request}")
+            for field in ["organization", "sub_organization", "line_of_business", "team", "decision_engine"]:
+                item_data[field] = getattr(recent_request, field, "")
 
         # 5) Provide context for the template
         context = {

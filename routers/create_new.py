@@ -2,6 +2,7 @@ from datetime import datetime
 import json
 from fastapi import APIRouter, Depends, HTTPException, Request
 from sqlalchemy import inspect
+from core.current_timestamp import get_current_timestamp
 from services.database_service import DatabaseService
 from example_model import RmsRequest, RmsRequestStatus, User, id_method
 from get_current_user import get_current_user
@@ -123,7 +124,7 @@ async def create_new(model_name: str, request: Request, user: User = Depends(get
                 unique_ref=new_request.unique_ref,
                 status=initial_status,
                 user_name=user.user_name,
-                timestamp=datetime.utcnow(),
+                timestamp=get_current_timestamp(),
             )
             session.add(new_status)
             logger.debug(f"[create_new] Created RmsRequestStatus with status='{initial_status}'")

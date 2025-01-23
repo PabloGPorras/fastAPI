@@ -86,12 +86,6 @@
                 <span>Home</span>
             </a>
         </li>
-        <li class="nav-item">
-            <a href="/table/settings" class="nav-link text-dark">
-                <i class="fas fa-cogs"></i>
-                <span>Settings</span>
-            </a>
-        </li>
         <!-- Admin Button with Sub-side Menu -->
         {% if is_admin %}
         <li class="nav-item position-relative">
@@ -123,12 +117,9 @@
                         <ul class="list-unstyled ms-3">
                             {% for model in models if model.is_request and model.name != "Request" %}
                             <li class="mb-2">
-                                <button 
-                                    class="btn btn-link nav-link text-dark create-item"
-                                    hx-post="/get-create-new-form"
-                                    hx-target="#createNewModalContainer"
-                                    hx-trigger="click"
-                                    hx-swap="innerHTML"
+                                <button class="btn btn-link nav-link text-dark create-item"
+                                    hx-post="/get-create-new-form" hx-target="#createNewModalContainer"
+                                    hx-trigger="click" hx-swap="innerHTML"
                                     hx-vals='{"model_name": "{{ model.model_name }}"}'>
                                     {{ model.name }}
                                 </button>
@@ -141,7 +132,7 @@
             </div>
         </li>
 
-        
+
 
         <!-- Request Tables with Dynamic Submenu -->
         <li class="nav-item position-relative">
@@ -172,10 +163,68 @@
     </ul>
 
     <!-- Dark Mode Toggle Button -->
-    <div class="mt-auto p-3">
-        <a id="darkModeToggle" href="#" class="nav-link text-dark">
-            <i class="fas fa-moon"></i>
-            <span>Dark Mode</span>
-        </a>
-    </div>
+    {% include "darkmode_toggle.html" %}
 </nav>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        // Admin Button and Submenu
+        const adminBtn = document.getElementById("adminBtn");
+        const adminSubMenu = document.getElementById("adminSubMenu");
+
+        if (adminBtn && adminSubMenu) {
+            // Show the submenu on hover
+            adminBtn.addEventListener("mouseenter", function () {
+                adminSubMenu.classList.add("show");
+            });
+
+            // Hide the submenu when the mouse leaves the parent list item
+            adminBtn.parentElement.addEventListener("mouseleave", function () {
+                adminSubMenu.classList.remove("show");
+            });
+        }
+
+        // Table Button and Submenu
+        const tableBtn = document.getElementById("tableBtn");
+        const tableSubMenu = document.getElementById("tableSubMenu");
+
+        if (tableBtn && tableSubMenu) {
+            // Show the submenu on hover
+            tableBtn.addEventListener("mouseenter", function () {
+                tableSubMenu.classList.add("show");
+            });
+
+            // Hide the submenu when the mouse leaves the parent list item
+            tableBtn.parentElement.addEventListener("mouseleave", function () {
+                tableSubMenu.classList.remove("show");
+            });
+        }
+
+        // Sidebar Toggler
+        const sidebar = document.getElementById("sidebar");
+        const sidebarToggler = document.getElementById("sidebar-toggler");
+
+        if (sidebar && sidebarToggler) {
+            sidebarToggler.addEventListener("click", () => {
+                sidebar.classList.toggle("collapsed");
+            });
+        }
+
+        // Quick Create Button and Submenu
+        const createNewBtn = document.getElementById("createNewBtn");
+        const createNewSubMenu = document.getElementById("createNewSubMenu");
+
+        if (createNewBtn && createNewSubMenu) {
+            // Show the submenu on hover
+            createNewBtn.addEventListener("mouseenter", function () {
+                createNewSubMenu.classList.add("show");
+            });
+
+            // Hide the submenu when the mouse leaves the parent list item
+            createNewBtn.parentElement.addEventListener("mouseleave", function () {
+                createNewSubMenu.classList.remove("show");
+            });
+        }
+    });
+
+</script>

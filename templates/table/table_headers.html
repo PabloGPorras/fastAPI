@@ -63,9 +63,7 @@
             {{ key|capitalize }}
 
             <!-- Sorting Button -->
-            <a href="/table/{{ model_name }}?sort_by={{ key }}&sort_order=asc" class="btn btn-link sort-btn">
-                <span id="sort-{{ key }}" class="sort-icon">⬆</span>
-            </a>
+            {% include "table/sort_button.html" %}
 
             <!-- Filter Icon with Active Indicator -->
             {% include "table/filter_button.html" %}
@@ -106,32 +104,6 @@
         }
     }
 
-    // Handle sorting logic
-    function handleSort(event, button) {
-        event.preventDefault();
-        const column = button.dataset.column;
-        const order = button.dataset.order;
-        const rows = Array.from(document.querySelectorAll("#tableBody tr"));
 
-        const isNumeric = rows.some((row) => {
-            const cell = row.querySelector(`.${column}-column`);
-            return cell && !isNaN(parseFloat(cell.textContent));
-        });
-
-        rows.sort((a, b) => {
-            const aValue = a.querySelector(`.${column}-column`).textContent.trim();
-            const bValue = b.querySelector(`.${column}-column`).textContent.trim();
-            return isNumeric
-                ? order === "asc"
-                    ? parseFloat(aValue) - parseFloat(bValue)
-                    : parseFloat(bValue) - parseFloat(aValue)
-                : order === "asc"
-                    ? aValue.localeCompare(bValue)
-                    : bValue.localeCompare(aValue);
-        });
-
-        rows.forEach((row) => document.querySelector("#tableBody").appendChild(row));
-        button.dataset.order = order === "asc" ? "desc" : "asc";
-    }
 
 </script>
