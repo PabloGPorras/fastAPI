@@ -121,7 +121,7 @@
                                     hx-post="/get-create-new-form" hx-target="#createNewModalContainer"
                                     hx-trigger="click" hx-swap="innerHTML"
                                     hx-vals='{"model_name": "{{ model.model_name }}"}'>
-                                    {{ model.name }}
+                                    {{ model.frontend_table_name }}
                                 </button>
                             </li>
                             {% endfor %}

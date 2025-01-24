@@ -46,6 +46,7 @@ def id_method():
 
 class RmsRequest(Base):
     __tablename__ = "request"
+    frontend_table_name = "Requests"
     unique_ref = Column(String, primary_key=True, default=id_method)
     group_id = Column(String, default=id_method, nullable=False)
     request_type = Column(String, nullable=False)
@@ -140,7 +141,7 @@ class RuleRequest(Base):
 
 class RuleConfigRequest(Base):
     __tablename__ = "rule_config_request"
-    frontend_table_name = "Rule Requests"
+    frontend_table_name = "Rule Config Requests"
     unique_ref = Column(String, primary_key=True, default=id_method)
     config_name = Column(String)
     config_id = Column(String)
@@ -164,6 +165,7 @@ class RuleConfigRequest(Base):
 
 class Person(Base):
     __tablename__ = "persons"
+    frontend_table_name = "Person"
     unique_ref = Column(String, primary_key=True, default=id_method)
     name = Column(String,info={"search":True,"required":True,"forms":{"create-new": {"enabled":True},"view-existing":{"enabled":False}}})
     age = Column(Integer,info={"required":True,"forms":{"create-new": {"enabled":True},"view-existing":{"enabled":False}}})
@@ -205,6 +207,7 @@ class UserPreference(Base):
     
 class User(Base):
     __tablename__ = "users"
+    frontend_table_name = "Users"
     user_id = Column(String, primary_key=True, default=id_method, info={"forms":{"create-new": {"enabled":True},"view-existing":{"enabled":False}}})
     user_name = Column(String, nullable=False)
     email_from = Column(String, nullable=False)
