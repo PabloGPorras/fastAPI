@@ -52,7 +52,7 @@ class RmsRequest(Base):
     request_status = Column(String, default="PENDING APPROVAL")
     requester = Column(String, default=os.getlogin().upper())
     request_received_timestamp = Column(DateTime, default=get_current_timestamp())
-    effort = Column(String, nullable=False,info={"options":effort_list,"required":True,"forms":["create-new","view-existing"]})
+    effort = Column(String, nullable=False,info={"options":effort_list,"required":True,"forms":{"create-new": {"enabled":True},"view-existing":{"enabled":False}}})
     approval_timesatmp = Column(DateTime)
     approved = Column(String, default="N")
     approver = Column(String)
@@ -71,11 +71,11 @@ class RmsRequest(Base):
     approval_sent = Column(String, default="N")
     expected_deployment_timestamp = Column(DateTime)
     expected_deployment_timestamp_updated = Column(String, default="N")
-    organization = Column(String, nullable=False,info={"options":organizations_multi_list,"required":True,"forms":["create-new","view-existing"]})
-    sub_organization = Column(String, nullable=False,info={"options":sub_organization_list,"required":True,"forms":["create-new","view-existing"]})
-    line_of_business = Column(String, nullable=False,info={"options":line_of_business_list,"required":True,"forms":["create-new","view-existing"]})
-    team = Column(String, nullable=False,info={"options":team_list,"required":True,"forms":["create-new","view-existing"]})
-    decision_engine = Column(String, nullable=False,info={"options":decision_engine_list,"required":True,"forms":["create-new","view-existing"]})
+    organization = Column(String, nullable=False,info={"options":organizations_multi_list,"required":True,"forms":{"create-new": {"enabled":True},"view-existing":{"enabled":False}}})
+    sub_organization = Column(String, nullable=False,info={"options":sub_organization_list,"required":True,"forms":{"create-new": {"enabled":True},"view-existing":{"enabled":False}}})
+    line_of_business = Column(String, nullable=False,info={"options":line_of_business_list,"required":True,"forms":{"create-new": {"enabled":True},"view-existing":{"enabled":False}}})
+    team = Column(String, nullable=False,info={"options":team_list,"required":True,"forms":{"create-new": {"enabled":True},"view-existing":{"enabled":False}}})
+    decision_engine = Column(String, nullable=False,info={"options":decision_engine_list,"required":True,"forms":{"create-new": {"enabled":True},"view-existing":{"enabled":False}}})
     status = relationship("RmsRequestStatus", back_populates="request", cascade="all, delete-orphan")
     comments = relationship("Comment", back_populates="request", cascade="all, delete-orphan")
     is_request = True
@@ -105,13 +105,13 @@ class RuleRequest(Base):
     __tablename__ = "rule_request"
     frontend_table_name = "Rule Requests"
     unique_ref = Column(String, primary_key=True, default=id_method)
-    rule_name = Column(String, info={"required":True,"forms":["create-new","view-existing"]})
-    rule_id = Column(String, info={"forms":["create-new","view-existing"]})
-    estimation_id = Column(String, info={"required":True,"forms":["check-list"]})
-    governance = Column(String, info={"required":True,"forms":[]})
-    rule_version = Column(Integer, info={"required":True,"forms":["create-new","view-existing"]})
+    rule_name = Column(String,info={"search":True,"required":True,"forms":{"create-new": {"enabled":True},"view-existing":{"enabled":False}}})
+    rule_id = Column(String,info={"required":True,"forms":{"create-new": {"enabled":True},"view-existing":{"enabled":False}}})
+    estimation_id = Column(String, info={"required":True,"forms":{"check-list": {"enabled":True}}})
+    governance = Column(String)
+    rule_version = Column(Integer, info={"required":True,"forms":{"create-new": {"enabled":True},"view-existing":{"enabled":False}}})
     rms_request_id = Column(String, ForeignKey("request.unique_ref"), nullable=False)
-    rms_request = relationship("RmsRequest", backref="rule_requests", info={"form_visibility":  {"create-new": False, "view-existing": False}})
+    rms_request = relationship("RmsRequest", backref="rule_requests")
     is_request = True
     request_menu_category = "SASFM"
     request_status_config = {
@@ -146,7 +146,7 @@ class RuleConfigRequest(Base):
     config_id = Column(String)
     config_version = Column(Integer)
     rms_request_id = Column(String, ForeignKey("request.unique_ref"), nullable=False)
-    rms_request = relationship("RmsRequest", backref="rule_config_request", info={"form_visibility": {"create-new": False, "view-existing": False}})
+    rms_request = relationship("RmsRequest", backref="rule_config_request", info={"forms":{"create-new": {"enabled":True},"view-existing":{"enabled":False}}})
     is_request = True
     request_menu_category = "DMP"
     request_status_config = {
@@ -165,12 +165,11 @@ class RuleConfigRequest(Base):
 class Person(Base):
     __tablename__ = "persons"
     unique_ref = Column(String, primary_key=True, default=id_method)
-    name = Column(String)
-    age = Column(Integer)
-    gender = Column(String, info={"options":["Male","Female","Other","Lizard"],"multi_select":True,"required":True,"forms":["create-new"]})
-    gender_options = ["Male","Female","Other","Lizard"]
+    name = Column(String,info={"search":True,"required":True,"forms":{"create-new": {"enabled":True},"view-existing":{"enabled":False}}})
+    age = Column(Integer,info={"required":True,"forms":{"create-new": {"enabled":True},"view-existing":{"enabled":False}}})
+    gender = Column(String, info={"options":["Male","Female","Other"],"multi_select":True,"required":True,"forms":{"create-new": {"enabled":True},"view-existing":{"enabled":False}}})
     rms_request_id = Column(String, ForeignKey("request.unique_ref"), nullable=False)
-    rms_request = relationship("RmsRequest", backref="persons", info={"form_visibility": {"create-new": False, "view-existing": False}})
+    rms_request = relationship("RmsRequest", backref="persons")
     relatives = relationship("Relative", back_populates="person", cascade="all, delete-orphan", info={"predefined_options": False})
     is_request = True
     request_menu_category = "DMP"
@@ -189,36 +188,11 @@ class Person(Base):
 class Relative(Base):
     __tablename__ = "relatives"
     unique_ref = Column(String, primary_key=True, default=id_method)
-    person_id = Column(String, ForeignKey("persons.unique_ref"), info={"form_visibility": {"create-new": False, "view-existing": False}})
-    name = Column(String)
-    relation_type = Column(String)
-    gender = Column(String)
-    gender_options = ["Male","Female","Other","Lizard"]
-    gender2 = Column(String)
-    gender2_options = ["Male","Female","Other","Lizard"]
-    gender3 = Column(String)
-    gender3_options = ["Male","Female","Other","Lizard"]
-    gender4 = Column(String)
-    gender4_options = ["Male","Female","Other","Lizard"]
-    gender5 = Column(String)
-    gender5_options = ["Male","Female","Other","Lizard"]
-    gender6 = Column(String)
-    gender6_options = ["Male","Female","Other","Lizard"]
-    gender7 = Column(String)
-    gender7_options = ["Male","Female","Other","Lizard"]
-    gender8 = Column(String)
-    gender8_options = ["Male","Female","Other","Lizard"]
-    gender9 = Column(String)
-    gender9_options = ["Male","Female","Other","Lizard"]
-    gender10 = Column(String)
-    gender10_options = ["Male","Female","Other","Lizard"]
-    gender11 = Column(String)
-    gender11_options = ["Male","Female","Other","Lizard"]
-    gender12 = Column(String)
-    gender12_options = ["Male","Female","Other","Lizard"]
-    gender13 = Column(String)
-    gender13_options = ["Male","Female","Other","Lizard"]
-    person = relationship("Person", back_populates="relatives", info={"form_visibility": {"create-new": False}})
+    person_id = Column(String, ForeignKey("persons.unique_ref"))
+    name = Column(String, info={"forms":{"create-new": {"enabled":True},"view-existing":{"enabled":False}}})
+    relation_type = Column(String, info={"forms":{"create-new": {"enabled":True},"view-existing":{"enabled":False}}})
+    gender = Column(String, info={"options":["Male","Female","Other"],"forms":{"create-new": {"enabled":True},"view-existing":{"enabled":False}}})
+    person = relationship("Person", back_populates="relatives")
 
 
 class UserPreference(Base):
@@ -231,12 +205,12 @@ class UserPreference(Base):
     
 class User(Base):
     __tablename__ = "users"
-    user_id = Column(String, primary_key=True, default=id_method, info={"form_visibility": {"create-new": False}})
+    user_id = Column(String, primary_key=True, default=id_method, info={"forms":{"create-new": {"enabled":True},"view-existing":{"enabled":False}}})
     user_name = Column(String, nullable=False)
     email_from = Column(String, nullable=False)
     email_to = Column(String, nullable=False)
     email_cc = Column(String, nullable=False)
-    last_update_timestamp = Column(DateTime, default=get_current_timestamp(), info={"form_visibility": {"create-new": False}})
+    last_update_timestamp = Column(DateTime, default=get_current_timestamp(), info={"forms":{"create-new": {"enabled":True},"view-existing":{"enabled":False}}})
     user_role_expire_timestamp = Column(DateTime, default=get_current_timestamp())
 
     roles = Column(String, nullable=False)

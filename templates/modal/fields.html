@@ -1,46 +1,260 @@
+<!-- Loop through form fields -->
 {% for field in form_fields %}
-<div class="mb-3">
+<div class="mb-3 form-field" data-field-name="{{ field.name }}">
+    {% set has_search = field.search %}
+    {% if has_search %}
+    <br>
+    <div class="d-flex align-items-center gap-2">
+        <input type="text" class="form-control search-box" id="{{ field.name }}-search"
+            list="{{ field.name }}-suggestions" placeholder="Search {{ field.name|capitalize }}..."
+            data-field-id="{{ field.name }}" data-model-name="{{ model_name }}">
+        <datalist id="{{ field.name }}-suggestions"></datalist>
+        <button type="button" class="btn btn-primary search-btn" data-field-id="{{ field.name }}"
+            data-model-name="{{ model_name }}">
+            Search
+        </button>
+        <div class="form-check d-flex align-items-center m-0">
+            <input type="checkbox" class="form-check-input me-1" id="{{ field.name }}-toggle"
+                data-field-id="{{ field.name }}">
+            <label class="form-check-label" for="{{ field.name }}-toggle">Search Mine Only</label>
+        </div>
+
+    </div>
+    {% endif %}
+</div>
+
+{% endfor %}
+
+
+<!-- Loop through form fields -->
+{% for field in form_fields %}
+<div class="mb-3 form-field" data-field-name="{{ field.name }}">
     <label for="{{ field.name }}" class="form-label">{{ field.name|capitalize }}</label>
+    {% set has_search = field.search %}
     {% set is_required = field.required %}
+    {% set is_enabled = field.forms[form_name]['enabled'] if field.forms[form_name] else True %}
+
     {% if field.multi_select %}
-    <!-- Dropdown for predefined multi-options -->
-    <select class="form-select" id="{{ field.name }}" name="{{ field.name }}[]" multiple {% if is_required %}required{% endif %}>
+    <select class="form-select" id="{{ field.name }}" name="{{ field.name }}[]" multiple {% if is_required %}required{%
+        endif %} {% if not is_enabled %}disabled{% endif %}>
         {% for option in field.column_options or [] %}
-        <option value="{{ option }}" {% if item_data[field.name] and option in item_data[field.name] %}selected{% endif %}>
+        <option value="{{ option }}" {% if item_data[field.name] and option in item_data[field.name] %}selected{% endif
+            %}>
             {{ option }}
         </option>
         {% endfor %}
     </select>
     {% elif field.column_options %}
-    <!-- Dropdown for predefined options -->
-    <select class="form-select" id="{{ field.name }}" name="{{ field.name }}" {% if is_required %}required{% endif %}>
+    <select class="form-select" id="{{ field.name }}" name="{{ field.name }}" {% if is_required %}required{% endif %} {%
+        if not is_enabled %}disabled{% endif %}>
         {% for option in field.column_options %}
-        <option value="{{ option }}" {% if item_data[field.name] == option %}selected{% endif %}>
+        <option value="{{ option }}" {% if item_data[field.name]==option %}selected{% endif %}>
             {{ option }}
         </option>
         {% endfor %}
     </select>
     {% elif "INTEGER" in field.type %}
-    <!-- Input for INTEGER -->
-    <input type="number" class="form-control" id="{{ field.name }}" name="{{ field.name }}" value="{{ item_data[field.name] | default('') }}" {% if is_required %}required{% endif %}>
+    <input type="number" class="form-control" id="{{ field.name }}" name="{{ field.name }}"
+        value="{{ item_data[field.name] | default('') }}" {% if is_required %}required{% endif %} {% if not is_enabled
+        %}disabled{% endif %}>
     {% elif "BOOLEAN" in field.type %}
-    <!-- Dropdown for BOOLEAN -->
-    <select class="form-select" id="{{ field.name }}" name="{{ field.name }}" {% if is_required %}required{% endif %}>
-        <option value="true" {% if item_data[field.name] == true %}selected{% endif %}>True</option>
-        <option value="false" {% if item_data[field.name] == false %}selected{% endif %}>False</option>
+    <select class="form-select" id="{{ field.name }}" name="{{ field.name }}" {% if is_required %}required{% endif %} {%
+        if not is_enabled %}disabled{% endif %}>
+        <option value="true" {% if item_data[field.name]==true %}selected{% endif %}>True</option>
+        <option value="false" {% if item_data[field.name]==false %}selected{% endif %}>False</option>
     </select>
-    {% elif "DATE" in field.type and not "DATETIME" in field.type %}
-    <!-- Input for DATE -->
-    <input type="date" class="form-control" id="{{ field.name }}" name="{{ field.name }}" value="{{ item_data[field.name] | default('') }}" {% if is_required %}required{% endif %}>
-    {% elif "TIME" in field.type and not "DATETIME" in field.type %}
-    <!-- Input for TIME -->
-    <input type="time" class="form-control" id="{{ field.name }}" name="{{ field.name }}" value="{{ item_data[field.name] | default('') }}" {% if is_required %}required{% endif %}>
+    {% elif "DATE" in field.type %}
+    <input type="date" class="form-control" id="{{ field.name }}" name="{{ field.name }}"
+        value="{{ item_data[field.name] | default('') }}" {% if is_required %}required{% endif %} {% if not is_enabled
+        %}disabled{% endif %}>
     {% elif "DATETIME" in field.type %}
-    <!-- Input for DATETIME -->
-    <input type="datetime-local" class="form-control" id="{{ field.name }}" name="{{ field.name }}" value="{{ item_data[field.name] | default('') }}" {% if is_required %}required{% endif %}>
+    <input type="datetime-local" class="form-control" id="{{ field.name }}" name="{{ field.name }}"
+        value="{{ item_data[field.name] | default('') }}" {% if is_required %}required{% endif %} {% if not is_enabled
+        %}disabled{% endif %}>
     {% else %}
-    <!-- Textarea for TEXT or STRING -->
-    <textarea class="form-control resizable" id="{{ field.name }}" name="{{ field.name }}" rows="1" {% if is_required %}required{% endif %}>{{ item_data[field.name] | default('') | e }}</textarea>
+    <textarea class="form-control resizable" id="{{ field.name }}" name="{{ field.name }}" rows="1" {% if is_required
+        %}required{% endif %} {% if not is_enabled %}disabled{% endif
+        %}>{{ item_data[field.name] | default('') }}</textarea>
     {% endif %}
 </div>
 {% endfor %}
+
+
+<!-- Now handle relationships with the new structure -->
+{% for relationship in metadata.relationships %}
+<h5>Relationship: {{ relationship.name|capitalize }}</h5>
+{% set nested = relationship.nested_metadata %}
+
+{% if nested.already_visited %}
+<p>Already visited {{ nested.model_name }}...</p>
+{% else %}
+<div class="table-responsive">
+    <table class="table table-bordered" data-relationship="{{ relationship.name }}">
+        <thead>
+            <tr>
+                {% for field in nested.form_fields %}
+                <th class="minwidth-cell">{{ field.name|capitalize }}</th>
+                {% endfor %}
+                <th class="minwidth-cell">Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            <!-- Populate with existing relationship data -->
+            {% for row in relationship_data.get(relationship.name, []) %}
+            <tr>
+                {% for field in nested.form_fields %}
+                <td>{{ row[field.name] }}</td>
+                {% endfor %}
+                <td>
+                    <button type="button" class="btn btn-danger btn-sm remove-row-btn" data-relationship="{{ relationship.name }}">
+                        Remove
+                    </button>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+        <tfoot>
+            <tr>
+                {% for field in nested.form_fields %}
+                {% set is_required = field.required if field else False %}
+                {% set is_enabled = field.forms[form_name]['enabled'] if field and field.forms.get(form_name) else True %}
+                <td>
+                    {% if field.multi_select %}
+                    <select class="form-select add-field-input" data-field="{{ field.name }}" multiple {% if is_required %}required{% endif %} {% if not is_enabled %}disabled{% endif %}>
+                        {% for option in field.column_options %}
+                        <option value="{{ option }}">{{ option }}</option>
+                        {% endfor %}
+                    </select>
+                    {% elif field.column_options %}
+                    <select class="form-select add-field-input" data-field="{{ field.name }}" {% if is_required %}required{% endif %} {% if not is_enabled %}disabled{% endif %}>
+                        <option value="">--Select--</option>
+                        {% for option in field.column_options %}
+                        <option value="{{ option }}">{{ option }}</option>
+                        {% endfor %}
+                    </select>
+                    {% elif "INTEGER" in field.type %}
+                    <input type="number" class="form-control add-field-input" data-field="{{ field.name }}" value="" {% if is_required %}required{% endif %} {% if not is_enabled %}disabled{% endif %}>
+                    {% elif "BOOLEAN" in field.type %}
+                    <select class="form-select add-field-input" data-field="{{ field.name }}" {% if is_required %}required{% endif %} {% if not is_enabled %}disabled{% endif %}>
+                        <option value="">--Select--</option>
+                        <option value="true">True</option>
+                        <option value="false">False</option>
+                    </select>
+                    {% elif "DATE" in field.type %}
+                    <input type="date" class="form-control add-field-input" data-field="{{ field.name }}" value="" {% if is_required %}required{% endif %} {% if not is_enabled %}disabled{% endif %}>
+                    {% elif "DATETIME" in field.type %}
+                    <input type="datetime-local" class="form-control add-field-input" data-field="{{ field.name }}" value="" {% if is_required %}required{% endif %} {% if not is_enabled %}disabled{% endif %}>
+                    {% else %}
+                    <textarea class="form-control resizable add-field-input" rows="1" data-field="{{ field.name }}" {% if is_required %}required{% endif %} {% if not is_enabled %}disabled{% endif %}></textarea>
+                    {% endif %}
+                </td>
+                {% endfor %}
+                <td>
+                    <button type="button" class="btn btn-primary btn-sm add-row-btn" data-relationship="{{ relationship.name }}">
+                        Add
+                    </button>
+                </td>
+            </tr>
+        </tfoot>
+    </table>
+</div>
+{% endif %}
+{% endfor %}
+
+
+
+<script>
+    document.querySelectorAll(".search-btn").forEach((searchButton) => {
+        searchButton.addEventListener("click", async function () {
+            const fieldId = this.dataset.fieldId;
+            const modelName = this.dataset.modelName;
+            const searchValue = document.getElementById(`${fieldId}-search`).value;
+            const searchByUser = document.getElementById(`${fieldId}-toggle`).checked;
+
+            if (searchValue.length < 1) {
+                console.warn("Search value is empty. Please enter a value.");
+                return;
+            }
+
+            try {
+                const url = `/search/${modelName}/${fieldId}?search_value=${encodeURIComponent(searchValue)}${searchByUser ? "&user=true" : ""}`;
+                const response = await fetch(url);
+                if (!response.ok) throw new Error("Error fetching search results");
+
+                const data = await response.json();
+
+                // Populate main form fields
+                if (data.main_data) {
+                    Object.keys(data.main_data).forEach((key) => {
+                        const fieldElement = document.getElementById(key);
+                        if (fieldElement) {
+                            fieldElement.value = data.main_data[key];
+                        }
+                    });
+                }
+
+                // Populate related model fields
+                if (data.related_data) {
+                    Object.keys(data.related_data).forEach((relationshipName) => {
+                        const tableBody = document.querySelector(`table[data-relationship='${relationshipName}'] tbody`);
+                        if (tableBody) {
+                            tableBody.innerHTML = ""; // Clear existing rows
+
+                            data.related_data[relationshipName].forEach((rowData) => {
+                                const row = document.createElement("tr");
+
+                                Object.keys(rowData).forEach((colName) => {
+                                    const cell = document.createElement("td");
+                                    cell.textContent = rowData[colName];
+                                    row.appendChild(cell);
+                                });
+
+                                // Add an "Actions" column if needed
+                                const actionsCell = document.createElement("td");
+                                actionsCell.innerHTML = `<button type="button" class="btn btn-sm btn-danger">Remove</button>`;
+                                row.appendChild(actionsCell);
+
+                                tableBody.appendChild(row);
+                            });
+                        }
+                    });
+                }
+            } catch (error) {
+                console.error("Search error:", error);
+            }
+        });
+    });
+
+
+    document.querySelectorAll(".search-box").forEach((searchBox) => {
+        searchBox.addEventListener("input", async function () {
+            const fieldId = this.dataset.fieldId;
+            const modelName = this.dataset.modelName;
+            const query = this.value;
+
+            if (query.length < 1) return; // Skip empty input
+
+            try {
+                const url = `/suggestions/${modelName}/${fieldId}?query=${encodeURIComponent(query)}`;
+                const response = await fetch(url);
+                if (!response.ok) throw new Error("Error fetching suggestions");
+
+                const data = await response.json();
+
+                // Populate datalist with suggestions
+                const datalist = document.getElementById(`${fieldId}-suggestions`);
+                datalist.innerHTML = ""; // Clear previous suggestions
+
+                if (data.suggestions) {
+                    data.suggestions.forEach((suggestion) => {
+                        const option = document.createElement("option");
+                        option.value = suggestion;
+                        datalist.appendChild(option);
+                    });
+                }
+            } catch (error) {
+                console.error("Error fetching suggestions:", error);
+            }
+        });
+    });
+</script>

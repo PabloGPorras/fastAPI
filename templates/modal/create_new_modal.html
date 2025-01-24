@@ -26,7 +26,7 @@
                             hx-swap="none" hx-on="htmx:afterRequest:window.location.reload()">
                             <!-- Predefined Fields for "is_request" Models -->
                             {% include "modal/form_fields.html" %}
-                            <input type="hidden" id="relationshipsInput" name="relationships" value="">
+                            <input type="hidden" id="relationshipsInput" name="relationships">
 
                             <div class="modal-footer">
                                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
@@ -41,72 +41,90 @@
     </div>
 </div>
 
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <!-- Include your JS (Bootstrap, jQuery, or vanilla) -->
 <script>
-    // A global object to store relationship rows in memory
-    let relationshipsData = {};
-  
-    // Existing logic: add a row to the <tbody> each time user clicks ".add-row-btn"
-    document.body.addEventListener("click", (event) => {
-      if (event.target.matches(".add-row-btn")) {
-        const relationshipName = event.target.dataset.relationship;
-        const table = event.target.closest("table");
-        const tbody = table.querySelector("tbody");
-  
-        // Grab each input in the same row
-        const rowInputs = table.querySelectorAll(".add-field-input");
-        const rowData = {};
-  
-        rowInputs.forEach(input => {
-          const fieldName = input.dataset.field;
-          rowData[fieldName] = input.value;
-        });
-  
-        // --- 1) Render a new row in the table (your existing code) ---
-        const newRow = document.createElement("tr");
-        for (const [colName, val] of Object.entries(rowData)) {
-          const td = document.createElement("td");
-          td.textContent = val;
-          newRow.appendChild(td);
-        }
-  
-        // Actions cell
-        const actionsTd = document.createElement("td");
-        actionsTd.innerHTML = `
-          <button type="button" class="btn btn-danger btn-sm remove-row-btn">
-            Remove
-          </button>
-        `;
-        newRow.appendChild(actionsTd);
-  
-        // Append to tbody
-        tbody.appendChild(newRow);
-  
-        // Clear inputs
-        rowInputs.forEach(i => (i.value = ""));
-  
-        // --- 2) Also store rowData in relationshipsData ---
-        if (!relationshipsData[relationshipName]) {
-          relationshipsData[relationshipName] = [];
-        }
-        relationshipsData[relationshipName].push(rowData);
+  // A global object to store relationship rows in memory
+  let relationshipsData = {};
+
+  // Function to update the hidden input with serialized relationshipsData
+  function updateRelationshipsInput() {
+    const relationshipsInput = document.getElementById("relationshipsInput");
+    relationshipsInput.value = JSON.stringify(relationshipsData);
+    console.log("Updated relationshipsInput:", relationshipsInput.value);
+  }
+
+  // Add a row to the <tbody> each time the user clicks ".add-row-btn"
+  document.body.addEventListener("click", (event) => {
+    if (event.target.matches(".add-row-btn")) {
+      const relationshipName = event.target.dataset.relationship;
+      const table = event.target.closest("table");
+      const tbody = table.querySelector("tbody");
+
+      // Grab each input in the same row
+      const rowInputs = table.querySelectorAll(".add-field-input");
+      const rowData = {};
+
+      rowInputs.forEach((input) => {
+        const fieldName = input.dataset.field;
+        rowData[fieldName] = input.value;
+      });
+
+      // Validate that all fields have values (optional)
+      const isValid = Object.values(rowData).every((value) => value.trim() !== "");
+      if (!isValid) {
+        alert("Please fill in all fields before adding a row.");
+        return;
       }
-  
-      if (event.target.matches(".remove-row-btn")) {
-        event.target.closest("tr").remove();
-        // (Optional) If you want to remove it from relationshipsData as well,
-        // you'd need a way to find which rowData this "Remove" corresponds to.
-        // e.g. storing an index or UUID in the row’s dataset, then removing from relationshipsData array.
+
+      // --- Render a new row in the table ---
+      const newRow = document.createElement("tr");
+      for (const [colName, val] of Object.entries(rowData)) {
+        const td = document.createElement("td");
+        td.textContent = val;
+        newRow.appendChild(td);
       }
-    });
-  
-    // Before the form is submitted (HTMX will do this on "submit"),
-    // copy relationshipsData into a hidden <input> so the server can parse it.
-    const form = document.getElementById("detailsForm2");
-    form.addEventListener("submit", function() {
-      const relationshipsInput = document.getElementById("relationshipsInput");
-      relationshipsInput.value = JSON.stringify(relationshipsData);
-    });
-  </script>
-  
+
+      // Actions cell
+      const actionsTd = document.createElement("td");
+      actionsTd.innerHTML = `
+        <button type="button" class="btn btn-danger btn-sm remove-row-btn" data-relationship="${relationshipName}">
+          Remove
+        </button>
+      `;
+      newRow.appendChild(actionsTd);
+
+      // Append to tbody
+      tbody.appendChild(newRow);
+
+      // Clear inputs
+      rowInputs.forEach((i) => (i.value = ""));
+
+      // --- Update relationshipsData ---
+      if (!relationshipsData[relationshipName]) {
+        relationshipsData[relationshipName] = [];
+      }
+      relationshipsData[relationshipName].push(rowData);
+
+      // Update the hidden input
+      updateRelationshipsInput();
+    }
+
+    // Remove a row when ".remove-row-btn" is clicked
+    if (event.target.matches(".remove-row-btn")) {
+      const relationshipName = event.target.dataset.relationship;
+      const row = event.target.closest("tr");
+      const rowIndex = Array.from(row.parentElement.children).indexOf(row);
+
+      // Remove from relationshipsData
+      if (relationshipsData[relationshipName]) {
+        relationshipsData[relationshipName].splice(rowIndex, 1);
+      }
+
+      // Remove from the DOM
+      row.remove();
+
+      // Update the hidden input
+      updateRelationshipsInput();
+    }
+  });
+</script>

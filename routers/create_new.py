@@ -16,6 +16,8 @@ async def create_new(model_name: str, request: Request, user: User = Depends(get
     Creates a new entry for the specified model, including relationship data.
     """
     raw_data = await request.form()
+    logger.debug(f"[create_new] Raw form data: {raw_data}")
+
     data = {}
 
     # --- 1) Aggregate multi-option fields ---

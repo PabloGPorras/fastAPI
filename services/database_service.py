@@ -156,13 +156,15 @@ class DatabaseService:
             if isinstance(cls, DeclarativeMeta):  # Ensure it's a valid SQLAlchemy model
                 is_request = getattr(cls, "is_request", False)
                 request_menu_category = getattr(cls, "request_menu_category", "")
+                frontend_table_name = getattr(cls, "frontend_table_name", "")
                 
                 models_with_metadata.append({
                     "name": cls.__tablename__.replace("_", " ").capitalize(),
                     "url": f"/{cls.__tablename__}",
                     "model_name": cls.__tablename__,
                     "is_request": is_request,
-                    "request_menu_category": request_menu_category
+                    "request_menu_category": request_menu_category,
+                    "frontend_table_name": frontend_table_name
                 })
         return models_with_metadata
 
@@ -217,6 +219,7 @@ class DatabaseService:
             "predefined_options": {},
             "is_request": getattr(model, "is_request", False),
             "request_menu_category": getattr(model, "request_menu_category", None),
+            "frontend_table_name": getattr(model, "frontend_table_name", None),
             "request_status_config": getattr(model, "request_status_config", None),
             "checklist_fields": [],  # New attribute for check-list fields
         }
@@ -230,16 +233,23 @@ class DatabaseService:
                 "model_name": model.__name__,
             }
 
-            # Extract options and multi-select from column.info
+            # Extract additional metadata from column.info
             column_info["column_options"] = column.info.get("options") if hasattr(column, "info") else None
             column_info["multi_select"] = column.info.get("multi_select", False) if hasattr(column, "info") else False
             column_info["required"] = column.info.get("required", False) if hasattr(column, "info") else False
+            column_info["search"] = column.info.get("search", False) if hasattr(column, "info") else False
+
+            # Check for "forms" key and its nested "enabled" property
+            forms_info = column.info.get("forms", {}) if hasattr(column, "info") else {}
+            column_info["forms"] = {
+                form: {"enabled": form_data.get("enabled", False)} for form, form_data in forms_info.items()
+            }
+
             # Respect the "forms" key in column.info
-            allowed_forms = column.info.get("forms", []) if hasattr(column, "info") else []
-            if form_name and form_name in allowed_forms:
+            if form_name and form_name in forms_info:
                 metadata["form_fields"].append(column_info)
 
-            # add it to columns
+            # Add to columns
             metadata["columns"].append(column_info)
 
         # 4) One-to-Many Relationships + Recursion
@@ -266,6 +276,7 @@ class DatabaseService:
                     metadata["relationships"].append(relationship_info)
 
         return metadata
+
 
 
 

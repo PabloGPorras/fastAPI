@@ -49,6 +49,23 @@ async def get_view_existing_form(request: Request, unique_ref: str = Form(...), 
             "unique_ref": unique_ref,
         })
 
+        # Fetch relationship data
+        relationships_data = {}
+        for relationship in inspect(model).relationships:
+            relationship_name = relationship.key
+
+            # Skip relationships to RmsRequest if necessary
+            if relationship.mapper.class_ == RmsRequest:
+                continue
+
+            related_records = getattr(item, relationship_name, [])
+            relationships_data[relationship_name] = [
+                {col.name: getattr(record, col.name, "") for col in relationship.mapper.class_.__table__.columns}
+                for record in related_records
+            ]
+
+        logger.debug(f"Fetched relationships data: {relationships_data}")
+
         # Fetch comments
         comments = session.query(Comment).filter(Comment.unique_ref == unique_ref).all()
         serialized_comments = [
@@ -87,6 +104,7 @@ async def get_view_existing_form(request: Request, unique_ref: str = Form(...), 
                 "metadata": metadata,
                 "form_fields": metadata.get("form_fields", []),
                 "relationships": metadata["relationships"],
+                "relationship_data": relationships_data,  # Pass relationship data to the template
                 "predefined_options": metadata["predefined_options"],
                 "is_request": metadata["is_request"],
                 "item_data": item_data,
@@ -104,3 +122,4 @@ async def get_view_existing_form(request: Request, unique_ref: str = Form(...), 
         raise HTTPException(500, "Internal Server Error")
     finally:
         session.close()
+

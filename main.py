@@ -17,6 +17,7 @@ from routers.table import router as table_router
 from routers.update_row import router as update_row_router
 from routers.update_checklist import router as update_checklist_router
 from routers.user_preferences import router as user_preferences_router
+from routers.search_request import router as search_request_router
 
 app = FastAPI()
 app.add_middleware(
@@ -28,6 +29,7 @@ app.add_middleware(
 )
 
 # Register routers
+app.include_router(search_request_router)
 app.include_router(update_checklist_router)
 app.include_router(user_preferences_router)
 app.include_router(bulk_import_router)

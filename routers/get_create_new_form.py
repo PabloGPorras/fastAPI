@@ -1,5 +1,6 @@
 from fastapi import APIRouter, Form, HTTPException, Request
 from fastapi.responses import HTMLResponse
+from sqlalchemy import inspect
 from core.templates import templates
 from services.database_service import DatabaseService
 from example_model import RmsRequest
@@ -58,6 +59,9 @@ async def get_details(
             for field in ["organization", "sub_organization", "line_of_business", "team", "decision_engine"]:
                 item_data[field] = getattr(recent_request, field, "")
 
+
+        logger.debug(f"Fetched relationships data: {relationships}")
+        
         # 5) Provide context for the template
         context = {
             "request": request,
@@ -70,6 +74,7 @@ async def get_details(
             "predefined_options": predefined_options,
             "is_request": is_request,
             "item_data": item_data,
+            "relationship_data": {}
         }
 
         return templates.TemplateResponse("modal/create_new_modal.html", context)
