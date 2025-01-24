@@ -33,6 +33,8 @@
       }
 </style>
 
+<!-- Header Fields Org,Sub Org, Etc. -->
+
 {% if is_request %}
 <div class="row g-3">
     {% set request_fields = {
@@ -62,8 +64,8 @@
 </div>
 {% endif %}
 
-
-
+<!-- Auto Search Fields -->
+{% include "modal/field_search.html" %}
 <!-- Auto Generate Model Fields -->
 {% include "modal/fields.html" %}
 

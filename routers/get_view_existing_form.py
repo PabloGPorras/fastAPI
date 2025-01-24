@@ -114,6 +114,7 @@ async def get_view_existing_form(request: Request, unique_ref: str = Form(...), 
                 "unique_ref": unique_ref,
                 "user": user,
                 "check_list": check_list,
+                "form_name": 'view-existing'
             },
         )
     except Exception as e:

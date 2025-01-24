@@ -74,7 +74,9 @@ async def get_details(
             "predefined_options": predefined_options,
             "is_request": is_request,
             "item_data": item_data,
-            "relationship_data": {}
+            "relationship_data": {},
+            "form_name": 'create-new'
+
         }
 
         return templates.TemplateResponse("modal/create_new_modal.html", context)

@@ -1,0 +1,123 @@
+<!-- Loop through form fields -->
+{% if form_name== 'create-new' %}
+{% for field in form_fields %}
+<div class="mb-3 form-field" data-field-name="{{ field.name }}">
+    {% set has_search = field.search %}
+    {% if has_search %}
+    <br>
+    <div class="d-flex align-items-center gap-2">
+        <input type="text" class="form-control search-box" id="{{ field.name }}-search"
+            list="{{ field.name }}-suggestions" placeholder="Search {{ field.name|capitalize }}..."
+            data-field-id="{{ field.name }}" data-model-name="{{ model_name }}">
+        <datalist id="{{ field.name }}-suggestions"></datalist>
+        <button type="button" class="btn btn-primary search-btn" data-field-id="{{ field.name }}"
+            data-model-name="{{ model_name }}">
+            Search
+        </button>
+        <div class="form-check d-flex align-items-center m-0">
+            <input type="checkbox" class="form-check-input me-1" id="{{ field.name }}-toggle"
+                data-field-id="{{ field.name }}">
+            <label class="form-check-label" for="{{ field.name }}-toggle">Search Mine Only</label>
+        </div>
+
+    </div>
+    {% endif %}
+</div>
+{% endfor %}
+{% endif %}
+
+<script>
+    document.querySelectorAll(".search-btn").forEach((searchButton) => {
+        searchButton.addEventListener("click", async function () {
+            const fieldId = this.dataset.fieldId;
+            const modelName = this.dataset.modelName;
+            const searchValue = document.getElementById(`${fieldId}-search`).value;
+            const searchByUser = document.getElementById(`${fieldId}-toggle`).checked;
+
+            if (searchValue.length < 1) {
+                console.warn("Search value is empty. Please enter a value.");
+                return;
+            }
+
+            try {
+                const url = `/search/${modelName}/${fieldId}?search_value=${encodeURIComponent(searchValue)}${searchByUser ? "&user=true" : ""}`;
+                const response = await fetch(url);
+                if (!response.ok) throw new Error("Error fetching search results");
+
+                const data = await response.json();
+
+                // Populate main form fields
+                if (data.main_data) {
+                    Object.keys(data.main_data).forEach((key) => {
+                        const fieldElement = document.getElementById(key);
+                        if (fieldElement) {
+                            fieldElement.value = data.main_data[key];
+                        }
+                    });
+                }
+
+                // Populate related model fields
+                if (data.related_data) {
+                    Object.keys(data.related_data).forEach((relationshipName) => {
+                        const tableBody = document.querySelector(`table[data-relationship='${relationshipName}'] tbody`);
+                        if (tableBody) {
+                            tableBody.innerHTML = ""; // Clear existing rows
+
+                            data.related_data[relationshipName].forEach((rowData) => {
+                                const row = document.createElement("tr");
+
+                                Object.keys(rowData).forEach((colName) => {
+                                    const cell = document.createElement("td");
+                                    cell.textContent = rowData[colName];
+                                    row.appendChild(cell);
+                                });
+
+                                // Add an "Actions" column if needed
+                                const actionsCell = document.createElement("td");
+                                actionsCell.innerHTML = `<button type="button" class="btn btn-sm btn-danger">Remove</button>`;
+                                row.appendChild(actionsCell);
+
+                                tableBody.appendChild(row);
+                            });
+                        }
+                    });
+                }
+            } catch (error) {
+                console.error("Search error:", error);
+            }
+        });
+    });
+
+
+    document.querySelectorAll(".search-box").forEach((searchBox) => {
+        searchBox.addEventListener("input", async function () {
+            const fieldId = this.dataset.fieldId;
+            const modelName = this.dataset.modelName;
+            const query = this.value;
+
+            if (query.length < 1) return; // Skip empty input
+
+            try {
+                const url = `/suggestions/${modelName}/${fieldId}?query=${encodeURIComponent(query)}`;
+                const response = await fetch(url);
+                if (!response.ok) throw new Error("Error fetching suggestions");
+
+                const data = await response.json();
+
+                // Populate datalist with suggestions
+                const datalist = document.getElementById(`${fieldId}-suggestions`);
+                datalist.innerHTML = ""; // Clear previous suggestions
+
+                if (data.suggestions) {
+                    data.suggestions.forEach((suggestion) => {
+                        const option = document.createElement("option");
+                        option.value = suggestion;
+                        datalist.appendChild(option);
+                    });
+                }
+            } catch (error) {
+                console.error("Error fetching suggestions:", error);
+            }
+        });
+    });
+</script>

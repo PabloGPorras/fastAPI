@@ -186,6 +186,7 @@ class Person(Base):
         "COMPLETED": {"Roles": ["IMPL_Specialist"], "Next": [], "Status_Type":[]},  
         "USER REJECTED": {"Roles": ["FS_Analyst"], "Next": [], "Status_Type":["APPROVAL"]},  
     }
+
     
 class Relative(Base):
     __tablename__ = "relatives"
