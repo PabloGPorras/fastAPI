@@ -1,11 +1,18 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Depends, HTTPException
+from core.get_db_session import get_db_session
 from services.database_service import DatabaseService
-from database import logger,SessionLocal
+from database import logger
+from sqlalchemy.orm import Session
 
 router = APIRouter()
 
 @router.post("/update-row/{model_name}/{row_id}")
-async def update_row(model_name: str, row_id: int, data: dict):
+async def update_row(
+        model_name: str, 
+        row_id: int, 
+        data: dict,
+        session: Session = Depends(get_db_session),  # Injected session dependency
+        ):
     """
     Update a row dynamically based on model name.
     :param model_name: The name of the table/model to update.
@@ -13,7 +20,6 @@ async def update_row(model_name: str, row_id: int, data: dict):
     :param data: The data to update, including relationships.
     """
     logger.info(f"Received request to update row in model '{model_name}' with ID {row_id}. Data: {data}")
-    session = SessionLocal()
 
     try:
         # Get the model class based on the provided model name

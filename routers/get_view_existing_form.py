@@ -1,18 +1,23 @@
 from fastapi import APIRouter, Depends, Form, HTTPException, Request
 from fastapi.responses import HTMLResponse
 from sqlalchemy import inspect
+from core.get_db_session import get_db_session
 from get_current_user import get_current_user
-from routers.comments import fetch_and_serialize_comments
 from services.database_service import DatabaseService
 from example_model import Comment, RmsRequest, RmsRequestStatus, User
 from core.templates import templates
-from database import logger, SessionLocal
+from database import logger
+from sqlalchemy.orm import Session
 
 router = APIRouter()
 
 @router.post("/get-view-existing-form", response_class=HTMLResponse)
-async def get_view_existing_form(request: Request, unique_ref: str = Form(...), user: User = Depends(get_current_user)):
-    session = SessionLocal()
+async def get_view_existing_form(
+    request: Request, 
+    unique_ref: str = Form(...), 
+    user: User = Depends(get_current_user),
+    session: Session = Depends(get_db_session),  # Injected session dependency
+    ):
     try:
         logger.debug(f"Fetching details for unique_ref: {unique_ref}")
 

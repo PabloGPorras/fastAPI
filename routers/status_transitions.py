@@ -6,7 +6,7 @@ from fastapi.responses import HTMLResponse
 from services.database_service import DatabaseService
 from example_model import RmsRequest, User
 from get_current_user import get_current_user
-from database import logger,SessionLocal
+from database import logger
 
 router = APIRouter()
 

@@ -2,12 +2,14 @@ import json
 from typing import Dict, Optional
 from fastapi import APIRouter, Depends, HTTPException, Query, Request, Response
 from pydantic import BaseModel
+from core.get_db_session import get_db_session
 from core.templates import templates
 from services.database_service import DatabaseService
 from example_model import RmsRequest, User, UserPreference
 from get_current_user import get_current_user
 from database import logger,SessionLocal
 from fastapi import status
+from sqlalchemy.orm import Session
 
 router = APIRouter()
 
@@ -20,6 +22,7 @@ async def get_table(
     user: User = Depends(get_current_user),
     sort_by: Optional[str] = Query(None),
     sort_order: Optional[str] = Query("asc"),
+    session: Session = Depends(get_db_session),  # Injected session dependency
 ):
 
     # Parse filters correctly
@@ -29,8 +32,6 @@ async def get_table(
         if key.startswith("filters[") and key.endswith("]")
     }
     
-    session = SessionLocal()
-
     # Restrict access for certain models
     is_admin = "Admin" in user.roles
     ADMIN_MODELS = {"users"}
@@ -47,9 +48,11 @@ async def get_table(
     try:
         # Dynamically fetch models where `is_request = True`
         all_models = DatabaseService.get_all_models()
+        
+        logger.info(f"Generating bulk import template for model: {model_name}")
 
         # Resolve the model dynamically
-        model = DatabaseService.get_model_by_tablename(model_name)
+        model = DatabaseService.get_model_by_tablename(model_name.lower())
         if not model:
             logger.warning(f"Model '{model_name}' not found.")
             raise HTTPException(status_code=404, detail=f"Model not found: {model_name}")

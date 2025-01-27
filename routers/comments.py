@@ -1,18 +1,23 @@
 from datetime import datetime
 from fastapi import APIRouter, Depends, Form, HTTPException
 from fastapi.responses import HTMLResponse
+from core.get_db_session import get_db_session
 from core.current_timestamp import get_current_timestamp
 from example_model import Comment, RmsRequest, RmsRequestStatus, User
 from core.templates import templates
 from get_current_user import get_current_user
 from database import logger,SessionLocal
+from sqlalchemy.orm import Session
 
 router = APIRouter()
 
 
 from fastapi import Request  # Import Request for context
 
-def fetch_and_serialize_comments(session, unique_ref):
+def fetch_and_serialize_comments(
+        unique_ref: str,
+        session: Session = Depends(get_db_session),  # Injected session dependency
+    ):
     """
     Fetch and serialize comments for a given unique_ref.
 
@@ -40,8 +45,8 @@ async def add_comment(
     unique_ref: str,
     comment_text: str = Form(...),
     user: User = Depends(get_current_user),
+    session: Session = Depends(get_db_session),  # Injected session dependency
 ):
-    session = SessionLocal()
     logger.debug(f"Starting add_comment endpoint for unique_ref: {unique_ref}")
     try:
         # Log user information
@@ -93,14 +98,16 @@ async def add_comment(
 
 
 @router.get("/requests/{unique_ref}/comments")
-async def get_comments(unique_ref: str):
+async def get_comments(
+    unique_ref: str,
+    session: Session = Depends(get_db_session),  # Injected session dependency
+    ):
     """
     Fetch all comments for a specific RmsRequest identified by unique_ref.
     """
-    session = SessionLocal()
     try:
         logger.debug(f"Fetching comments for unique_ref: {unique_ref}")
-        serialized_comments = fetch_and_serialize_comments(session, unique_ref)
+        serialized_comments = fetch_and_serialize_comments(unique_ref,session)
         logger.debug(f"Fetched and serialized comments: {serialized_comments}")
         return serialized_comments
     except Exception as e:

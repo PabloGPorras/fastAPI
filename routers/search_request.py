@@ -1,10 +1,12 @@
 from typing import Optional
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy import inspect
+from core.get_db_session import get_db_session
 from example_model import RmsRequest, User
 from get_current_user import get_current_user
-from database import SessionLocal,logger
+from database import logger
 from services.database_service import DatabaseService
+from sqlalchemy.orm import Session
 
 router = APIRouter()
 
@@ -14,13 +16,14 @@ async def search_field(
     field_name: str,
     search_value: str = Query(..., min_length=1),
     user: Optional[User] = Depends(get_current_user),  # User object is optional
+    session: Session = Depends(get_db_session),  # Injected session dependency
+
 ):
     """
     Search for the last matching request for a specific field value in the resolved model.
     Populate related models if applicable.
     """
     try:
-        session = SessionLocal()
 
         logger.info(f"Search initiated: model={model_name}, field={field_name}, value={search_value}")
         if user:
@@ -90,13 +93,13 @@ async def get_suggestions(
     field_name: str,
     query: str = Query(..., min_length=1),
     limit: int = Query(10),  # Limit the number of suggestions returned
+    session: Session = Depends(get_db_session),  # Injected session dependency
+
 ):
     """
     Provide autocomplete suggestions for a given field and model.
     """
     try:
-        session = SessionLocal()
-
         logger.info(f"Fetching suggestions for model '{model_name}', field '{field_name}', query '{query}'")
 
         # Resolve the underlying model

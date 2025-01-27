@@ -3,33 +3,30 @@ import random
 from time import strftime
 from sqlalchemy import Column, Integer, String,ForeignKey, func
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import relationship
 from sqlalchemy.orm import validates
 from sqlalchemy import Column, Integer, String, ForeignKey, Text, DateTime
 from sqlalchemy.orm import relationship
 from datetime import datetime
-
+from sqlalchemy.ext.declarative import as_declarative, declared_attr
 from core.current_timestamp import get_current_timestamp
+from env import ENVIRONMENT
 
-Base = declarative_base()
+@as_declarative()
+class Base:
+    @declared_attr
+    def __tablename__(cls):
+        # Automatically prefix the table name with the environment
+        return f"{ENVIRONMENT}_{cls.__name__.lower()}"
 
-# Models
+
+# Utility to create dynamic table names
+def get_table_name(base_name: str) -> str:
+    return f"{ENVIRONMENT}_{base_name}".lower()
+
 def id_method():
     unique_ref = str(os.getlogin()).upper() + "-" + strftime("%Y%m%d%H%M%S") + str(random.randint(10000, 99999))
     return unique_ref
         
-# Models
-import os
-import random
-from time import strftime
-import uuid
-from sqlalchemy import Boolean, Column, String, ForeignKey, Table, create_engine
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import sessionmaker, relationship
-from sqlalchemy import Text, DateTime
-from datetime import datetime
-
-Base = declarative_base()
 organizations_multi_list = ["FRM"]
 sub_organization_list = ["FRAP", "ATO", "Transactional"]
 line_of_business_list = ["CREDIT", "DEBIT", "DEPOSIT"]
@@ -37,15 +34,9 @@ team_list = ["IMPL", "CPT", "CNP", "ATO","FPF"]
 decision_engine_list = ["SASFM", "DMP"]
 effort_list = ["BAU", "QUICK", "Other"]
 
-# Helper function for generating unique IDs
-def id_method():
-    unique_ref = str(os.getlogin()).upper() + "-" + strftime("%Y%m%d%H%M%S") + str(random.randint(10000, 99999))
-    return unique_ref
-
 # Models
-
 class RmsRequest(Base):
-    __tablename__ = "request"
+    __tablename__ = get_table_name("requests")
     frontend_table_name = "Requests"
     unique_ref = Column(String, primary_key=True, default=id_method)
     group_id = Column(String, default=id_method, nullable=False)
@@ -53,7 +44,7 @@ class RmsRequest(Base):
     request_status = Column(String, default="PENDING APPROVAL")
     requester = Column(String, default=os.getlogin().upper())
     request_received_timestamp = Column(DateTime, default=get_current_timestamp())
-    effort = Column(String, nullable=False,info={"options":effort_list,"required":True,"forms":{"create-new": {"enabled":True},"view-existing":{"enabled":False}}})
+    effort = Column(String, nullable=False, info={"options": effort_list, "required": True})
     approval_timesatmp = Column(DateTime)
     approved = Column(String, default="N")
     approver = Column(String)
@@ -71,13 +62,17 @@ class RmsRequest(Base):
     email_sent = Column(String, default="N")
     approval_sent = Column(String, default="N")
     expected_deployment_timestamp = Column(DateTime)
-    expected_deployment_timestamp_updated = Column(String, default="N")
-    organization = Column(String, nullable=False,info={"options":organizations_multi_list,"required":True,"forms":{"create-new": {"enabled":True},"view-existing":{"enabled":False}}})
-    sub_organization = Column(String, nullable=False,info={"options":sub_organization_list,"required":True,"forms":{"create-new": {"enabled":True},"view-existing":{"enabled":False}}})
-    line_of_business = Column(String, nullable=False,info={"options":line_of_business_list,"required":True,"forms":{"create-new": {"enabled":True},"view-existing":{"enabled":False}}})
-    team = Column(String, nullable=False,info={"options":team_list,"required":True,"forms":{"create-new": {"enabled":True},"view-existing":{"enabled":False}}})
-    decision_engine = Column(String, nullable=False,info={"options":decision_engine_list,"required":True,"forms":{"create-new": {"enabled":True},"view-existing":{"enabled":False}}})
-    status = relationship("RmsRequestStatus", back_populates="request", cascade="all, delete-orphan")
+    organization = Column(String, nullable=False, info={"options": organizations_multi_list, "required": True})
+    sub_organization = Column(String, nullable=False, info={"options": sub_organization_list, "required": True})
+    line_of_business = Column(String, nullable=False, info={"options": line_of_business_list, "required": True})
+    team = Column(String, nullable=False, info={"options": team_list, "required": True})
+    decision_engine = Column(String, nullable=False, info={"options": decision_engine_list, "required": True})
+    status = relationship(
+        "RmsRequestStatus",
+        back_populates="request",
+        cascade="all, delete-orphan",
+        primaryjoin="RmsRequest.unique_ref == RmsRequestStatus.unique_ref",
+    )
     comments = relationship("Comment", back_populates="request", cascade="all, delete-orphan")
     is_request = True
     request_status_config = {}
@@ -85,7 +80,11 @@ class RmsRequest(Base):
 class Comment(Base):
     __tablename__ = "comments"
     comment_id = Column(String, primary_key=True, default=id_method)
-    unique_ref = Column(String, ForeignKey("request.unique_ref", ondelete="CASCADE"), nullable=False)
+    unique_ref = Column(
+        String,
+        ForeignKey(f"{get_table_name('requests')}.unique_ref", ondelete="CASCADE"),
+        nullable=False,
+    )
     comment = Column(Text, nullable=False)
     user_name = Column(String(50), nullable=False)
     comment_timestamp = Column(DateTime, default=get_current_timestamp(), nullable=False)
@@ -94,7 +93,11 @@ class Comment(Base):
 class RmsRequestStatus(Base):
     __tablename__ = "request_status"
     status_id = Column(String, primary_key=True, default=id_method)
-    unique_ref = Column(String, ForeignKey("request.unique_ref", ondelete="CASCADE"), nullable=False)
+    unique_ref = Column(
+        String,
+        ForeignKey(f"{get_table_name('requests')}.unique_ref", ondelete="CASCADE"),
+        nullable=False,
+    )
     status = Column(String, nullable=False)
     user_name = Column(String(50), default=os.getlogin().upper())
     timestamp = Column(DateTime, default=get_current_timestamp(), nullable=False)
@@ -111,7 +114,7 @@ class RuleRequest(Base):
     estimation_id = Column(String, info={"required":True,"forms":{"check-list": {"enabled":True}}})
     governance = Column(String)
     rule_version = Column(Integer, info={"required":True,"forms":{"create-new": {"enabled":True},"view-existing":{"enabled":False}}})
-    rms_request_id = Column(String, ForeignKey("request.unique_ref"), nullable=False)
+    rms_request_id = Column(String, ForeignKey(f"{get_table_name('requests')}.unique_ref"), nullable=False)
     rms_request = relationship("RmsRequest", backref="rule_requests")
     is_request = True
     request_menu_category = "SASFM"
@@ -146,7 +149,7 @@ class RuleConfigRequest(Base):
     config_name = Column(String)
     config_id = Column(String)
     config_version = Column(Integer)
-    rms_request_id = Column(String, ForeignKey("request.unique_ref"), nullable=False)
+    rms_request_id = Column(String, ForeignKey(f"{get_table_name('requests')}.unique_ref"), nullable=False)
     rms_request = relationship("RmsRequest", backref="rule_config_request", info={"forms":{"create-new": {"enabled":True},"view-existing":{"enabled":False}}})
     is_request = True
     request_menu_category = "DMP"
@@ -170,7 +173,7 @@ class Person(Base):
     name = Column(String,info={"search":True,"required":True,"forms":{"create-new": {"enabled":True},"view-existing":{"enabled":False}}})
     age = Column(Integer,info={"required":True,"forms":{"create-new": {"enabled":True},"view-existing":{"enabled":False}}})
     gender = Column(String, info={"options":["Male","Female","Other"],"multi_select":True,"required":True,"forms":{"create-new": {"enabled":True},"view-existing":{"enabled":False}}})
-    rms_request_id = Column(String, ForeignKey("request.unique_ref"), nullable=False)
+    rms_request_id = Column(String, ForeignKey(f"{get_table_name('requests')}.unique_ref"), nullable=False)
     rms_request = relationship("RmsRequest", backref="persons")
     relatives = relationship("Relative", back_populates="person", cascade="all, delete-orphan", info={"predefined_options": False})
     is_request = True

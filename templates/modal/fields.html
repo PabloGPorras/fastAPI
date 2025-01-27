@@ -142,3 +142,20 @@
 </div>
 {% endif %}
 {% endfor %}
+<script>
+    document.addEventListener("htmx:configRequest", function (event) {
+        const form = event.detail.elt.closest("form");
+        if (form) {
+            // Find all multi-select fields in the form
+            const multiSelectFields = form.querySelectorAll("select[multiple]");
+            multiSelectFields.forEach((select) => {
+                const name = select.name.replace("[]", ""); // Remove the "[]" for the name
+                const selectedValues = Array.from(select.selectedOptions).map(option => option.value);
+                if (selectedValues.length > 0) {
+                    // Add CSV to the request parameters
+                    event.detail.parameters[name] = selectedValues.join(",");
+                }
+            });
+        }
+    });
+</script>

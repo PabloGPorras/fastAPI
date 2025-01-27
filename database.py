@@ -24,6 +24,8 @@ logging.basicConfig(
 
 logger = logging.getLogger(__name__)
 
+
+
 # Create a new user
 def insert_user():
     session: Session = SessionLocal()

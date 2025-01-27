@@ -1,19 +1,23 @@
 import csv
 import io
-from fastapi import APIRouter, HTTPException, Query, Response
+from fastapi import APIRouter, Depends, HTTPException, Query, Response
 from sqlalchemy import inspect
+from core.get_db_session import get_db_session
 from services.database_service import DatabaseService
 from database import logger
-from database import SessionLocal
+from sqlalchemy.orm import Session
 
 router = APIRouter()
 
 @router.get("/bulk-import-template")
-async def download_template(model_name: str = Query(...)):
+async def download_template(
+    model_name: str = Query(...),
+    session: Session = Depends(get_db_session),  # Injected session dependency
+    ):
     logger.info(f"Generating bulk import template for model: {model_name}")
     
     # Resolve the model dynamically
-    model = DatabaseService.get_model_by_tablename(model_name)
+    model = DatabaseService.get_model_by_tablename(model_name.lower())
     if not model:
         logger.warning(f"Model '{model_name}' not found.")
         raise HTTPException(status_code=404, detail=f"Model '{model_name}' not found.")

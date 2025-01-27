@@ -2,11 +2,12 @@ from datetime import datetime
 import logging
 from typing import List
 from fastapi import APIRouter, Depends, Form, HTTPException
+from core.get_db_session import get_db_session
 from core.current_timestamp import get_current_timestamp
 from get_current_user import get_current_user
 from services.database_service import DatabaseService
 from example_model import RmsRequest, RmsRequestStatus, User
-from database import SessionLocal
+from sqlalchemy.orm import Session
 
 router = APIRouter()
 
@@ -16,8 +17,8 @@ def bulk_update_status(
     request_type: str = Form(...),  # Request type
     next_status: str = Form(...),  # Status to update to
     user: User = Depends(get_current_user),  # Authenticated user
+    session: Session = Depends(get_db_session),  # Injected session dependency
 ):
-    session = SessionLocal()
     logger = logging.getLogger("bulk_update_status")
     try:
         logger.info("Bulk status update request received.")

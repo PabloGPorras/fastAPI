@@ -2,10 +2,12 @@ import csv
 import io
 from fastapi import APIRouter, Depends, Form, HTTPException, UploadFile
 from sqlalchemy import inspect
+from core.get_db_session import get_db_session
 from get_current_user import get_current_user
 from services.database_service import DatabaseService
 from example_model import RmsRequest, RmsRequestStatus, User, id_method
-from database import logger, SessionLocal
+from database import logger
+from sqlalchemy.orm import Session
 
 router = APIRouter()
 
@@ -14,6 +16,8 @@ async def bulk_import(
     file: UploadFile,
     model_name: str = Form(...),
     user: User = Depends(get_current_user),
+    session: Session = Depends(get_db_session),  # Injected session dependency
+
 ):
     logger.info(f"Received bulk import request for model: {model_name}. File name: {file.filename}")
 
@@ -40,7 +44,6 @@ async def bulk_import(
         raise HTTPException(status_code=400, detail="Invalid CSV file format.")
 
     # Get expected headers for validation
-    session = SessionLocal()
     try:
         metadata = DatabaseService.gather_model_metadata(
             model, session=session, form_name="create-new"

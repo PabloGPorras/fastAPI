@@ -2,16 +2,23 @@ from datetime import datetime
 import json
 from fastapi import APIRouter, Depends, HTTPException, Request
 from sqlalchemy import inspect
+from core.get_db_session import get_db_session
 from core.current_timestamp import get_current_timestamp
 from services.database_service import DatabaseService
 from example_model import RmsRequest, RmsRequestStatus, User, id_method
 from get_current_user import get_current_user
-from database import logger, SessionLocal
+from database import logger
+from sqlalchemy.orm import Session
 
 router = APIRouter()
 
 @router.post("/create-new/{model_name}")
-async def create_new(model_name: str, request: Request, user: User = Depends(get_current_user)):
+async def create_new(
+        model_name: str,
+        request: Request,
+        user: User = Depends(get_current_user),
+        session: Session = Depends(get_db_session),  # Injected session dependency
+    ):
     """
     Creates a new entry for the specified model, including relationship data.
     """
@@ -22,12 +29,13 @@ async def create_new(model_name: str, request: Request, user: User = Depends(get
 
     # --- 1) Aggregate multi-option fields ---
     for key in raw_data.keys():
+        # Use getlist to handle multi-select fields
         values = raw_data.getlist(key)
         if len(values) > 1:
-            data[key] = ",".join(values)
+            data[key] = ",".join(values)  # Join values into a CSV string
         else:
             data[key] = values[0] if values else None
-
+            
     logger.info(f"[create_new] Received request to create a new entry for model: '{model_name}'")
     logger.debug(f"[create_new] Raw form data after multi-option handling: {data}")
 
@@ -42,7 +50,6 @@ async def create_new(model_name: str, request: Request, user: User = Depends(get
 
     logger.debug(f"[create_new] Parsed relationships_data (dict): {relationships_data}")
 
-    session = SessionLocal()
     try:
         # --- 3) Resolve the main model ---
         logger.debug(f"[create_new] Attempting to find model by tablename '{model_name}'")

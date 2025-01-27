@@ -1,18 +1,8 @@
-from fastapi import APIRouter, Depends, HTTPException, Form, Request
-from sqlalchemy.orm import Session
-from typing import List
-from database import SessionLocal
-from example_model import RmsRequest
-import json
-from services.database_service import DatabaseService
-
-router = APIRouter()
-
 from fastapi import APIRouter, Depends, HTTPException, Request
 from sqlalchemy.orm import Session
-from database import SessionLocal
-from example_model import RuleRequest  # Import your models
+from core.get_db_session import get_db_session
 import json
+from services.database_service import DatabaseService
 
 router = APIRouter()
 
@@ -20,8 +10,8 @@ router = APIRouter()
 async def update_checklist(
     model_name: str,  # Name of the model to use
     request: Request,  # Use Request to process dynamic form data
+    session: Session = Depends(get_db_session),  # Injected session dependency
 ):
-    session = SessionLocal()
     try:
         # Resolve the model dynamically from the model_name
         model = DatabaseService.get_model_by_tablename(model_name)

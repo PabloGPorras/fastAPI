@@ -1,15 +1,16 @@
-from datetime import datetime, timedelta
+from datetime import timedelta
 import json
 import os
-from fastapi import HTTPException
+from fastapi import Depends, HTTPException
 from sqlalchemy import and_
+from core.get_db_session import get_db_session
 from core.current_timestamp import get_current_timestamp
 from example_model import User, UserPreference, id_method
-from database import logger,SessionLocal
+from database import logger
+from sqlalchemy.orm import Session
 
 
-def get_current_user():
-    session = SessionLocal()
+def get_current_user(session: Session = Depends(get_db_session)) -> User:
     logger.debug("get_current_user is being called.")
     
     try:
@@ -76,7 +77,38 @@ DEFAULT_USER_PREFERENCES = {
         "team": [],
         "decision_engine": [],
     },  # Will be saved as JSON
-    "visible_columns": ["rule_name", "rule_id", "rule_version"],  
+    "hidden_columns": [
+        "unique_ref",
+        "group_id",
+        "request_type",
+        # "request_status",
+        # "requester",
+        "request_received_timestamp",
+        # "effort",
+        "approval_timesatmp",
+        # "approved",
+        # "approver",
+        # "governed_timestamp",
+        # "governed_by",
+        # "governed",
+        # "deployment_request_timestamp",
+        # "deployment_timestamp",
+        # "deployed",
+        # "tool_version",
+        # "checked_out_by",
+        # "email_from",
+        # "email_to",
+        # "email_cc",
+        # "email_sent",
+        # "approval_sent",
+        # "expected_deployment_timestamp",
+        # "expected_deployment_timestamp_updated",
+        "organization",
+        "sub_organization",
+        "line_of_business",
+        "team",
+        "decision_engine",
+    ],  
     "theme": "dark",  # Saved as a string
     "notifications_enabled": True,  # Saved as a boolean
 }

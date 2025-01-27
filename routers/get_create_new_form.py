@@ -1,11 +1,13 @@
-from fastapi import APIRouter, Form, HTTPException, Request
+from fastapi import APIRouter, Depends, Form, HTTPException, Request
 from fastapi.responses import HTMLResponse
 from sqlalchemy import inspect
+from core.get_db_session import get_db_session
 from core.templates import templates
 from services.database_service import DatabaseService
-from example_model import RmsRequest
+from example_model import RmsRequest, User
 from get_current_user import get_current_user
 from database import logger, SessionLocal
+from sqlalchemy.orm import Session
 
 router = APIRouter()
 
@@ -13,9 +15,10 @@ router = APIRouter()
 async def get_details(
     request: Request,
     model_name: str = Form(...),  # The name of the model to fetch details for
+    user: User = Depends(get_current_user),  # Injected current user
+    session: Session = Depends(get_db_session),  # Injected session dependency
 ):
     try:
-        session = SessionLocal()
 
         # 1) Fetch the model
         logger.debug(f"Fetching details for model: {model_name}")
@@ -45,10 +48,9 @@ async def get_details(
             item_data[rel["name"]] = []
 
         # Fetch the user's most recent RmsRequest
-        current_user = get_current_user()
         recent_request = (
             session.query(RmsRequest)
-            .filter(RmsRequest.requester == current_user.user_name)
+            .filter(RmsRequest.requester == user.user_name)
             .order_by(RmsRequest.request_received_timestamp.desc())
             .first()
         )
