@@ -2,7 +2,7 @@
 <script src="https://unpkg.com/htmx.org"></script>
 <div class="btn-group">
     <!-- Primary Action Button -->
-    {% if model_name != "request"%}
+    {% if model_name != RmsRequest.__tablename__%}
         <button class="btn btn-success btn-sm"
         hx-post="/get-create-new-form"
         hx-target="#createNewModalContainer"
@@ -27,7 +27,7 @@
     </button>
     <ul class="dropdown-menu">
         
-        {% if model_name != "request"%}
+        {% if model_name != RmsRequest.__tablename__%}
         <li>
             <button class="dropdown-item">
                 Referesh
@@ -43,7 +43,7 @@
         </li>
 
         <!-- Bulk Import Upload -->
-        {% if model_name != "request"%}
+        {% if model_name != RmsRequest.__tablename__%}
         <li>
             <button class="dropdown-item" data-bs-toggle="modal" data-bs-target="#uploadBulkModal"
                 data-model-name="{{ model_name }}">

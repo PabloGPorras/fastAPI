@@ -78,7 +78,7 @@ class RmsRequest(Base):
     request_status_config = {}
     
 class Comment(Base):
-    __tablename__ = "comments"
+    __tablename__ = get_table_name("comments")
     comment_id = Column(String, primary_key=True, default=id_method)
     unique_ref = Column(
         String,
@@ -91,7 +91,7 @@ class Comment(Base):
     request = relationship("RmsRequest", back_populates="comments")
     
 class RmsRequestStatus(Base):
-    __tablename__ = "request_status"
+    __tablename__ = get_table_name("request_status")
     status_id = Column(String, primary_key=True, default=id_method)
     unique_ref = Column(
         String,
@@ -106,7 +106,7 @@ class RmsRequestStatus(Base):
 
 
 class RuleRequest(Base):
-    __tablename__ = "rule_request"
+    __tablename__ = get_table_name("rule_request")
     frontend_table_name = "Rule Requests"
     unique_ref = Column(String, primary_key=True, default=id_method)
     rule_name = Column(String,info={"search":True,"required":True,"forms":{"create-new": {"enabled":True},"view-existing":{"enabled":False}}})
@@ -143,7 +143,7 @@ class RuleRequest(Base):
 
 
 class RuleConfigRequest(Base):
-    __tablename__ = "rule_config_request"
+    __tablename__ = get_table_name("rule_config_request")
     frontend_table_name = "Rule Config Requests"
     unique_ref = Column(String, primary_key=True, default=id_method)
     config_name = Column(String)
@@ -167,12 +167,12 @@ class RuleConfigRequest(Base):
 
 
 class Person(Base):
-    __tablename__ = "persons"
+    __tablename__ = get_table_name("persons")
     frontend_table_name = "Person"
     unique_ref = Column(String, primary_key=True, default=id_method)
-    name = Column(String,info={"search":True,"required":True,"forms":{"create-new": {"enabled":True},"view-existing":{"enabled":False}}})
-    age = Column(Integer,info={"required":True,"forms":{"create-new": {"enabled":True},"view-existing":{"enabled":False}}})
-    gender = Column(String, info={"options":["Male","Female","Other"],"multi_select":True,"required":True,"forms":{"create-new": {"enabled":True},"view-existing":{"enabled":False}}})
+    name = Column(String, info={"search": True, "required": True, "forms": {"create-new": {"enabled": True}, "view-existing": {"enabled": False}}})
+    age = Column(Integer, info={"required": True, "forms": {"create-new": {"enabled": True}, "view-existing": {"enabled": False}}})
+    gender = Column(String, info={"options": ["Male", "Female", "Other"], "multi_select": True, "required": True, "forms": {"create-new": {"enabled": True}, "view-existing": {"enabled": False}}})
     rms_request_id = Column(String, ForeignKey(f"{get_table_name('requests')}.unique_ref"), nullable=False)
     rms_request = relationship("RmsRequest", backref="persons")
     relatives = relationship("Relative", back_populates="person", cascade="all, delete-orphan", info={"predefined_options": False})
@@ -192,17 +192,21 @@ class Person(Base):
 
     
 class Relative(Base):
-    __tablename__ = "relatives"
+    __tablename__ = get_table_name("relatives")
     unique_ref = Column(String, primary_key=True, default=id_method)
-    person_id = Column(String, ForeignKey("persons.unique_ref"))
-    name = Column(String, info={"forms":{"create-new": {"enabled":True},"view-existing":{"enabled":False}}})
-    relation_type = Column(String, info={"forms":{"create-new": {"enabled":True},"view-existing":{"enabled":False}}})
-    gender = Column(String, info={"options":["Male","Female","Other"],"forms":{"create-new": {"enabled":True},"view-existing":{"enabled":False}}})
+    person_id = Column(
+        String, 
+        ForeignKey(f"{get_table_name('persons')}.unique_ref")  # Use dynamic table name
+    )
+    name = Column(String, info={"forms": {"create-new": {"enabled": True}, "view-existing": {"enabled": False}}})
+    relation_type = Column(String, info={"forms": {"create-new": {"enabled": True}, "view-existing": {"enabled": False}}})
+    gender = Column(String, info={"options": ["Male", "Female", "Other"], "forms": {"create-new": {"enabled": True}, "view-existing": {"enabled": False}}})
     person = relationship("Person", back_populates="relatives")
 
 
+
 class UserPreference(Base):
-    __tablename__ = "user_preferences"
+    __tablename__ = get_table_name("user_preferences")
     id = Column(String, primary_key=True, default=id_method)
     user_id = Column(Integer)
     preference_key = Column(String(100))
@@ -210,7 +214,7 @@ class UserPreference(Base):
     last_updated = Column(DateTime, server_default=func.now(), onupdate=func.now())
     
 class User(Base):
-    __tablename__ = "users"
+    __tablename__ = get_table_name("users")
     frontend_table_name = "Users"
     user_id = Column(String, primary_key=True, default=id_method, info={"forms":{"create-new": {"enabled":True},"view-existing":{"enabled":False}}})
     user_name = Column(String, nullable=False)

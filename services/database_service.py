@@ -58,8 +58,11 @@ class DatabaseService:
                 RmsRequestStatus.status,
                 subquery.c.latest_timestamp,
             )
-            .join(subquery, (RmsRequestStatus.unique_ref == subquery.c.unique_ref) &
-                (RmsRequestStatus.timestamp == subquery.c.latest_timestamp))
+            .join(
+                subquery,
+                (RmsRequestStatus.unique_ref == subquery.c.unique_ref)
+                & (RmsRequestStatus.timestamp == subquery.c.latest_timestamp),
+            )
             .subquery()
         )
 
@@ -68,22 +71,40 @@ class DatabaseService:
 
         # Fetch data based on conditions
         if model_name == RmsRequest.__tablename__:
+            # Query for RmsRequest directly
             query = session.query(
                 latest_status_query.c.status,
                 *rms_request_columns,
-            ).join(latest_status_query, RmsRequest.unique_ref == latest_status_query.c.unique_ref)
-
+            ).join(
+                latest_status_query,
+                RmsRequest.unique_ref == latest_status_query.c.unique_ref,
+            )
             all_columns = [latest_status_query.c.status] + rms_request_columns
         elif is_request:
-            query = session.query(
-                latest_status_query.c.status,
-                *model_columns,
-                *rms_request_columns,
-            ).join(RmsRequest, model.rms_request_id == RmsRequest.unique_ref)\
-                .join(latest_status_query, RmsRequest.unique_ref == latest_status_query.c.unique_ref)
-
-            all_columns = [latest_status_query.c.status] + model_columns + rms_request_columns
+            # Determine the join condition dynamically
+            join_condition = getattr(model, "rms_request_id", None)
+            if join_condition:
+                query = session.query(
+                    latest_status_query.c.status,
+                    *model_columns,
+                    *rms_request_columns,
+                ).join(
+                    RmsRequest, model.rms_request_id == RmsRequest.unique_ref
+                ).join(
+                    latest_status_query, RmsRequest.unique_ref == latest_status_query.c.unique_ref
+                )
+                all_columns = [latest_status_query.c.status] + model_columns + rms_request_columns
+            else:
+                # Handle models without an explicit `rms_request_id` attribute
+                query = session.query(
+                    latest_status_query.c.status,
+                    *model_columns,
+                ).join(
+                    latest_status_query, model.unique_ref == latest_status_query.c.unique_ref
+                )
+                all_columns = [latest_status_query.c.status] + model_columns
         else:
+            # Query unrelated models
             query = session.query(*model_columns)
             all_columns = model_columns
 
@@ -94,7 +115,7 @@ class DatabaseService:
                 if column_attr is None:
                     logger.warning(f"Filter column '{column}' not found in model '{model_name}'.")
                     continue
-                
+
                 # Dynamically determine the operator based on column type
                 try:
                     column_type = str(column_attr.type)
@@ -111,10 +132,7 @@ class DatabaseService:
             if sort_column is None:
                 logger.warning(f"Sort column '{sort_by}' not found in model '{model_name}'.")
             else:
-                if sort_order == "desc":
-                    query = query.order_by(sort_column.desc())
-                else:
-                    query = query.order_by(sort_column.asc())
+                query = query.order_by(sort_column.desc() if sort_order == "desc" else sort_column.asc())
 
         rows = query.all()
 
@@ -125,6 +143,7 @@ class DatabaseService:
         ]
 
         return row_dicts
+
 
 
 
@@ -279,22 +298,14 @@ class DatabaseService:
         return metadata
 
 
-
-
-    
     @staticmethod
     def get_model_by_tablename(table_name: str):
-        """
-        Fetches the model class associated with a given table name,
-        including the environment prefix.
-        """
-        from example_model import Base  # Import your declarative base
-        prefixed_table_name = f"{ENVIRONMENT}_{table_name}"  # Add the prefix
-        logger.debug(f"Looking up model for table name: {prefixed_table_name}")
+        from example_model import Base
+        logger.debug(f"Looking up model for table name: {table_name}")
         for cls in Base.__subclasses__():
             logger.debug(f"Checking model: {cls.__name__} with table name: {cls.__tablename__}")
-            if cls.__tablename__.lower() == prefixed_table_name.lower():
-                logger.debug(f"Model found: {cls.__name__}")
+            if cls.__tablename__ == table_name.lower():
+                logger.info(f"Model found: {cls.__name__}")
                 return cls
-        logger.warning(f"No model found for table name: {prefixed_table_name}")
+        logger.warning(f"No model found for table name: {table_name}")
         return None

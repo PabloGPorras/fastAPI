@@ -115,7 +115,7 @@
                     <li class="mb-3">
                         <strong class="text-muted">{{ category if category else "" }}</strong>
                         <ul class="list-unstyled ms-3">
-                            {% for model in models if model.is_request and model.name != "Request" %}
+                            {% for model in models if model.is_request and model.model_name != RmsRequest.__tablename__ %}
                             <li class="mb-2">
                                 <button class="btn btn-link nav-link text-dark create-item"
                                     hx-post="/get-create-new-form" hx-target="#createNewModalContainer"
