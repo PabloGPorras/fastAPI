@@ -83,20 +83,21 @@
             --link-hover-bg-color: #333333;
             --menu-bg-color: #2b2b2b;
         }
-
-
     </style>
     <script src="https://unpkg.com/htmx.org"></script>
 
 </head>
 
 <body>
+
+
     <div class="d-flex">
         {% include "sidebar_nav.html" %}
 
         <!-- Main Content -->
         <div class="flex-grow-1">
             <div class="p-3">
+
                 {% block content %}{% endblock %}
             </div>
         </div>
@@ -132,6 +133,8 @@
             const tableBtn = document.getElementById("tableBtn");
 
         });
+
+
 
     </script>
 </body>

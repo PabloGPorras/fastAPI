@@ -255,6 +255,7 @@ class DatabaseService:
 
             # Extract additional metadata from column.info
             column_info["column_options"] = column.info.get("options") if hasattr(column, "info") else None
+            column_info["length"] = column.info.get("length", None) if hasattr(column, "info") else None
             column_info["multi_select"] = column.info.get("multi_select", False) if hasattr(column, "info") else False
             column_info["required"] = column.info.get("required", False) if hasattr(column, "info") else False
             column_info["search"] = column.info.get("search", False) if hasattr(column, "info") else False

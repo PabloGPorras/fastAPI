@@ -1,5 +1,4 @@
-from fastapi import FastAPI
-from fastapi.staticfiles import StaticFiles
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 # Import routers
 from routers.bulk_import import router as bulk_import_router
@@ -16,6 +15,7 @@ from routers.update_row import router as update_row_router
 from routers.update_checklist import router as update_checklist_router
 from routers.user_preferences import router as user_preferences_router
 from routers.search_request import router as search_request_router
+from routers.notifications import router as notification_router
 
 app = FastAPI()
 app.add_middleware(
@@ -28,6 +28,7 @@ app.add_middleware(
 
 # Register routers
 app.include_router(search_request_router)
+app.include_router(notification_router)
 app.include_router(update_checklist_router)
 app.include_router(user_preferences_router)
 app.include_router(bulk_import_router)
@@ -41,18 +42,3 @@ app.include_router(get_create_new_form_router)
 app.include_router(status_transitions_router)
 app.include_router(table_router)
 app.include_router(update_row_router)
-
-# Static files for CSS/JS
-app.mount("/static", StaticFiles(directory="static"), name="static")
-
-MODEL_PERMISSIONS = {
-    "users": "admin",
-    "roles": "admin",
-    "organizations": "admin",
-    "sub_organizations": "admin",
-    "line_of_business": "admin",
-    "applications": "admin",
-    "requests": "user",  # Example: Regular users can access 'requests'
-}
-
-

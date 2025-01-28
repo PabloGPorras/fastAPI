@@ -109,7 +109,7 @@ class RuleRequest(Base):
     __tablename__ = get_table_name("rule_request")
     frontend_table_name = "Rule Requests"
     unique_ref = Column(String, primary_key=True, default=id_method)
-    rule_name = Column(String,info={"search":True,"required":True,"forms":{"create-new": {"enabled":True},"view-existing":{"enabled":False}}})
+    rule_name = Column(String,info={"length": 5, "search":True,"required":True,"forms":{"create-new": {"enabled":True},"view-existing":{"enabled":False}}})
     rule_id = Column(String,info={"required":True,"forms":{"create-new": {"enabled":True},"view-existing":{"enabled":False}}})
     estimation_id = Column(String, info={"required":True,"forms":{"check-list": {"enabled":True}}})
     governance = Column(String)
@@ -140,7 +140,34 @@ class RuleRequest(Base):
         ]
     }
 
+    # Validation methods using @validates
+    @validates("rule_name")
+    def validate_rule_name(self, key, value):
+        if not value or not value.strip():
+            raise ValueError("Rule name cannot be empty.")
+        if len(value) > 255:
+            raise ValueError("Rule name cannot exceed 255 characters.")
+        return value
 
+    @validates("rule_id")
+    def validate_rule_id(self, key, value):
+        if not value or not value.strip():
+            raise ValueError("Rule ID cannot be empty.")
+        if len(value) > 100:
+            raise ValueError("Rule ID cannot exceed 100 characters.")
+        return value
+
+    @validates("rule_version")
+    def validate_rule_version(self, key, value):
+        if value is None or int(value) <= 0:
+            raise ValueError("Rule version must be a positive integer.")
+        return value
+
+    @validates("estimation_id")
+    def validate_estimation_id(self, key, value):
+        if not value or not value.strip():
+            raise ValueError("Estimation ID cannot be empty.")
+        return value
 
 class RuleConfigRequest(Base):
     __tablename__ = get_table_name("rule_config_request")

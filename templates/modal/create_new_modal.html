@@ -1,48 +1,99 @@
 <div class="modal fade" id="createNewModal" tabindex="-1" aria-labelledby="createNewModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-lg">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="createNewModalLabel">Request Details</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <!-- Tabs Navigation -->
-                <ul class="nav nav-tabs mb-3" id="createDetailsTabPane" role="tablist">
-                    <li class="nav-item" role="presentation">
-                        <button class="nav-link active" id="details-tab2" data-bs-toggle="tab"
-                            data-bs-target="#details-tab-pane" type="button" role="tab" aria-controls="details-tab-pane"
-                            aria-selected="true">
-                            Details
-                        </button>
-                    </li>
-                </ul>
+  <div class="modal-dialog modal-lg">
 
-                <!-- Tab Content -->
-                <div class="tab-content">
-                    <!-- Details Tab -->
-                    <div class="tab-pane fade show active" id="details-tab-pane2" role="tabpanel"
-                        aria-labelledby="details-tab">
-                        <form id="detailsForm2" hx-post="/create-new/{{ model_name }}" hx-trigger="submit"
-                            hx-swap="none" hx-on="htmx:afterRequest:window.location.reload()">
-                            <!-- Predefined Fields for "is_request" Models -->
-                            {% include "modal/form_fields.html" %}
-                            <input type="hidden" id="relationshipsInput" name="relationships">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="createNewModalLabel">Request Details</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <!-- Error message container -->
+        <div id="error-container" class="alert alert-danger" style="display: none;"></div>
+        <div id="success-container" class="alert alert-success" style="display: none; margin-top: 20px;"></div>
 
-                            <div class="modal-footer">
-                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                                <button type="submit" class="btn btn-primary">Save</button>
-                            </div>
-                        </form>
-                    </div>
+        <!-- Tabs Navigation -->
+        <ul class="nav nav-tabs mb-3" id="createDetailsTabPane" role="tablist">
+          <li class="nav-item" role="presentation">
+            <button class="nav-link active" id="details-tab2" data-bs-toggle="tab" data-bs-target="#details-tab-pane"
+              type="button" role="tab" aria-controls="details-tab-pane" aria-selected="true">
+              Details
+            </button>
+          </li>
+        </ul>
 
-                </div>
-            </div>
+        <!-- Tab Content -->
+        <div class="tab-content">
+          <!-- Details Tab -->
+          <div class="tab-pane fade show active" id="details-tab-pane2" role="tabpanel" aria-labelledby="details-tab">
+            <form id="detailsForm2" hx-post="/create-new/{{ model_name }}" hx-trigger="submit" hx-swap="none">
+              <!-- Predefined Fields for "is_request" Models -->
+              {% include "modal/form_fields.html" %}
+              <input type="hidden" id="relationshipsInput" name="relationships">
+
+              <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="submit" class="btn btn-primary">Save</button>
+              </div>
+            </form>
+          </div>
+
         </div>
+      </div>
     </div>
+  </div>
 </div>
 
 <!-- Include your JS (Bootstrap, jQuery, or vanilla) -->
 <script>
+  document.addEventListener("htmx:responseError", function (event) {
+    console.log("HTMX response error event triggered.");
+
+    const errorContainer = document.getElementById("error-container");
+
+    // Log the error container status
+    if (!errorContainer) {
+      console.log("Error container not found in the DOM.");
+      return;
+    }
+
+    console.log("Error container found. Attempting to display error.");
+
+    // Log the event details and the response
+    console.log("Event details:", event);
+    console.log("XHR response:", event.detail.xhr);
+
+    const errorMessage = event.detail.xhr.responseText || "An unexpected error occurred.";
+    console.log("Error message to display:", errorMessage);
+
+    // Update the error container
+    errorContainer.textContent = errorMessage;
+    errorContainer.style.display = "block";
+
+    console.log("Error message displayed successfully.");
+  });
+
+  document.addEventListener("htmx:afterOnLoad", function (event) {
+    const successContainer = document.getElementById("success-container");
+    const errorContainer = document.getElementById("error-container");
+
+    if (event.detail.xhr.status >= 200 && event.detail.xhr.status < 300) {
+      // Clear prior error messages
+      if (errorContainer) errorContainer.style.display = "none";
+
+      // Update and show success message
+      if (successContainer) {
+        const successMessage = "Request completed successfully!";
+        successContainer.textContent = successMessage;
+        successContainer.style.display = "block";
+
+        // Optionally hide the success message after a delay
+        setTimeout(() => {
+          window.location.reload();
+        }, 500); // Refresh after 2 seconds
+      }
+    }
+  });
+
   // A global object to store relationship rows in memory
   let relationshipsData = {};
 
