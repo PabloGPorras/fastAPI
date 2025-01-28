@@ -80,13 +80,19 @@
         </button>
     </div>
     <ul class="nav flex-column w-100">
+        <!-- Home Menu -->
+        {% for model in all_models %}
         <li class="nav-item">
-            <a href="/table/request" class="nav-link text-dark">
+            {% if model.frontend_table_name == "Requests" %}
+            <a href="/table{{ model.url }}" class="nav-link text-dark">
                 <i class="fas fa-home"></i>
-                <span>Home</span>
+                <span>{{ model.frontend_table_name }}</span>
             </a>
+            {% endif %}
         </li>
-        <!-- Admin Button with Sub-side Menu -->
+        {% endfor %}
+
+        <!-- Admin Menu -->
         {% if is_admin %}
         <li class="nav-item position-relative">
             <a href="#" class="nav-link text-dark" id="adminBtn">
@@ -95,9 +101,13 @@
             </a>
             <div class="sub-side-menu" id="adminSubMenu">
                 <ul class="list-unstyled m-0 p-2">
+                    {% for model in all_models %}
                     <li class="mb-2">
-                        <a href="/table/users" class="nav-link text-dark">Users</a>
+                        {% if model.frontend_table_name == "Users" %}
+                        <a href="/table{{ model.url }}" class="nav-link text-dark">{{ model.frontend_table_name }}</a>
+                         {% endif %}
                     </li>
+                    {% endfor %}
                 </ul>
             </div>
         </li>
