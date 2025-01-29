@@ -1,63 +1,64 @@
 <!-- Loop through form fields -->
 {% for field in form_fields %}
-<div class="mb-3 form-field" data-field-name="{{ field.name }}">
-    <label for="{{ field.name }}" class="form-label">{{ field.name|capitalize }}</label>
+    {% set display_name = field.field_name if field.field_name else field.name %}
+<div class="mb-3 form-field" data-field-name="{{ display_name }}">
+    <label for="{{ display_name }}" class="form-label">{{ display_name|capitalize }}</label>
     {% set has_search = field.search %}
     {% set is_required = field.required %}
     {% set is_enabled = field.forms[form_name]['enabled'] %}
     {% set max_length = field.length %}
 
     {% if field.multi_select %}
-    <select class="form-select" id="{{ field.name }}" name="{{ field.name }}[]" multiple 
+    <select class="form-select" id="{{ display_name }}" name="{{ display_name }}[]" multiple 
         {% if is_required %}required{% endif %} 
         {% if not is_enabled %}disabled{% endif %}>
         {% for option in field.column_options or [] %}
-        <option value="{{ option }}" {% if item_data[field.name] and option in item_data[field.name] %}selected{% endif %}>
+        <option value="{{ option }}" {% if item_data[display_name] and option in item_data[display_name] %}selected{% endif %}>
             {{ option }}
         </option>
         {% endfor %}
     </select>
     {% elif field.column_options %}
-    <select class="form-select" id="{{ field.name }}" name="{{ field.name }}" 
+    <select class="form-select" id="{{ display_name }}" name="{{ display_name }}" 
         {% if is_required %}required{% endif %} 
         {% if not is_enabled %}disabled{% endif %}>
         {% for option in field.column_options %}
-        <option value="{{ option }}" {% if item_data[field.name] == option %}selected{% endif %}>
+        <option value="{{ option }}" {% if item_data[display_name] == option %}selected{% endif %}>
             {{ option }}
         </option>
         {% endfor %}
     </select>
     {% elif "INTEGER" in field.type %}
-    <input type="number" class="form-control" id="{{ field.name }}" name="{{ field.name }}" 
-        value="{{ item_data[field.name] | default('') }}" 
+    <input type="number" class="form-control" id="{{ display_name }}" name="{{ display_name }}" 
+        value="{{ item_data[display_name] | default('') }}" 
         {% if is_required %}required{% endif %} 
         {% if not is_enabled %}disabled{% endif %} 
         {% if max_length %}max="{{ max_length }}"{% endif %}>
     {% elif "BOOLEAN" in field.type %}
-    <select class="form-select" id="{{ field.name }}" name="{{ field.name }}" 
+    <select class="form-select" id="{{ display_name }}" name="{{ display_name }}" 
         {% if is_required %}required{% endif %} 
         {% if not is_enabled %}disabled{% endif %}>
-        <option value="true" {% if item_data[field.name] == true %}selected{% endif %}>True</option>
-        <option value="false" {% if item_data[field.name] == false %}selected{% endif %}>False</option>
+        <option value="true" {% if item_data[display_name] == true %}selected{% endif %}>True</option>
+        <option value="false" {% if item_data[display_name] == false %}selected{% endif %}>False</option>
     </select>
     {% elif "DATE" in field.type %}
-    <input type="date" class="form-control" id="{{ field.name }}" name="{{ field.name }}" 
-        value="{{ item_data[field.name] | default('') }}" 
+    <input type="date" class="form-control" id="{{ display_name }}" name="{{ display_name }}" 
+        value="{{ item_data[display_name] | default('') }}" 
         {% if is_required %}required{% endif %} 
         {% if not is_enabled %}disabled{% endif %}>
     {% elif "DATETIME" in field.type %}
-    <input type="datetime-local" class="form-control" id="{{ field.name }}" name="{{ field.name }}" 
-        value="{{ item_data[field.name] | default('') }}" 
+    <input type="datetime-local" class="form-control" id="{{ display_name }}" name="{{ display_name }}" 
+        value="{{ item_data[display_name] | default('') }}" 
         {% if is_required %}required{% endif %} 
         {% if not is_enabled %}disabled{% endif %}>
     {% else %}
     <textarea class="form-control resizable"
-    id="{{ field.name }}"
-    name="{{ field.name }}"
+    id="{{ display_name }}"
+    name="{{ display_name }}"
     rows="1"
     {% if is_required %}required{% endif %}
     {% if not is_enabled %}disabled{% endif %}
-    {% if max_length %}maxlength="{{ max_length }}"{% endif %}>{{ item_data[field.name] | default('') }}</textarea>
+    {% if max_length %}maxlength="{{ max_length }}"{% endif %}>{{ item_data[display_name] | default('') }}</textarea>
     {% endif %}
 </div>
 {% endfor %}
@@ -75,7 +76,8 @@
         <thead>
             <tr>
                 {% for field in nested.form_fields %}
-                <th class="minwidth-cell">{{ field.name|capitalize }}</th>
+                    {% set display_name = field.field_name if field.field_name else field.name %}
+                <th class="minwidth-cell">{{ display_name|capitalize }}</th>
                 {% endfor %}
                 {% if form_name == 'create-new' %}
                 <th class="minwidth-cell">Actions</th>
@@ -87,7 +89,8 @@
             {% for row in relationship_data.get(relationship.name, []) %}
             <tr>
                 {% for field in nested.form_fields %}
-                <td>{{ row[field.name] }}</td>
+                    {% set display_name = field.field_name if field.field_name else field.name %}
+                <td>{{ row[display_name] }}</td>
                 {% endfor %}
                 {% if form_name == 'create-new' %}
                 <td>
@@ -103,12 +106,13 @@
             {% if form_name == 'create-new' %}
             <tr>
                 {% for field in nested.form_fields %}
-                {% set is_required = field.required if field else False %}
-                {% set is_enabled = field.forms[form_name]['enabled'] if field and field.forms.get(form_name) else True %}
-                {% set max_length = field.length %}
+                    {% set display_name = field.field_name if field.field_name else field.name %}
+                    {% set is_required = field.required if field else False %}
+                    {% set is_enabled = field.forms[form_name]['enabled'] if field and field.forms.get(form_name) else True %}
+                    {% set max_length = field.length %}
                 <td>
                     {% if field.multi_select %}
-                    <select class="form-select add-field-input" data-field="{{ field.name }}" multiple 
+                    <select class="form-select add-field-input" data-field="{{ display_name }}" multiple 
                         {% if is_required %}required{% endif %} 
                         {% if not is_enabled %}disabled{% endif %}>
                         {% for option in field.column_options %}
@@ -116,7 +120,7 @@
                         {% endfor %}
                     </select>
                     {% elif field.column_options %}
-                    <select class="form-select add-field-input" data-field="{{ field.name }}" 
+                    <select class="form-select add-field-input" data-field="{{ display_name }}" 
                         {% if is_required %}required{% endif %} 
                         {% if not is_enabled %}disabled{% endif %}>
                         <option value="">--Select--</option>
@@ -125,12 +129,12 @@
                         {% endfor %}
                     </select>
                     {% elif "INTEGER" in field.type %}
-                    <input type="number" class="form-control add-field-input" data-field="{{ field.name }}" value="" 
+                    <input type="number" class="form-control add-field-input" data-field="{{ display_name }}" value="" 
                         {% if is_required %}required{% endif %} 
                         {% if not is_enabled %}disabled{% endif %} 
                         {% if max_length %}max="{{ max_length }}"{% endif %}>
                     {% elif "BOOLEAN" in field.type %}
-                    <select class="form-select add-field-input" data-field="{{ field.name }}" 
+                    <select class="form-select add-field-input" data-field="{{ display_name }}" 
                         {% if is_required %}required{% endif %} 
                         {% if not is_enabled %}disabled{% endif %}>
                         <option value="">--Select--</option>
@@ -138,15 +142,15 @@
                         <option value="false">False</option>
                     </select>
                     {% elif "DATE" in field.type %}
-                    <input type="date" class="form-control add-field-input" data-field="{{ field.name }}" value="" 
+                    <input type="date" class="form-control add-field-input" data-field="{{ display_name }}" value="" 
                         {% if is_required %}required{% endif %} 
                         {% if not is_enabled %}disabled{% endif %}>
                     {% elif "DATETIME" in field.type %}
-                    <input type="datetime-local" class="form-control add-field-input" data-field="{{ field.name }}" value="" 
+                    <input type="datetime-local" class="form-control add-field-input" data-field="{{ display_name }}" value="" 
                         {% if is_required %}required{% endif %} 
                         {% if not is_enabled %}disabled{% endif %}>
                     {% else %}
-                    <textarea class="form-control resizable add-field-input" rows="1" data-field="{{ field.name }}" 
+                    <textarea class="form-control resizable add-field-input" rows="1" data-field="{{ display_name }}" 
                         {% if is_required %}required{% endif %} 
                         {% if not is_enabled %}disabled{% endif %} 
                         {% if max_length %}maxlength="{{ max_length }}"{% endif %}></textarea>
@@ -165,6 +169,7 @@
 </div>
 {% endif %}
 {% endfor %}
+
 
 
 <script>

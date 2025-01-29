@@ -197,7 +197,7 @@ class Person(Base):
     __tablename__ = get_table_name("persons")
     frontend_table_name = "Person"
     unique_ref = Column(String, primary_key=True, default=id_method)
-    name = Column(String, info={"search": True, "required": True, "forms": {"create-new": {"enabled": True}, "view-existing": {"enabled": False}}})
+    name = Column(String, info={"field_name": "First and Last Name", "search": True, "required": True, "forms": {"create-new": {"enabled": True}, "view-existing": {"enabled": False}}})
     age = Column(Integer, info={"required": True, "forms": {"create-new": {"enabled": True}, "view-existing": {"enabled": False}}})
     gender = Column(String, info={"options": ["Male", "Female", "Other"], "multi_select": True, "required": True, "forms": {"create-new": {"enabled": True}, "view-existing": {"enabled": False}}})
     rms_request_id = Column(String, ForeignKey(f"{get_table_name('requests')}.unique_ref"), nullable=False)
