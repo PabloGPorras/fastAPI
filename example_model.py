@@ -130,6 +130,9 @@ class RuleRequest(Base):
         "USER REJECTED": {"Roles": ["FS_Analyst"], "Next": [], "Status_Type":["APPROVAL"]},  
     }
     check_list = {
+            "inputs": [
+        {"label": "Enter Data", "endpoint": "/check-estimation-log"},
+        ], 
         "Section 1": [
             "Check 1",
             "Check 2",
@@ -235,37 +238,36 @@ class Relative(Base):
 class UserPreference(Base):
     __tablename__ = get_table_name("user_preferences")
     id = Column(String, primary_key=True, default=id_method)
-    user_id = Column(Integer)
+    user_name = Column(String)
     preference_key = Column(String(100))
     preference_value = Column(Text)
     last_updated = Column(DateTime, server_default=func.now(), onupdate=func.now())
     
+organizations_multi_options = organizations_multi_list
+sub_organizations_multi_options = sub_organization_list
+line_of_businesses_multi_options = line_of_business_list
+teams_multi_options = team_list
+decision_engines_multi_options = decision_engine_list
+roles_multi_options = ["FS_Manager", "FS_Analyst", "FS_Director","IMPL_Manager", "IMPL_Specialist", "IMPL_Director","Admin"]
+
 class User(Base):
     __tablename__ = get_table_name("users")
     frontend_table_name = "Users"
-    user_id = Column(String, primary_key=True, default=id_method, info={"forms":{"create-new": {"enabled":True},"view-existing":{"enabled":False}}})
-    user_name = Column(String, nullable=False)
-    email_from = Column(String, nullable=False)
-    email_to = Column(String, nullable=False)
-    email_cc = Column(String, nullable=False)
-    last_update_timestamp = Column(DateTime, default=get_current_timestamp(), info={"forms":{"create-new": {"enabled":True},"view-existing":{"enabled":False}}})
-    user_role_expire_timestamp = Column(DateTime, default=get_current_timestamp())
+    
+    user_id = Column(String, primary_key=True, default=id_method)
+    user_name = Column(String, nullable=False, info={"forms":{"create-new": {"enabled":True},"view-existing":{"enabled":False}}})
+    email_from = Column(String, nullable=False, info={"forms":{"create-new": {"enabled":True},"view-existing":{"enabled":False}}})
+    email_to = Column(String, nullable=False, info={"forms":{"create-new": {"enabled":True},"view-existing":{"enabled":False}}})
+    email_cc = Column(String, nullable=False, info={"forms":{"create-new": {"enabled":True},"view-existing":{"enabled":False}}})
+    last_update_timestamp = Column(DateTime, default=get_current_timestamp())
+    user_role_expire_timestamp = Column(DateTime, default=get_current_timestamp(), info={"forms":{"create-new": {"enabled":True},"view-existing":{"enabled":False}}})
 
-    roles = Column(String, nullable=False)
-    organizations = Column(String, nullable=False)
-    sub_organizations = Column(String, nullable=False)
-    line_of_businesses = Column(String, nullable=False)
-    teams = Column(String, nullable=False)
-    decision_engines = Column(String, nullable=False)
-    roles_multi_options = ["FS_Manager", "FS_Analyst", "FS_Director","IMPL_Manager", "IMPL_Specialist", "IMPL_Director","Admin"]
-    organizations_multi_options = organizations_multi_list
-    sub_organizations_multi_options = sub_organization_list
-    line_of_businesses_multi_options = line_of_business_list
-    teams_multi_options = team_list
-    decision_engines_multi_options = decision_engine_list
-
-    # Specify restricted fields that shouldn't be shown or updated
-    restricted_fields = ["user_id", "last_update_timestamp"]
+    roles = Column(String, nullable=False, info={"options": roles_multi_options, "multi_select": True,"forms":{"create-new": {"enabled":True},"view-existing":{"enabled":False}}})
+    organizations = Column(String, nullable=False, info={"options": organizations_multi_list, "multi_select": True,"forms":{"create-new": {"enabled":True},"view-existing":{"enabled":False}}})
+    sub_organizations = Column(String, nullable=False, info={"options": sub_organization_list, "multi_select": True,"forms":{"create-new": {"enabled":True},"view-existing":{"enabled":False}}})
+    line_of_businesses = Column(String, nullable=False, info={"options": line_of_business_list, "multi_select": True,"forms":{"create-new": {"enabled":True},"view-existing":{"enabled":False}}})
+    teams = Column(String, nullable=False, info={"options": team_list, "multi_select": True,"forms":{"create-new": {"enabled":True},"view-existing":{"enabled":False}}})
+    decision_engines = Column(String, nullable=False, info={"options": decision_engine_list, "multi_select": True,"forms":{"create-new": {"enabled":True},"view-existing":{"enabled":False}}})
 
     @validates("user_role_expire_timestamp", "last_update_timestamp")
     def validate_datetime_fields(self, key, value):

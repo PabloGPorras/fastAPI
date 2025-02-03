@@ -55,7 +55,7 @@ def get_current_user(session: Session = Depends(get_db_session)) -> User:
             session.commit()
 
             # Add default preferences for the new user
-            add_default_preferences(user.user_id, session)
+            add_default_preferences(user.user_name, session)
 
             logger.info(f"New user created: {user_name}")
 
@@ -113,7 +113,7 @@ DEFAULT_USER_PREFERENCES = {
     "notifications_enabled": True,  # Saved as a boolean
 }
 
-def add_default_preferences(user_id: str, session):
+def add_default_preferences(user_name: str, session):
     """
     Adds default preferences for a new user. Converts dictionary values to JSON strings 
     and lists to comma-separated strings before saving.
@@ -131,7 +131,7 @@ def add_default_preferences(user_id: str, session):
                 preference_value = value
 
             preference = UserPreference(
-                user_id=user_id,
+                user_name=user_name,
                 preference_key=key,
                 preference_value=preference_value
             )
@@ -140,5 +140,5 @@ def add_default_preferences(user_id: str, session):
         session.commit()
     except Exception as e:
         session.rollback()
-        logger.error(f"Error adding default preferences for user {user_id}: {e}", exc_info=True)
+        logger.error(f"Error adding default preferences for user {user_name}: {e}", exc_info=True)
         raise

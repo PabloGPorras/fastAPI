@@ -2,38 +2,46 @@
 <div class="tab-pane fade" id="checklist-tab-pane" role="tabpanel" aria-labelledby="checklist-tab">
     <h5>Checklist</h5>
     <form id="checklistForm">
+<!-- Generate Input Fields Globally -->
+{% for input_field in check_list["inputs"] %}
+<div class="mt-3">
+    <label>{{ input_field.label }}</label>
+    <form id="form-{{ loop.index }}" 
+        hx-post="{{ input_field.endpoint }}" 
+        hx-target="#update-status"
+        hx-headers='{"Content-Type": "application/x-www-form-urlencoded"}'>
+        <div class="input-group" style="width: 300px;">
+            <input 
+                type="text" 
+                class="form-control"
+                name="inputs[{{ input_field.label }}]"
+                placeholder="Enter value"
+            >
+            <button 
+                type="submit"
+                class="btn btn-primary"
+            >
+                Submit
+            </button>
+        </div>
+    </form>
+</div>
+{% endfor %}
+
+        
+        
+
         <!-- Pass the unique_ref -->
         <input type="hidden" name="unique_ref" value="{{ unique_ref }}">
     
         <!-- Dynamically Generated Fields -->
-        <ul>
-            {% include "modal/fields.html" %}
-        </ul>
+            {% from 'modal/fields.html' import render_fields %}
+            {{ render_fields(checklist_form_fields, item_data, 'check-list',metadata,relationship_data) }}
     
         <hr>
     
         <!-- Checklist Values -->
-        {% for section, checks in check_list.items() %}
-        <h6>{{ section }}</h6>
-        <div>
-            {% for check in checks %}
-            <div class="form-check">
-                <!-- Hidden input for unchecked values -->
-                <input type="hidden" name="checklist_values[{{ check }}]" value="false">
-                <input
-                    class="form-check-input"
-                    type="checkbox"
-                    id="{{ check }}"
-                    name="checklist_values[{{ check }}]"
-                    value="true"
-                    style="width: 25px; height: 25px;"
-                    {% if item_data.get(check) %}checked{% endif %}
-                >
-                <label class="form-check-label" for="{{ check }}" style="font-size: 1.2em;">{{ check }}</label>
-            </div>
-            {% endfor %}
-        </div>
-        {% endfor %}
+        {% include "modal/check_list.html" %}
     
         <!-- Update Button -->
         <div class="modal-footer mt-3">

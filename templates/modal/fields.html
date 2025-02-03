@@ -1,11 +1,15 @@
+{% macro render_fields(form_fields, item_data, form_name,metadata,relationship_data) %}
 <!-- Loop through form fields -->
+ 
 {% for field in form_fields %}
     {% set display_name = field.field_name if field.field_name else field.name %}
 <div class="mb-3 form-field" data-field-name="{{ display_name }}">
-    <label for="{{ display_name }}" class="form-label">{{ display_name|capitalize }}</label>
+    <label for="{{ display_name }}" class="form-label">
+        {{ display_name|capitalize }}{% if is_required %} *{% endif %}
+    </label>
     {% set has_search = field.search %}
     {% set is_required = field.required %}
-    {% set is_enabled = field.forms[form_name]['enabled'] %}
+    {% set is_enabled = field.forms.get(form_name, {}).get('enabled', False) %}
     {% set max_length = field.length %}
 
     {% if field.multi_select %}
@@ -141,12 +145,12 @@
                         <option value="true">True</option>
                         <option value="false">False</option>
                     </select>
-                    {% elif "DATE" in field.type %}
-                    <input type="date" class="form-control add-field-input" data-field="{{ display_name }}" value="" 
-                        {% if is_required %}required{% endif %} 
-                        {% if not is_enabled %}disabled{% endif %}>
                     {% elif "DATETIME" in field.type %}
                     <input type="datetime-local" class="form-control add-field-input" data-field="{{ display_name }}" value="" 
+                        {% if is_required %}required{% endif %} 
+                        {% if not is_enabled %}disabled{% endif %}>
+                    {% elif "DATE" in field.type %}
+                    <input type="date" class="form-control add-field-input" data-field="{{ display_name }}" value="" 
                         {% if is_required %}required{% endif %} 
                         {% if not is_enabled %}disabled{% endif %}>
                     {% else %}
@@ -169,7 +173,7 @@
 </div>
 {% endif %}
 {% endfor %}
-
+{% endmacro %}
 
 
 <script>

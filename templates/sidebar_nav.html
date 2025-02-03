@@ -127,7 +127,7 @@
                         <ul class="list-unstyled ms-3">
                             {% for model in models if model.is_request and model.model_name != RmsRequest.__tablename__ %}
                             <li class="mb-2">
-                                <button class="btn btn-link nav-link text-dark create-item"
+                                <button type="button" class="btn btn-link nav-link text-dark create-item"
                                     hx-post="/get-create-new-form" hx-target="#createNewModalContainer"
                                     hx-trigger="click" hx-swap="innerHTML"
                                     hx-vals='{"model_name": "{{ model.model_name }}"}'>

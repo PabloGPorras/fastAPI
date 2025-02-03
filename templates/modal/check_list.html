@@ -1,0 +1,27 @@
+<!-- Checklist Values -->
+<div id="checklist-container">
+    {% for section, checks in check_list.items() if section != "inputs" %}
+    <h6>{{ section }}</h6>
+    <div>
+        {% for check in checks %}
+        {% if check is string %}  {# ✅ Ensure check is a string before using it as a key #}
+        <div class="form-check">
+            <input type="hidden" name="checklist_values[{{ check }}]" value="false">
+            <input
+                class="form-check-input"
+                type="checkbox"
+                id="{{ check }}"
+                name="checklist_values[{{ check }}]"
+                value="true"
+                style="width: 25px; height: 25px;"
+                {% if item_data.get(check, False) %}checked{% endif %}
+            >
+            <label class="form-check-label" for="{{ check }}" style="font-size: 1.2em;">{{ check }}</label>
+        </div>
+        {% else %}
+        <p style="color: red;">⚠️ Invalid checklist item: {{ check }}</p>
+        {% endif %}
+        {% endfor %}
+    </div>
+{% endfor %}
+</div>

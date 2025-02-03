@@ -39,6 +39,7 @@ async def get_view_existing_form(
 
         # Gather metadata
         metadata = DatabaseService.gather_model_metadata(model, session, "view-existing")
+        checklist_metadata = DatabaseService.gather_model_metadata(model, session, "check-list")
 
         check_list = getattr(model, "check_list", {})
 
@@ -100,7 +101,10 @@ async def get_view_existing_form(
         combined_entries.sort(key=lambda x: x["timestamp"])  # Sort by timestamp
 
         logger.debug(f"Combined and sorted entries: {combined_entries}")
-
+        test = checklist_metadata.get("form_fields", [])
+        logger.debug(f"checklist_form_fields: {test}")
+        test2 = metadata.get("form_fields", [])
+        logger.debug(f"form_fields: {test2}")
         # Render the template
         return templates.TemplateResponse(
             "modal/view_existing_modal.html",
@@ -109,6 +113,11 @@ async def get_view_existing_form(
                 "metadata": metadata,
                 "form_fields": metadata.get("form_fields", []),
                 "relationships": metadata["relationships"],
+
+                "checklist_metadata": checklist_metadata,
+                "checklist_form_fields": checklist_metadata.get("form_fields", []),
+                "checklist_relationships": checklist_metadata["relationships"],
+
                 "relationship_data": relationships_data,  # Pass relationship data to the template
                 "predefined_options": metadata["predefined_options"],
                 "is_request": metadata["is_request"],

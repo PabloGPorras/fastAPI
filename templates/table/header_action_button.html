@@ -3,7 +3,7 @@
 <div class="btn-group">
     <!-- Primary Action Button -->
     {% if model_name != RmsRequest.__tablename__%}
-        <button class="btn btn-success btn-sm"
+        <button type="button" class="btn btn-success btn-sm"
         hx-post="/get-create-new-form"
         hx-target="#createNewModalContainer"
         hx-trigger="click"

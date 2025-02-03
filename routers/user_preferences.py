@@ -21,7 +21,7 @@ def save_user_preferences(
         # Fetch all existing preferences for the user
         existing_preferences = (
             session.query(UserPreference)
-            .filter(UserPreference.user_id == user.user_id)
+            .filter(UserPreference.user_name == user.user_name)
             .all()
         )
         
@@ -42,7 +42,7 @@ def save_user_preferences(
             else:
                 # Create a new preference if the key doesn't exist
                 new_pref = UserPreference(
-                    user_id=user.user_id,
+                    user_name=user.user_name,
                     preference_key=key,
                     preference_value=value,
                 )
@@ -72,7 +72,7 @@ def get_user_preferences(
         # Query all preferences for the user
         preferences = (
             session.query(UserPreference.preference_key, UserPreference.preference_value)
-            .filter(UserPreference.user_id == user.user_id)
+            .filter(UserPreference.user_name == user.user_name)
             .all()
         )
 
