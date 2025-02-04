@@ -2,47 +2,59 @@
 <div class="tab-pane fade" id="checklist-tab-pane" role="tabpanel" aria-labelledby="checklist-tab">
     <h5>Checklist</h5>
     <form id="checklistForm">
-<!-- Generate Input Fields Globally -->
-{% for input_field in check_list["inputs"] %}
-<div class="mt-3">
-    <label>{{ input_field.label }}</label>
-    <form id="form-{{ loop.index }}" 
-        hx-post="{{ input_field.endpoint }}" 
-        hx-target="#update-status"
-        hx-headers='{"Content-Type": "application/x-www-form-urlencoded"}'>
-        <div class="input-group" style="width: 300px;">
-            <input 
-                type="text" 
-                class="form-control"
-                name="inputs[{{ input_field.label }}]"
-                placeholder="Enter value"
-            >
-            <button 
-                type="submit"
-                class="btn btn-primary"
-            >
-                Submit
-            </button>
-        </div>
-    </form>
-</div>
-{% endfor %}
-
-        
-        
 
         <!-- Pass the unique_ref -->
         <input type="hidden" name="unique_ref" value="{{ unique_ref }}">
-    
+
         <!-- Dynamically Generated Fields -->
-            {% from 'modal/fields.html' import render_fields %}
-            {{ render_fields(checklist_form_fields, item_data, 'check-list',metadata,relationship_data) }}
-    
+        {% from 'modal/fields.html' import render_fields %}
+        {{ render_fields(checklist_form_fields, item_data, 'check-list', metadata, relationship_data) }}
+
         <hr>
-    
+
         <!-- Checklist Values -->
-        {% include "modal/check_list.html" %}
-    
+        {% for section, checks in check_list.items() if section != "inputs" %}
+        <h6>{{ section }}</h6>
+        <div>
+            {% for check in checks %}
+            {% if check is string %}  {# Ensure check is a string before using it as a key #}
+            <div class="form-check">
+                <input type="hidden" name="checklist_values[{{ check }}]" value="false">
+                <input
+                    class="form-check-input"
+                    type="checkbox"
+                    id="{{ check }}"
+                    name="checklist_values[{{ check }}]"
+                    value="true"
+                    style="width: 25px; height: 25px;"
+                    {% if item_data.get(check, False) %}checked{% endif %}
+                >
+                <label class="form-check-label" for="{{ check }}" style="font-size: 1.2em;">{{ check }}</label>
+            </div>
+            {% else %}
+            <p style="color: red;">⚠️ Invalid checklist item: {{ check }}</p>
+            {% endif %}
+            {% endfor %}
+        </div>
+        {% endfor %}
+
+        <!-- Automation Section -->
+        <hr>
+        <div class="mt-3">
+            <label>Automation Data:</label>
+            <input type="text" class="form-control" name="automation_data" placeholder="Enter automation parameters">
+            <button 
+                type="button" 
+                class="btn btn-secondary mt-2"
+                hx-post="/automate-checks/{{ model_name }}"
+                hx-target="#checklist-container"
+                hx-include="#checklistForm"
+                hx-headers='{"Content-Type": "application/x-www-form-urlencoded"}'
+                hx-trigger="click">
+                Automate Checks
+            </button>
+        </div>
+
         <!-- Update Button -->
         <div class="modal-footer mt-3">
             <button
@@ -59,9 +71,6 @@
             </button>
         </div>
     </form>
-    
-    
-    
 </div>
 {% endif %}
 
@@ -76,9 +85,10 @@ document.getElementById("updateChecklistButton").addEventListener("click", funct
         governanceData[key] = checkbox.checked;
     });
 
-    // Update the hidden input value
+    // Update the hidden input value (if an element with id "governance" exists)
     const governanceInput = document.getElementById("governance");
-    governanceInput.value = JSON.stringify(governanceData);
+    if (governanceInput) {
+        governanceInput.value = JSON.stringify(governanceData);
+    }
 });
-
 </script>
