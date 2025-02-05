@@ -1,181 +1,112 @@
-<div class="modal fade" id="createNewModal" tabindex="-1" aria-labelledby="createNewModalLabel" aria-hidden="true">
-  <div class="modal-dialog modal-lg">
+<!-- Form and modal content -->
+<div class="container mt-3">
+  <!-- Modal (visible for testing) -->
+  <div class="modal fade show" id="createNewModal" style="display:block;" aria-modal="true">
+    <div class="modal-dialog modal-lg">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="createNewModalLabel">Request Details</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <!-- Tabs Navigation (simplified) -->
+          <ul class="nav nav-tabs mb-3" role="tablist">
+            <li class="nav-item" role="presentation">
+              <button class="nav-link active" type="button">Details</button>
+            </li>
+          </ul>
 
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title" id="createNewModalLabel">Request Details</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-      </div>
-      <div class="modal-body">
-        <!-- Error message container -->
-        <div id="error-container" class="alert alert-danger" style="display: none;"></div>
-        <div id="success-container" class="alert alert-success" style="display: none; margin-top: 20px;"></div>
+          <!-- Form (using plain JavaScript instead of HTMX) -->
+          <!-- Note: Remove hx- attributes -->
+          <form id="detailsForm2" action="/create-new/{{ model_name }}" method="POST">
+            <!-- Predefined form fields (insert your fields here or via your include) -->
+            {% include "modal/form_fields.html" %}
+            <!-- Hidden field for relationships data -->
+            <input type="hidden" id="relationshipsInput" name="relationships" value="{}" />
 
-        <!-- Tabs Navigation -->
-        <ul class="nav nav-tabs mb-3" id="createDetailsTabPane" role="tablist">
-          <li class="nav-item" role="presentation">
-            <button class="nav-link active" id="details-tab2" data-bs-toggle="tab" data-bs-target="#details-tab-pane"
-              type="button" role="tab" aria-controls="details-tab-pane" aria-selected="true">
-              Details
-            </button>
-          </li>
-        </ul>
+            <!-- Message containers (optional) -->
+            <div id="error-container" class="alert alert-danger" style="display:none;"></div>
+            <div id="success-container" class="alert alert-success" style="display:none; margin-top:20px;"></div>
 
-        <!-- Tab Content -->
-        <div class="tab-content">
-          <!-- Details Tab -->
-          <div class="tab-pane fade show active" id="details-tab-pane2" role="tabpanel" aria-labelledby="details-tab">
-            <form id="detailsForm2" hx-post="/create-new/{{ model_name }}" hx-trigger="submit" hx-swap="none">
-              <!-- Predefined Fields for "is_request" Models -->
-              {% include "modal/form_fields.html" %}
-              <input type="hidden" id="relationshipsInput" name="relationships">
-
-              <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                <button type="submit" class="btn btn-primary">Save</button>
-              </div>
-            </form>
-          </div>
-
+            <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+              <button type="submit" class="btn btn-primary" id="saveButton">Save</button>
+            </div>
+          </form>
         </div>
       </div>
     </div>
   </div>
 </div>
 
-<!-- Include your JS (Bootstrap, jQuery, or vanilla) -->
+<!-- JavaScript: Using Fetch to handle form submission, delay, and refresh -->
 <script>
-  document.addEventListener("htmx:responseError", function (event) {
-    console.log("HTMX response error event triggered.");
+  (function() {
+    console.log("[Script] Script loaded.");
+    const detailsForm = document.getElementById("detailsForm2");
+    const saveButton = document.getElementById("saveButton");
 
-    const errorContainer = document.getElementById("error-container");
-
-    // Log the error container status
-    if (!errorContainer) {
-      console.log("Error container not found in the DOM.");
+    if (!detailsForm || !saveButton) {
+      console.error("[Script] Form or Save button not found!");
       return;
     }
 
-    console.log("Error container found. Attempting to display error.");
+    detailsForm.addEventListener("submit", function(e) {
+      e.preventDefault();
+      console.log("[Form] Submit event intercepted.");
 
-    // Log the event details and the response
-    console.log("Event details:", event);
-    console.log("XHR response:", event.detail.xhr);
+      // Disable the Save button
+      saveButton.disabled = true;
+      console.log("[Form] Save button disabled.");
 
-    const errorMessage = event.detail.xhr.responseText || "An unexpected error occurred.";
-    console.log("Error message to display:", errorMessage);
+      // Prepare form data
+      const formData = new FormData(detailsForm);
 
-    // Update the error container
-    errorContainer.textContent = errorMessage;
-    errorContainer.style.display = "block";
-
-    console.log("Error message displayed successfully.");
-  });
-
-  document.addEventListener("htmx:afterOnLoad", function (event) {
-    const successContainer = document.getElementById("success-container");
-    const errorContainer = document.getElementById("error-container");
-
-    if (event.detail.xhr.status >= 200 && event.detail.xhr.status < 300) {
-      // Clear prior error messages
-      if (errorContainer) errorContainer.style.display = "none";
-
-      // Update and show success message
-      if (successContainer) {
-        const successMessage = "Request completed successfully!";
-        successContainer.textContent = successMessage;
-        successContainer.style.display = "block";
-
-        // Optionally hide the success message after a delay
-        setTimeout(() => {
-          window.location.reload();
-        }, 500); // Refresh after 2 seconds
-      }
-    }
-  });
-
-  // A global object to store relationship rows in memory
-  let relationshipsData = {};
-
-  // Function to update the hidden input with serialized relationshipsData
-  function updateRelationshipsInput() {
-    const relationshipsInput = document.getElementById("relationshipsInput");
-    relationshipsInput.value = JSON.stringify(relationshipsData);
-    console.log("Updated relationshipsInput:", relationshipsInput.value);
-  }
-
-  // Add a row to the <tbody> each time the user clicks ".add-row-btn"
-  document.body.addEventListener("click", (event) => {
-    if (event.target.matches(".add-row-btn")) {
-      const relationshipName = event.target.dataset.relationship;
-      const table = event.target.closest("table");
-      const tbody = table.querySelector("tbody");
-
-      // Grab each input in the same row
-      const rowInputs = table.querySelectorAll(".add-field-input");
-      const rowData = {};
-
-      rowInputs.forEach((input) => {
-        const fieldName = input.dataset.field;
-        rowData[fieldName] = input.value;
+      // Send the form data using fetch
+      fetch(detailsForm.action, {
+        method: "POST",
+        body: formData
+      })
+      .then(response => {
+        console.log("[Fetch] Response received with status:", response.status);
+        if (response.ok) {
+          console.log("[Fetch] Request successful. Waiting 2 seconds before refresh...");
+          // Optionally, you can show a success message here:
+          const successContainer = document.getElementById("success-container");
+          if (successContainer) {
+            successContainer.textContent = "Request created successfully.";
+            successContainer.style.display = "block";
+            console.log("[Fetch] Success message displayed.");
+          }
+          setTimeout(() => {
+            console.log("[Fetch] Refreshing page now.");
+            window.location.reload();
+          }, 2000);
+        } else {
+          console.error("[Fetch] Request failed with status:", response.status);
+          return response.text().then(text => {
+            const errorContainer = document.getElementById("error-container");
+            if (errorContainer) {
+              errorContainer.textContent = text || "An error occurred.";
+              errorContainer.style.display = "block";
+              console.log("[Fetch] Error message displayed.");
+            }
+            // Re-enable the button if needed
+            saveButton.disabled = false;
+          });
+        }
+      })
+      .catch(error => {
+        console.error("[Fetch] Error during request:", error);
+        const errorContainer = document.getElementById("error-container");
+        if (errorContainer) {
+          errorContainer.textContent = error.message || "An unexpected error occurred.";
+          errorContainer.style.display = "block";
+          console.log("[Fetch] Error container updated.");
+        }
+        // Re-enable the Save button on error
+        saveButton.disabled = false;
       });
-
-      // Validate that all fields have values (optional)
-      const isValid = Object.values(rowData).every((value) => value.trim() !== "");
-      if (!isValid) {
-        alert("Please fill in all fields before adding a row.");
-        return;
-      }
-
-      // --- Render a new row in the table ---
-      const newRow = document.createElement("tr");
-      for (const [colName, val] of Object.entries(rowData)) {
-        const td = document.createElement("td");
-        td.textContent = val;
-        newRow.appendChild(td);
-      }
-
-      // Actions cell
-      const actionsTd = document.createElement("td");
-      actionsTd.innerHTML = `
-        <button type="button" class="btn btn-danger btn-sm remove-row-btn" data-relationship="${relationshipName}">
-          Remove
-        </button>
-      `;
-      newRow.appendChild(actionsTd);
-
-      // Append to tbody
-      tbody.appendChild(newRow);
-
-      // Clear inputs
-      rowInputs.forEach((i) => (i.value = ""));
-
-      // --- Update relationshipsData ---
-      if (!relationshipsData[relationshipName]) {
-        relationshipsData[relationshipName] = [];
-      }
-      relationshipsData[relationshipName].push(rowData);
-
-      // Update the hidden input
-      updateRelationshipsInput();
-    }
-
-    // Remove a row when ".remove-row-btn" is clicked
-    if (event.target.matches(".remove-row-btn")) {
-      const relationshipName = event.target.dataset.relationship;
-      const row = event.target.closest("tr");
-      const rowIndex = Array.from(row.parentElement.children).indexOf(row);
-
-      // Remove from relationshipsData
-      if (relationshipsData[relationshipName]) {
-        relationshipsData[relationshipName].splice(rowIndex, 1);
-      }
-
-      // Remove from the DOM
-      row.remove();
-
-      // Update the hidden input
-      updateRelationshipsInput();
-    }
-  });
+    });
+  })();
 </script>
