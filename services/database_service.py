@@ -41,30 +41,55 @@ class DatabaseService:
         model_columns = list(model.__table__.columns)  # Get all columns from the model's table
         rms_request_columns = list(RmsRequest.__table__.columns)  # Columns from RmsRequest
 
-        # Define the subquery to get the latest status and its timestamp
-        subquery = (
+
+        # Create a subquery that ranks statuses per unique_ref by timestamp descending.
+        ranked_statuses = (
             session.query(
-                RmsRequestStatus.unique_ref,
-                func.max(RmsRequestStatus.timestamp).label("latest_timestamp"),
+                RmsRequestStatus,
+                func.row_number().over(
+                    partition_by=RmsRequestStatus.unique_ref,
+                    order_by=RmsRequestStatus.timestamp.desc()
+                ).label("rn")
             )
-            .group_by(RmsRequestStatus.unique_ref)
             .subquery()
         )
 
-        # Join the subquery with RmsRequestStatus to get the latest status
+        # Alias the subquery if needed (for clarity, we can keep using ranked_statuses)
+        # Now, filter to only get the latest status (row_number == 1) for each unique_ref.
         latest_status_query = (
             session.query(
-                RmsRequestStatus.unique_ref,
-                RmsRequestStatus.status,
-                subquery.c.latest_timestamp,
+                ranked_statuses.c.unique_ref,
+                ranked_statuses.c.status,
+                ranked_statuses.c.timestamp
             )
-            .join(
-                subquery,
-                (RmsRequestStatus.unique_ref == subquery.c.unique_ref)
-                & (RmsRequestStatus.timestamp == subquery.c.latest_timestamp),
-            )
+            .filter(ranked_statuses.c.rn == 1)
             .subquery()
         )
+
+        # # Define the subquery to get the latest status and its timestamp
+        # subquery = (
+        #     session.query(
+        #         RmsRequestStatus.unique_ref,
+        #         func.max(RmsRequestStatus.timestamp).label("latest_timestamp"),
+        #     )
+        #     .group_by(RmsRequestStatus.unique_ref)
+        #     .subquery()
+        # )
+
+        # # Join the subquery with RmsRequestStatus to get the latest status
+        # latest_status_query = (
+        #     session.query(
+        #         RmsRequestStatus.unique_ref,
+        #         RmsRequestStatus.status,
+        #         subquery.c.latest_timestamp,
+        #     )
+        #     .join(
+        #         subquery,
+        #         (RmsRequestStatus.unique_ref == subquery.c.unique_ref)
+        #         & (RmsRequestStatus.timestamp == subquery.c.latest_timestamp),
+        #     )
+        #     .subquery()
+        # )
 
         query = None
         all_columns = []
