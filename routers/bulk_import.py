@@ -119,7 +119,3 @@ async def bulk_import(
         session.rollback()
         logger.error(f"Error processing bulk import: {e}", exc_info=True)
         raise HTTPException(status_code=500, detail=f"Error processing file: {str(e)}")
-
-    finally:
-        session.close()
-        logger.debug("Database session closed.")

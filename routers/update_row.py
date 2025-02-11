@@ -67,6 +67,3 @@ async def update_row(
         session.rollback()
         logger.error(f"Error updating row with ID {row_id} in model '{model_name}': {str(e)}", exc_info=True)
         raise HTTPException(status_code=500, detail="Internal Server Error")
-    finally:
-        session.close()
-        logger.debug(f"Session closed after updating row with ID {row_id} in model '{model_name}'.")

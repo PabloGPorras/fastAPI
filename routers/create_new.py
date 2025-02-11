@@ -218,6 +218,3 @@ async def create_new(
         session.rollback()
         logger.error(f"[create_new] Error creating new entry for model '{model_name}': {e}", exc_info=True)
         raise HTTPException(status_code=500, detail=str(e))
-    finally:
-        session.close()
-        logger.debug("[create_new] Database session closed.")

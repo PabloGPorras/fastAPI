@@ -92,6 +92,5 @@ async def get_details(
         error_message = f"Unexpected error occurred: {str(e)}"
         logger.error(error_message, exc_info=True)
         return HTMLResponse(content=error_message, status_code=500)
-    finally:
-        session.close()
+
 

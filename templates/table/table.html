@@ -1,21 +1,277 @@
-<div class="table-responsive" id="tableContainer">
+<style>
+    /* Highlight selected rows */
+    .selected-row {
+        background-color: var(--table-selected-bg, #cce5ff) !important;
+        color: var(--table-selected-text, #000000) !important;
+    }
+
+    /* Dark mode selected row */
+    [data-bs-theme="dark"] .selected-row {
+        background-color: var(--table-selected-bg, #4a4d52) !important;
+        color: var(--table-selected-text, #ffffff) !important;
+    }
+
+    /* Base table styling */
+    #tableContainer {
+        padding: 15px;
+    }
+
+    /* Table Background and Borders */
+    .table {
+        border-collapse: collapse;
+        width: 100%;
+        background-color: var(--table-bg, #ffffff);
+        border-radius: 8px;
+        overflow: hidden;
+    }
+
+    /* Table Header Styling */
+    .table thead th {
+        background-color: var(--table-header-bg, #007bff);
+        color: var(--table-header-text, #ffffff);
+        font-weight: bold;
+        padding: 12px;
+        text-align: left;
+    }
+
+    /* Table Row Styling */
+    .table tbody tr {
+        background-color: var(--table-row-bg, #ffffff);
+        color: var(--table-text, #000000);
+        transition: background-color 0.3s ease;
+    }
+
+    /* Table Hover Effect */
+    .table tbody tr:hover {
+        background-color: var(--table-hover-bg, #f0f0f0);
+    }
+
+    /* Dark Mode Variables */
+    [data-bs-theme="dark"] {
+        --table-bg: #2c2f33;
+        --table-header-bg: #23272a;
+        --table-header-text: #ffffff;
+        --table-row-bg: #2c2f33;
+        --table-text: #ffffff;
+        --table-hover-bg: #1e2124;
+    }
+
+    /* Checkbox and Button Styling */
+    .row-checkbox {
+        width: 20px;
+        height: 20px;
+    }
+
+    .btn-primary {
+        background-color: var(--table-header-bg, #007bff);
+        border-color: var(--table-header-bg, #007bff);
+    }
+</style>
+<div id="tableContainer">
     <form id="status-form">
-        <table class="table table-bordered">
-            {% include "table/table_headers.html" %}
-            <tbody id="tableBody">
-                {% for row in rows %}
-                <tr data-id="{{ row.get('unique_ref', 'N/A') }}">
-                    <!-- Include row action button -->
-                    {% include "table/row_action_button.html" %}
-                    <!-- Dynamic Row Data -->
-                    {% for key, value in row.items() %}
-                    <td class="{{ key }}-column">
-                        {{ value if value is not none else "N/A" }}
-                    </td>
-                    {% endfor %}
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
+        <div class="table-responsive">
+            <table id="dataTable" class="table table-bordered table-striped table-hover">
+                <thead>
+                    <tr id="tableHeaders">
+                        <!-- Headers will be inserted here dynamically -->
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Rows will be loaded dynamically -->
+                </tbody>
+            </table>
+        </div>
     </form>
 </div>
+
+
+<script>
+    $(document).ready(function () {
+        $.ajax({
+            url: `/table/{{ model_name }}/rows`,
+            type: "GET",
+            success: function (response) {
+                const columns = response.columns.map((col, index) => ({
+                    title: col.toUpperCase(),
+                    data: col,
+                    searchPanes: { show: true } // Ensure the column has a SearchPane
+                }));
+
+                // Insert the custom "Actions" column at the beginning
+                columns.unshift({
+                    title: "", // Column header
+                    data: null, // We will use `render` to define its content
+                    orderable: false,
+                    searchable: false,
+                    className: "text-center",
+                    render: function (data, type, row) {
+                        return `
+                        <div id="row-action-container" class="d-flex align-items-center" style="gap: 10px; height: 40px;">
+                            <!-- Checkbox -->
+                            <input type="checkbox" class="form-check-input row-checkbox" 
+                                name="selected_rows" 
+                                value="${row.unique_ref}" 
+                                style="height: 100%; width: 40px; display: flex; align-items: center; justify-content: center;">
+
+                            <!-- Button Group -->
+                            <div class="btn-group" style="height: 100%; width: 40px;">
+                                <!-- Primary Button with Bolt Icon -->
+                                <button type="button" 
+                                        class="btn btn-primary btn-sm dropdown-toggle" 
+                                        data-bs-toggle="dropdown"
+                                        aria-expanded="false" 
+                                        style="height: 100%; width: 100%;">
+                                    <i class="fas fa-bolt"></i>
+                                </button>
+                                <!-- Dropdown Menu -->
+                                <ul class="dropdown-menu dropdown-menu-end">
+                                    <li>
+                                        <button class="dropdown-item text-primary" 
+                                                hx-post="/get-view-existing-form" 
+                                                hx-target="#viewExistingModalContainer" 
+                                                hx-trigger="click" 
+                                                hx-swap="innerHTML"
+                                                hx-vals='{"unique_ref": "${row.unique_ref}"}'>
+                                            <i class="fas fa-eye"></i> View
+                                        </button>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                    `;
+                    }
+                });
+
+                // Destroy existing DataTable if initialized
+                if ($.fn.DataTable.isDataTable("#dataTable")) {
+                    $('#dataTable').DataTable().destroy();
+                    $("#tableHeaders").empty();
+                    $("#columnFilters").empty();
+                }
+
+                // Populate table headers dynamically
+                columns.forEach(col => {
+                    $("#tableHeaders").append(`<th>${col.title}</th>`);
+                });
+
+                // Initialize DataTable
+                var table = $('#dataTable').DataTable({
+                    processing: true,
+                    serverSide: false,
+                    ajax: {
+                        url: `/table/{{ model_name }}/rows`,
+                        type: "GET",
+                        dataSrc: "data"
+                    },
+                    columns: columns,
+                    paging: true,
+                    searching: true,
+                    ordering: true,
+                    autoWidth: true,
+                    colReorder: true,
+                    fixedHeader: true,
+                    scrollX: true,
+                    scrollY: "715px",
+                    scrollCollapse: true,
+                    lengthMenu: [10, 25, 50, 100],
+                    fixedColumns: {
+                        left: 1 // Freezes the first column
+                    },
+                    language: {
+                        searchPlaceholder: "Search...",
+                        lengthMenu: "Show _MENU_ entries",
+                        info: "Showing _START_ to _END_ of _TOTAL_ entries"
+                    },
+                    // Enable SearchPanes with all columns and collapsed state
+                    searchPanes: {
+                        threshold: 1, // Ensure all columns appear
+                        // cascadePanes: true,
+                        // controls: false,
+                        initCollapsed: true,
+                        viewTotal: true,
+                        dtOpts: {
+                            dom: 'tp' // Removes sorting controls (default includes "frtip")
+
+                        },
+                        collapsed: true // Collapses all panes by default
+                    },
+                    dom: 'lrtip' // Remove searchPanes from default placement
+                });
+
+                // Custom Search Input Handler
+                $("#customSearchInput").on("keyup", function () {
+                    table.search($(this).val()).draw(); // Bind custom input to DataTable search
+                });
+
+
+                // Function to refresh the table
+                function refreshTable() {
+                    $('#dataTable').DataTable().ajax.reload(null, false); // Reload table data without resetting pagination
+                }
+
+                // Enable row selection on click
+                $('#dataTable tbody').on('click', 'tr', function (event) {
+                    if (!$(event.target).hasClass('row-checkbox')) {
+                        // Only toggle selection if the checkbox itself was NOT clicked
+                        var checkbox = $(this).find('.row-checkbox');
+                        var isChecked = checkbox.prop('checked');
+
+                        checkbox.prop('checked', !isChecked);
+                        $(this).toggleClass('selected-row', !isChecked);
+                    }
+                });
+
+                // Handle clicking the checkbox directly
+                $('#dataTable tbody').on('change', '.row-checkbox', function (event) {
+                    var row = $(this).closest('tr');
+                    var isChecked = $(this).prop('checked');
+
+                    row.toggleClass('selected-row', isChecked);
+                });
+
+                // Bind refresh function to the custom button
+                $("#refreshTableBtn").on("click", function () {
+                    refreshTable();
+                });
+
+                // Move SearchPanes to the Modal when the table initializes
+                table.searchPanes.container().appendTo('#searchPanesContainer');
+
+                // Refresh SearchPanes when the modal opens
+                $('#searchPaneModal').on('shown.bs.modal', function () {
+                    table.searchPanes.rebuildPane();
+                });
+
+                // Add column visibility checkboxes
+                let columnVisibilityContainer = $("#columnVisibilityContainer");
+                columnVisibilityContainer.empty();
+
+                table.columns().every(function (index) {
+                    var column = this;
+                    var columnTitle = column.header().textContent.trim();
+
+                    // Skip empty title columns (like action buttons)
+                    if (columnTitle === "") return;
+
+                    let checkbox = $(`<div class="form-check">
+                    <input class="form-check-input column-toggle" type="checkbox" checked data-column="${index}">
+                    <label class="form-check-label">${columnTitle}</label>
+                </div>`);
+
+                    checkbox.find(".column-toggle").on("change", function () {
+                        let columnIdx = $(this).data("column");
+                        let isVisible = $(this).is(":checked");
+                        table.column(columnIdx).visible(isVisible);
+                    });
+
+                    columnVisibilityContainer.append(checkbox);
+                });
+            },
+            error: function (xhr) {
+                console.error("Error fetching table columns:", xhr);
+                $("#tableHeaders").html('<th colspan="100%" class="text-center text-danger">Failed to load columns</th>');
+            }
+        });
+    });
+
+</script>

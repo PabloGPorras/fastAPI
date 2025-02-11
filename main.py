@@ -17,6 +17,7 @@ from routers.user_preferences import router as user_preferences_router
 from routers.search_request import router as search_request_router
 from routers.notifications import router as notification_router
 from routers.check_estimation_log import router as check_estimation_log_router
+from routers.table_rows import router as table_rows_router
 
 app = FastAPI()
 app.add_middleware(
@@ -28,6 +29,7 @@ app.add_middleware(
 )
 
 # Register routers
+app.include_router(table_rows_router)
 app.include_router(check_estimation_log_router)
 app.include_router(search_request_router)
 app.include_router(notification_router)

@@ -66,31 +66,6 @@ class DatabaseService:
             .subquery()
         )
 
-        # # Define the subquery to get the latest status and its timestamp
-        # subquery = (
-        #     session.query(
-        #         RmsRequestStatus.unique_ref,
-        #         func.max(RmsRequestStatus.timestamp).label("latest_timestamp"),
-        #     )
-        #     .group_by(RmsRequestStatus.unique_ref)
-        #     .subquery()
-        # )
-
-        # # Join the subquery with RmsRequestStatus to get the latest status
-        # latest_status_query = (
-        #     session.query(
-        #         RmsRequestStatus.unique_ref,
-        #         RmsRequestStatus.status,
-        #         subquery.c.latest_timestamp,
-        #     )
-        #     .join(
-        #         subquery,
-        #         (RmsRequestStatus.unique_ref == subquery.c.unique_ref)
-        #         & (RmsRequestStatus.timestamp == subquery.c.latest_timestamp),
-        #     )
-        #     .subquery()
-        # )
-
         query = None
         all_columns = []
 

@@ -135,6 +135,5 @@ async def get_view_existing_form(
         session.rollback()
         logger.error(f"Error: {e}", exc_info=True)
         raise HTTPException(500, "Internal Server Error")
-    finally:
-        session.close()
+
 

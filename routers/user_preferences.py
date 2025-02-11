@@ -94,8 +94,4 @@ def get_user_preferences(
     except Exception as e:
         logger.error(f"Error fetching user preferences: {e}", exc_info=True)
         raise HTTPException(status_code=500, detail="Failed to fetch user preferences.")
-    finally:
-        if session:
-            session.close()
-            logger.debug("Database session closed.")
  

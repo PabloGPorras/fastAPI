@@ -38,8 +38,6 @@
     </div>
   </div>
 </div>
-
-<!-- JavaScript: Using Fetch to handle form submission, delay, and refresh -->
 <script>
   (function() {
     console.log("[Script] Script loaded.");
@@ -70,18 +68,33 @@
       .then(response => {
         console.log("[Fetch] Response received with status:", response.status);
         if (response.ok) {
-          console.log("[Fetch] Request successful. Waiting 2 seconds before refresh...");
-          // Optionally, you can show a success message here:
+          console.log("[Fetch] Request successful. Refreshing table...");
+
+          // Show success message
           const successContainer = document.getElementById("success-container");
           if (successContainer) {
             successContainer.textContent = "Request created successfully.";
             successContainer.style.display = "block";
-            console.log("[Fetch] Success message displayed.");
           }
-          setTimeout(() => {
-            console.log("[Fetch] Refreshing page now.");
-            window.location.reload();
-          }, 2000);
+
+          // ✅ Fetch updated table rows instead of reloading the page
+          fetch(`/table/{{ model_name }}/rows`)
+            .then(res => res.json())
+            .then(data => {
+              document.getElementById("tableBody").innerHTML = data.html; // ✅ Update table rows
+              console.log("[Fetch] Table updated successfully.");
+
+              // Close modal after refresh
+              setTimeout(() => {
+                const modalElement = document.getElementById("createNewModal");
+                if (modalElement) {
+                  let modalInstance = bootstrap.Modal.getInstance(modalElement);
+                  modalInstance.hide();
+                  console.log("[Modal] Closed after refresh.");
+                }
+              }, 500);
+            });
+
         } else {
           console.error("[Fetch] Request failed with status:", response.status);
           return response.text().then(text => {
@@ -89,10 +102,8 @@
             if (errorContainer) {
               errorContainer.textContent = text || "An error occurred.";
               errorContainer.style.display = "block";
-              console.log("[Fetch] Error message displayed.");
             }
-            // Re-enable the button if needed
-            saveButton.disabled = false;
+            saveButton.disabled = false; // Re-enable the button if needed
           });
         }
       })
@@ -102,9 +113,7 @@
         if (errorContainer) {
           errorContainer.textContent = error.message || "An unexpected error occurred.";
           errorContainer.style.display = "block";
-          console.log("[Fetch] Error container updated.");
         }
-        // Re-enable the Save button on error
         saveButton.disabled = false;
       });
     });

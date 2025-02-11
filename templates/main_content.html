@@ -1,101 +1,17 @@
 {% extends "base.html" %}
 
-{% block title %}Dynamic Table{% endblock %}
+{% block title %}{{ model.frontend_table_name }}{% endblock %}
 
 {% block content %}
-<style>
-    /* Table Styles */
-    table {
-        width: 100%;
-        border-collapse: collapse;
-        /* Ensure table is scrollable */
-    }
-
-    .table-responsive {
-        overflow-x: auto;
-        /* Enable horizontal scrolling */
-        width: 100%;
-    }
-
-    /* Prevent table headers from wrapping */
-    th {
-        white-space: nowrap;
-        /* Prevent wrapping */
-        text-align: center;
-        /* Optional: Center align the text */
-        vertical-align: middle;
-        /* Optional: Center align vertically */
-    }
-
-    .status-check {
-        height: 38px;
-        /* Matches the height of btn-sm */
-        width: 38px;
-        /* Optional: Makes the checkbox square */
-        margin-right: 8px;
-        /* Space between checkbox and button group */
-
-    }
-
-    .sticky-column .d-flex {
-        width: 100%;
-        /* Ensure it takes the full width of the sticky column */
-        justify-content: space-between;
-        /* Optional: Align content properly */
-    }
-
-    .sticky-column .status-check {
-        flex-shrink: 0;
-        /* Prevent shrinking */
-        flex-grow: 0;
-        /* Prevent growing */
-    }
-
-    /* Sticky column styling */
-    .sticky-column {
-        position: sticky;
-        left: 0;
-        background-color: #ffffff;
-        /* Matches table background */
-        z-index: 2;
-        /* Ensures it stays above other columns */
-        border-right: 1px solid #dee2e6;
-        /* Separation border */
-        width: 100px;
-        /* Set consistent width */
-        min-width: 100px;
-        /* Prevent column from shrinking */
-        max-width: 100px;
-        /* Prevent column from growing */
-        box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
-        /* Optional: Add shadow for clarity */
-    }
-
-    /* Sticky header styling for the first column */
-    th.sticky-column {
-        position: sticky;
-        top: 0;
-        /* Keeps the header sticky when scrolling vertically */
-        z-index: 3;
-        /* Ensures header stays above table rows */
-    }
-
-    /* Highlight the row when the checkbox inside it is checked */
-    table tr:has(input[type="checkbox"]:checked) {
-        background-color: #d3e4f7;
-        transition: background-color 0.3s;
-    }
-</style>
 
 
-<div class="container-fluid mt-5">
-    <h2>{{model.frontend_table_name}}</h2>
+    <h2>{{ model.frontend_table_name }}</h2>
 
-    <div class="mb-3 d-flex gap-2">
-        <!-- Manage Columns Button -->
+    <div>
+        <!-- Custom Search Input -->
+        <input type="text" id="customSearchInput" class="form-control" placeholder="Search table..." style="width: 250px; display: inline-block; margin-left: 10px;">
         {% include "table/manage_columns_button.html" %}
-
-        <!-- Include header action button -->
+        {% include "table/filter_button.html" %}
         {% set model_name = model_name %}
         {% include "table/header_action_button.html" with context %}
     </div>
@@ -107,54 +23,21 @@
 
 
 <div id="viewExistingModalContainer"></div>
+
 <script>
     document.body.addEventListener("htmx:afterSwap", (event) => {
         if (event.detail.target.id === "viewExistingModalContainer") {
             const modalElement = document.getElementById("viewExistingModal");
             if (modalElement) {
                 const modal = new bootstrap.Modal(modalElement, {
-                    backdrop: true, // Force backdrop
-                    keyboard: true, // Close on escape key press
+                    backdrop: true,
+                    keyboard: true,
                 });
                 modal.show();
             }
         }
     });
-    
 </script>
 
-
-
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-<script>
-    $(document).ready(async function () {
-        console.log("Page initialized. Setting up event listeners.");
-
-        // Fetch current user information before setting up functionality
-        try {
-            await fetchCurrentUser();
-            console.log("Current user fetched successfully.");
-        } catch (error) {
-            console.error("Error fetching current user:", error);
-            return; // Exit if user fetch fails
-        }
-
-        // Utility function to log event delegation
-        function logEvent(element, event, message) {
-            console.log(`Event '${event}' triggered on`, element);
-            console.log(message);
-        }
-
-
-        // Function to update actions dropdown
-        function updateDropdownActions() {
-            const $selectedRows = $("#tableBody tr.selected-row");
-            console.log("Dropdown actions updated. Selected rows:", $selectedRows.length);
-            // Add additional logic for enabling/disabling dropdown actions if needed
-        }
-
-
-    });
-</script>
 
 {% endblock %}

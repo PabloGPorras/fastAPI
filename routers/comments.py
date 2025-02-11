@@ -91,9 +91,6 @@ async def add_comment(
         logger.error(f"Failed to add comment for unique_ref {unique_ref}: {str(e)}", exc_info=True)
         session.rollback()
         raise HTTPException(status_code=500, detail="Failed to add comment")
-    finally:
-        session.close()
-        logger.debug(f"Database session closed for unique_ref: {unique_ref}")
 
 
 
@@ -113,7 +110,4 @@ async def get_comments(
     except Exception as e:
         logger.error(f"Error fetching comments for unique_ref {unique_ref}: {str(e)}", exc_info=True)
         raise HTTPException(status_code=500, detail="Failed to fetch comments")
-    finally:
-        session.close()
-        logger.debug(f"Database session closed for unique_ref: {unique_ref}")
 

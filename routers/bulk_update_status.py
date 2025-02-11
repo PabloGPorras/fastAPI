@@ -162,6 +162,3 @@ def bulk_update_status(
         logger.error(f"Error during bulk status update: {str(e)}", exc_info=True)
         raise HTTPException(status_code=500, detail="Internal Server Error")
 
-    finally:
-        session.close()
-        logger.debug("Session closed.")

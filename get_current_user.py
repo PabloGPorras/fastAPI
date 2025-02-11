@@ -64,8 +64,6 @@ def get_current_user(session: Session = Depends(get_db_session)) -> User:
     except Exception as e:
         logger.error(f"Error in get_current_user: {e}", exc_info=True)
         raise HTTPException(status_code=500, detail="Error authenticating user.")
-    finally:
-        session.close()
 
 
 DEFAULT_USER_PREFERENCES = {

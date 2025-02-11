@@ -1,10 +1,22 @@
-<button id="manage-columns-btn" class="btn btn-primary btn-sm">Manage Columns</button>
+<!-- Button to open Column Visibility Modal -->
+<button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#columnVisibilityModal">
+    Manage Columns
+</button>
 
-<script>
-    // Manage Columns Menu Toggle
-    document.getElementById("manage-columns-btn").addEventListener("click", () => {
-        const menu = document.getElementById("manage-columns-menu");
-        menu.style.display = menu.style.display === "none" ? "block" : "none";
-    });
-
-</script>
+<!-- Modal Structure for Column Visibility -->
+<div class="modal fade" id="columnVisibilityModal" tabindex="-1" aria-labelledby="columnVisibilityModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="columnVisibilityModalLabel">Toggle Column Visibility</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div id="columnVisibilityContainer"></div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>

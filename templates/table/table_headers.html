@@ -1,96 +1,51 @@
-<style>
-    /* Filter and Sort Icons */
-    .filter-icon {
-        font-size: 18px;
-        position: relative;
-        cursor: pointer;
-    }
-
-    .filter-icon::after {
-        content: '';
-        display: none;
-        position: absolute;
-        top: -4px;
-        right: -4px;
-        width: 8px;
-        height: 8px;
-        background-color: #007bff;
-        /* Blue indicator for active filters */
-        border-radius: 50%;
-    }
-
-    .filter-icon.active::after {
-        display: block;
-    }
-
-    .sort-icon {
-        margin-left: 5px;
-        cursor: pointer;
-        color: gray;
-        /* Default color */
-    }
-
-    .sort-icon.active {
-        color: #007bff;
-        /* Active sort color */
-    }
-
-    /* Filter Menu */
-    .filter-menu {
-        display: none;
-        position: absolute;
-        background: var(--menu-bg-color, white);
-        border: 1px solid #ccc;
-        padding: 10px;
-        z-index: 10;
-        transform: translateX(0);
-        /* Ensure no offset initially */
-    }
-
-    .filter-menu.show {
-        display: block;
-    }
-</style>
 <thead>
     <tr>
-        <!-- Blank Header for the First Column -->
-        <th>
-        </th>
-        {% if rows and rows[0] %}
-        {% for key in rows[0].keys() %}
-        <th class="{{ key }}-column">
-            <!-- Column Header -->
-            {{ key|capitalize }}
+        <th></th> <!-- Actions Column -->
 
-            <!-- Sorting Button -->
-            {% include "table/sort_button.html" %}
+        {% set seen_columns = {} %} <!-- Track unique column names -->
 
-            <!-- Filter Icon with Active Indicator -->
-            {% include "table/filter_button.html" %}
+        <!-- Insert "Status" as the first column if it's a request -->
+        {% if is_request %}
+            <th class="status-column">
+                Status
+            </th>
+            {% set _ = seen_columns.update({"status": True}) %}
+        {% endif %}
 
-            {% include "table/filter_menu.html" %}
-        </th>
+        <!-- Loop through metadata columns -->
+        {% for column in metadata.columns %}
+            {% set column_name = column.name.split('.')[-1] %}
+            {% if column_name not in seen_columns %}
+                {% set _ = seen_columns.update({column_name: True}) %}
+                <th class="{{ column_name }}-column">
+                    {{ column.field_name if column.field_name else column_name | replace("_", " ") | title }}
+                </th>
+            {% endif %}
         {% endfor %}
+
+        <!-- Loop through request metadata columns -->
+        {% if is_request %}
+            {% for column in request_metadata.columns %}
+                {% set column_name = column.name.split('.')[-1] %}
+                {% if column_name not in seen_columns %}
+                    {% set _ = seen_columns.update({column_name: True}) %}
+                    <th class="{{ column_name }}-column">
+                        {{ column.field_name if column.field_name else column_name | replace("_", " ") | title }} (Request)
+                    </th>
+                {% endif %}
+            {% endfor %}
         {% endif %}
     </tr>
 </thead>
 
-
-
-
-
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script>
     document.addEventListener("DOMContentLoaded", async () => {
         document.addEventListener("keydown", handleKeyboardShortcuts);
     });
 
-    // Handle keyboard shortcuts
     function handleKeyboardShortcuts(event) {
         if (event.ctrlKey && event.shiftKey) {
             const key = event.key.toLowerCase();
-
-            // Select only visible checkboxes
             const visibleCheckboxes = Array.from(document.querySelectorAll(".row-checkbox"))
                 .filter(checkbox => checkbox.closest("tr").style.display !== "none");
 
@@ -103,7 +58,4 @@
             }
         }
     }
-
-
-
 </script>

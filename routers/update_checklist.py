@@ -56,6 +56,4 @@ async def update_checklist(
     except Exception as e:
         session.rollback()
         raise HTTPException(status_code=500, detail=f"Internal Server Error: {str(e)}")
-    finally:
-        session.close()
 

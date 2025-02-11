@@ -14,10 +14,17 @@ router = APIRouter()
 def get_status_transitions(
     selected_rows: List[str] = Form(...),  # List of JSON strings
     next_status: str = Form(...),
-    user: User = Depends(get_current_user),  # Authenticated user
+    user_id: str = Form(...),
+    user_name: str = Form(...),
+    organizations: str = Form(...),
+    sub_organizations: str = Form(...),
+    line_of_businesses: str = Form(...),
+    teams: str = Form(...),
+    decision_engines: str = Form(...),
+    roles: str = Form(...),
 ):
     try:
-        logger.info(f"User '{user.user_name}' initiated a status transition.")
+        logger.info(f"User '{user_name}' initiated a status transition.")
         logger.debug(f"Received selected rows: {selected_rows}")
         logger.debug(f"Next status: {next_status}")
 
@@ -63,24 +70,24 @@ def get_status_transitions(
         # Step 3: Access validation
         for row in parsed_rows:
             denied_criteria = []
-            if row.get("organization") not in user.organizations.split(","):
+            if row.get("organization") not in organizations.split(","):
                 denied_criteria.append(f"organization ({row['organization']})")
-            if row.get("sub_organization") not in user.sub_organizations.split(","):
+            if row.get("sub_organization") not in sub_organizations.split(","):
                 denied_criteria.append(f"sub_organization ({row['sub_organization']})")
-            if row.get("line_of_business") not in user.line_of_businesses.split(","):
+            if row.get("line_of_business") not in line_of_businesses.split(","):
                 denied_criteria.append(f"line_of_business ({row['line_of_business']})")
-            if row.get("team") not in user.teams.split(","):
+            if row.get("team") not in teams.split(","):
                 denied_criteria.append(f"team ({row['team']})")
-            if row.get("decision_engine") not in user.decision_engines.split(","):
+            if row.get("decision_engine") not in decision_engines.split(","):
                 denied_criteria.append(f"decision_engine ({row['decision_engine']})")
             if denied_criteria:
                 logger.warning(
-                    f"Access denied for user '{user.user_name}' on request '{row['unique_ref']}'. "
+                    f"Access denied for user '{user_name}' on request '{row['unique_ref']}'. "
                     f"Failed criteria: {', '.join(denied_criteria)}."
                 )
                 raise HTTPException(
                     status_code=403,
-                    detail=(f"User {user.user_id} does not have access to the following criteria for request "
+                    detail=(f"User {user_id} does not have access to the following criteria for request "
                             f"'{row['unique_ref']}': {', '.join(denied_criteria)}."),
                 )
 
@@ -100,7 +107,7 @@ def get_status_transitions(
             )
 
         allowed_roles = request_status_config[current_status]["Roles"]
-        user_roles = user.roles.split(",")
+        user_roles = roles.split(",")
         if not set(user_roles).intersection(allowed_roles):
             raise HTTPException(
                 status_code=403,
@@ -121,8 +128,8 @@ def get_status_transitions(
                 f'    "next_status": "{next_status}", '
                 f'    "request_type": "{current_request_type}"'
                 f'  }}\' '
-                f'  hx-trigger="click">'
-                f'Change to {next_status}'
+                f'  hx-trigger="click"> '
+                f'Change to {next_status} '
                 f'</button>'
             )
             buttons.append(button_html)

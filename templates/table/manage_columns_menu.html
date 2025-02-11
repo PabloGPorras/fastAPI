@@ -1,42 +1,70 @@
 <div id="manage-columns-menu" class="border p-2"
     style="display: none; max-height: 200px; overflow-y: auto; width: 250px;">
     <form>
-        {% if rows and rows[0] %}
-        {% for key in rows[0].keys() %}
-        <div class="form-check">
-            <input class="form-check-input column-toggle" type="checkbox" id="toggle-{{ key }}" data-column="{{ key }}"
-                checked>
-            <label class="form-check-label" for="toggle-{{ key }}">{{ key|capitalize }}</label>
-        </div>
+        {% set seen_columns = {} %}  <!-- Track unique column names -->
+
+        <!-- Insert "Status" as the first column if is_request -->
+        {% if is_request %}
+            {% if "status" not in seen_columns %}
+                <div class="form-check">
+                    <input class="form-check-input column-toggle" type="checkbox" id="toggle-status" data-column="status" checked>
+                    <label class="form-check-label" for="toggle-status">Status</label>
+                </div>
+                {% set _ = seen_columns.update({"status": True}) %}
+            {% endif %}
+        {% endif %}
+
+        <!-- Loop through metadata columns -->
+        {% for column in metadata.columns %}
+            {% if column.name not in seen_columns %}
+                <div class="form-check">
+                    <input class="form-check-input column-toggle" type="checkbox" id="toggle-{{ column.name }}" data-column="{{ column.name }}" checked>
+                    <label class="form-check-label" for="toggle-{{ column.name }}">{{ column.name | replace("_", " ") | title }}</label>
+                </div>
+                {% set _ = seen_columns.update({column.name: True}) %}
+            {% endif %}
         {% endfor %}
+
+        <!-- Loop through request metadata columns if needed -->
+        {% if is_request %}
+            {% for column in request_metadata.columns %}
+                {% if column.name not in seen_columns %}
+                    <div class="form-check">
+                        <input class="form-check-input column-toggle" type="checkbox" id="toggle-{{ column.name }}" data-column="{{ column.name }}" checked>
+                        <label class="form-check-label" for="toggle-{{ column.name }}">{{ column.name | replace("_", " ") | title }} (Request)</label>
+                    </div>
+                    {% set _ = seen_columns.update({column.name: True}) %}
+                {% endif %}
+            {% endfor %}
         {% endif %}
     </form>
 </div>
 
 <script>
-document.addEventListener("DOMContentLoaded", function () {
-    const userId = "current_user_id"; // Replace with dynamic user ID
 
+document.addEventListener("DOMContentLoaded", function () {
     // Fetch and apply saved preferences
     fetch("/api/get-user-preferences", {
         method: "GET",
-        headers: {
-            "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
     })
-        .then((response) => response.json())
-        .then((preferences) => {
-            const hiddenColumns = preferences.hidden_columns ? preferences.hidden_columns.split(",") : [];
-            hiddenColumns.forEach((columnKey) => {
-                document.querySelector(`#toggle-${columnKey}`).checked = false;
-                document.querySelectorAll(`.${columnKey}-column`).forEach((col) => {
-                    col.style.display = "none";
-                });
-            });
-        })
-        .catch((error) => {
-            console.error("Error fetching preferences:", error);
+    .then((response) => response.json())
+    .then((preferences) => {
+        const hiddenColumns = preferences.hidden_columns ? preferences.hidden_columns.split(",") : [];
+
+        hiddenColumns.forEach((columnKey) => {
+            const toggleCheckbox = document.querySelector(`#toggle-${columnKey}`);
+            const tableColumns = document.querySelectorAll(`.${columnKey}-column`);
+
+            if (toggleCheckbox) toggleCheckbox.checked = false;
+            if (tableColumns.length) {
+                tableColumns.forEach((col) => (col.style.display = "none"));
+            } else {
+                console.warn("Column not found:", columnKey);
+            }
         });
+    })
+    .catch((error) => console.error("Error fetching preferences:", error));
 
     // Save preferences on column toggle change
     document.querySelectorAll(".column-toggle").forEach((checkbox) => {
@@ -47,28 +75,20 @@ document.addEventListener("DOMContentLoaded", function () {
             // Save updated preferences
             fetch("/api/save-user-preferences", {
                 method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                },
+                headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ hidden_columns: hiddenColumns.join(",") }),
             })
-                .then((response) => {
-                    if (!response.ok) {
-                        console.error("Failed to save preferences");
-                    }
-                })
-                .catch((error) => {
-                    console.error("Error saving preferences:", error);
-                });
+            .then((response) => {
+                if (!response.ok) console.error("Failed to save preferences");
+            })
+            .catch((error) => console.error("Error saving preferences:", error));
 
             // Show or hide columns dynamically
             const columnKey = e.target.dataset.column;
-            const isVisible = e.target.checked;
             document.querySelectorAll(`.${columnKey}-column`).forEach((col) => {
-                col.style.display = isVisible ? "" : "none";
+                col.style.display = e.target.checked ? "" : "none";
             });
         });
     });
 });
-
 </script>

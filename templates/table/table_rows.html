@@ -1,0 +1,10 @@
+{% for row in rows %}
+<tr data-id="{{ row.get('unique_ref', 'N/A') }}">
+    {% include "table/row_action_button.html" %}
+    {% for key, value in row.items() %}
+    <td class="{{ key }}-column">
+        {{ value if value is not none else "N/A" }}
+    </td>
+    {% endfor %}
+</tr>
+{% endfor %}
