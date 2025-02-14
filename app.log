@@ -4875,3 +4875,864 @@ TypeError: 'module' object is not callable
 2025-02-14 02:35:17,560 - services.database_service - DEBUG - Checking model: Comment with table name: test_comments
 2025-02-14 02:35:17,561 - services.database_service - DEBUG - Checking model: RmsRequest with table name: test_requests
 2025-02-14 02:35:17,561 - services.database_service - INFO - Model found: RmsRequest
+2025-02-14 02:37:33,749 - database - DEBUG - get_current_user is being called.
+2025-02-14 02:37:33,750 - database - DEBUG - Retrieved user_name: PABLO
+2025-02-14 02:37:33,773 - database - DEBUG - Authenticated user: PABLO, Last Update: 2025-02-06 11:56:37.316479
+2025-02-14 02:37:33,774 - database - INFO - Loading main table page for model: test_requests
+2025-02-14 02:37:33,774 - services.database_service - DEBUG - Looking up model for table name: test_requests
+2025-02-14 02:37:33,774 - services.database_service - DEBUG - Checking model: User with table name: test_users
+2025-02-14 02:37:33,775 - services.database_service - DEBUG - Checking model: UserPreference with table name: test_user_preferences
+2025-02-14 02:37:33,775 - services.database_service - DEBUG - Checking model: Comment with table name: test_comments
+2025-02-14 02:37:33,775 - services.database_service - DEBUG - Checking model: RmsRequest with table name: test_requests
+2025-02-14 02:37:33,775 - services.database_service - INFO - Model found: RmsRequest
+2025-02-14 02:37:33,776 - services.database_service - INFO - Fetching data for model: <class 'models.request.RmsRequest'>
+2025-02-14 02:37:33,777 - services.database_service - INFO - Fetching data for model: <class 'models.request_status.RmsRequestStatus'>
+2025-02-14 02:37:33,777 - services.database_service - INFO - Fetching data for model: <class 'models.comment.Comment'>
+2025-02-14 02:37:33,778 - services.database_service - INFO - Fetching data for model: <class 'models.requests.person.Person'>
+2025-02-14 02:37:33,778 - services.database_service - INFO - Fetching data for model: <class 'models.requests.person.Relative'>
+2025-02-14 02:37:33,779 - services.database_service - INFO - Fetching data for model: <class 'models.requests.rule_config_request.RuleConfigRequest'>
+2025-02-14 02:37:33,779 - services.database_service - INFO - Fetching data for model: <class 'models.requests.rule_request.RuleRequest'>
+2025-02-14 02:37:33,779 - services.database_service - INFO - Fetching data for model: <class 'models.request.RmsRequest'>
+2025-02-14 02:37:33,780 - services.database_service - INFO - Fetching data for model: <class 'models.request_status.RmsRequestStatus'>
+2025-02-14 02:37:33,781 - services.database_service - INFO - Fetching data for model: <class 'models.comment.Comment'>
+2025-02-14 02:37:33,781 - services.database_service - INFO - Fetching data for model: <class 'models.requests.person.Person'>
+2025-02-14 02:37:33,781 - services.database_service - INFO - Fetching data for model: <class 'models.requests.person.Relative'>
+2025-02-14 02:37:33,781 - services.database_service - INFO - Fetching data for model: <class 'models.requests.rule_config_request.RuleConfigRequest'>
+2025-02-14 02:37:33,782 - services.database_service - INFO - Fetching data for model: <class 'models.requests.rule_request.RuleRequest'>
+2025-02-14 02:37:33,783 - services.database_service - INFO - Fetching data for model: <class 'models.request_status.RmsRequestStatus'>
+2025-02-14 02:37:33,783 - database - INFO - Applied Filters: {}
+2025-02-14 02:37:34,189 - database - DEBUG - get_current_user is being called.
+2025-02-14 02:37:34,190 - database - DEBUG - Retrieved user_name: PABLO
+2025-02-14 02:37:34,191 - database - DEBUG - Authenticated user: PABLO, Last Update: 2025-02-06 11:56:37.316479
+2025-02-14 02:37:34,233 - database - DEBUG - get_current_user is being called.
+2025-02-14 02:37:34,233 - services.database_service - DEBUG - Looking up model for table name: test_requests
+2025-02-14 02:37:34,234 - database - DEBUG - Retrieved user_name: PABLO
+2025-02-14 02:37:34,234 - services.database_service - DEBUG - Checking model: User with table name: test_users
+2025-02-14 02:37:34,234 - services.database_service - DEBUG - Checking model: UserPreference with table name: test_user_preferences
+2025-02-14 02:37:34,235 - services.database_service - DEBUG - Checking model: Comment with table name: test_comments
+2025-02-14 02:37:34,235 - database - DEBUG - Authenticated user: PABLO, Last Update: 2025-02-06 11:56:37.316479
+2025-02-14 02:37:34,235 - services.database_service - DEBUG - Checking model: RmsRequest with table name: test_requests
+2025-02-14 02:37:34,235 - services.database_service - INFO - Model found: RmsRequest
+2025-02-14 02:37:34,237 - database - DEBUG - Fetching current user information for: PABLO-2025020610595873520
+2025-02-14 02:37:34,289 - services.database_service - DEBUG - Looking up model for table name: test_requests
+2025-02-14 02:37:34,290 - services.database_service - DEBUG - Checking model: User with table name: test_users
+2025-02-14 02:37:34,290 - services.database_service - DEBUG - Checking model: UserPreference with table name: test_user_preferences
+2025-02-14 02:37:34,290 - services.database_service - DEBUG - Checking model: Comment with table name: test_comments
+2025-02-14 02:37:34,290 - services.database_service - DEBUG - Checking model: RmsRequest with table name: test_requests
+2025-02-14 02:37:34,291 - services.database_service - INFO - Model found: RmsRequest
+2025-02-14 02:37:36,113 - services.database_service - DEBUG - Looking up model for table name: test_requests
+2025-02-14 02:37:36,113 - services.database_service - DEBUG - Checking model: User with table name: test_users
+2025-02-14 02:37:36,114 - services.database_service - DEBUG - Checking model: UserPreference with table name: test_user_preferences
+2025-02-14 02:37:36,114 - services.database_service - DEBUG - Checking model: Comment with table name: test_comments
+2025-02-14 02:37:36,114 - services.database_service - DEBUG - Checking model: RmsRequest with table name: test_requests
+2025-02-14 02:37:36,114 - services.database_service - INFO - Model found: RmsRequest
+2025-02-14 02:37:37,468 - services.database_service - DEBUG - Looking up model for table name: test_requests
+2025-02-14 02:37:37,468 - services.database_service - DEBUG - Checking model: User with table name: test_users
+2025-02-14 02:37:37,469 - services.database_service - DEBUG - Checking model: UserPreference with table name: test_user_preferences
+2025-02-14 02:37:37,469 - services.database_service - DEBUG - Checking model: Comment with table name: test_comments
+2025-02-14 02:37:37,469 - services.database_service - DEBUG - Checking model: RmsRequest with table name: test_requests
+2025-02-14 02:37:37,469 - services.database_service - INFO - Model found: RmsRequest
+2025-02-14 02:37:37,668 - services.database_service - DEBUG - Looking up model for table name: test_requests
+2025-02-14 02:37:37,668 - services.database_service - DEBUG - Checking model: User with table name: test_users
+2025-02-14 02:37:37,668 - services.database_service - DEBUG - Checking model: UserPreference with table name: test_user_preferences
+2025-02-14 02:37:37,668 - services.database_service - DEBUG - Checking model: Comment with table name: test_comments
+2025-02-14 02:37:37,668 - services.database_service - DEBUG - Checking model: RmsRequest with table name: test_requests
+2025-02-14 02:37:37,669 - services.database_service - INFO - Model found: RmsRequest
+2025-02-14 02:37:37,678 - services.database_service - DEBUG - Looking up model for table name: test_requests
+2025-02-14 02:37:37,678 - services.database_service - DEBUG - Checking model: User with table name: test_users
+2025-02-14 02:37:37,679 - services.database_service - DEBUG - Checking model: UserPreference with table name: test_user_preferences
+2025-02-14 02:37:37,679 - services.database_service - DEBUG - Checking model: Comment with table name: test_comments
+2025-02-14 02:37:37,679 - services.database_service - DEBUG - Checking model: RmsRequest with table name: test_requests
+2025-02-14 02:37:37,679 - services.database_service - INFO - Model found: RmsRequest
+2025-02-14 02:37:40,369 - services.database_service - DEBUG - Looking up model for table name: test_requests
+2025-02-14 02:37:40,369 - services.database_service - DEBUG - Checking model: User with table name: test_users
+2025-02-14 02:37:40,369 - services.database_service - DEBUG - Checking model: UserPreference with table name: test_user_preferences
+2025-02-14 02:37:40,370 - services.database_service - DEBUG - Checking model: Comment with table name: test_comments
+2025-02-14 02:37:40,370 - services.database_service - DEBUG - Checking model: RmsRequest with table name: test_requests
+2025-02-14 02:37:40,370 - services.database_service - INFO - Model found: RmsRequest
+2025-02-14 02:37:40,439 - services.database_service - DEBUG - Looking up model for table name: test_requests
+2025-02-14 02:37:40,439 - services.database_service - DEBUG - Checking model: User with table name: test_users
+2025-02-14 02:37:40,439 - services.database_service - DEBUG - Checking model: UserPreference with table name: test_user_preferences
+2025-02-14 02:37:40,439 - services.database_service - DEBUG - Checking model: Comment with table name: test_comments
+2025-02-14 02:37:40,439 - services.database_service - DEBUG - Checking model: RmsRequest with table name: test_requests
+2025-02-14 02:37:40,440 - services.database_service - INFO - Model found: RmsRequest
+2025-02-14 02:37:43,451 - services.database_service - DEBUG - Looking up model for table name: test_requests
+2025-02-14 02:37:43,451 - services.database_service - DEBUG - Checking model: User with table name: test_users
+2025-02-14 02:37:43,451 - services.database_service - DEBUG - Checking model: UserPreference with table name: test_user_preferences
+2025-02-14 02:37:43,451 - services.database_service - DEBUG - Checking model: Comment with table name: test_comments
+2025-02-14 02:37:43,452 - services.database_service - DEBUG - Checking model: RmsRequest with table name: test_requests
+2025-02-14 02:37:43,452 - services.database_service - INFO - Model found: RmsRequest
+2025-02-14 02:37:43,696 - services.database_service - DEBUG - Looking up model for table name: test_requests
+2025-02-14 02:37:43,696 - services.database_service - DEBUG - Checking model: User with table name: test_users
+2025-02-14 02:37:43,696 - services.database_service - DEBUG - Checking model: UserPreference with table name: test_user_preferences
+2025-02-14 02:37:43,697 - services.database_service - DEBUG - Checking model: Comment with table name: test_comments
+2025-02-14 02:37:43,697 - services.database_service - DEBUG - Checking model: RmsRequest with table name: test_requests
+2025-02-14 02:37:43,697 - services.database_service - INFO - Model found: RmsRequest
+2025-02-14 02:37:43,799 - services.database_service - DEBUG - Looking up model for table name: test_requests
+2025-02-14 02:37:43,800 - services.database_service - DEBUG - Checking model: User with table name: test_users
+2025-02-14 02:37:43,800 - services.database_service - DEBUG - Checking model: UserPreference with table name: test_user_preferences
+2025-02-14 02:37:43,800 - services.database_service - DEBUG - Checking model: Comment with table name: test_comments
+2025-02-14 02:37:43,801 - services.database_service - DEBUG - Checking model: RmsRequest with table name: test_requests
+2025-02-14 02:37:43,801 - services.database_service - INFO - Model found: RmsRequest
+2025-02-14 02:37:46,016 - services.database_service - DEBUG - Looking up model for table name: test_requests
+2025-02-14 02:37:46,016 - services.database_service - DEBUG - Checking model: User with table name: test_users
+2025-02-14 02:37:46,017 - services.database_service - DEBUG - Checking model: UserPreference with table name: test_user_preferences
+2025-02-14 02:37:46,017 - services.database_service - DEBUG - Checking model: Comment with table name: test_comments
+2025-02-14 02:37:46,017 - services.database_service - DEBUG - Checking model: RmsRequest with table name: test_requests
+2025-02-14 02:37:46,017 - services.database_service - INFO - Model found: RmsRequest
+2025-02-14 02:37:47,238 - services.database_service - DEBUG - Looking up model for table name: test_requests
+2025-02-14 02:37:47,238 - services.database_service - DEBUG - Checking model: User with table name: test_users
+2025-02-14 02:37:47,238 - services.database_service - DEBUG - Checking model: UserPreference with table name: test_user_preferences
+2025-02-14 02:37:47,238 - services.database_service - DEBUG - Checking model: Comment with table name: test_comments
+2025-02-14 02:37:47,238 - services.database_service - DEBUG - Checking model: RmsRequest with table name: test_requests
+2025-02-14 02:37:47,239 - services.database_service - INFO - Model found: RmsRequest
+2025-02-14 02:38:23,521 - database - DEBUG - get_current_user is being called.
+2025-02-14 02:38:23,521 - database - DEBUG - Retrieved user_name: PABLO
+2025-02-14 02:38:23,522 - database - DEBUG - Authenticated user: PABLO, Last Update: 2025-02-06 11:56:37.316479
+2025-02-14 02:38:23,523 - database - DEBUG - Fetching details for unique_ref: PABLO-2025020610544876456
+2025-02-14 02:38:23,528 - services.database_service - DEBUG - Looking up model for table name: test_rule_request
+2025-02-14 02:38:23,528 - services.database_service - DEBUG - Checking model: User with table name: test_users
+2025-02-14 02:38:23,529 - services.database_service - DEBUG - Checking model: UserPreference with table name: test_user_preferences
+2025-02-14 02:38:23,529 - services.database_service - DEBUG - Checking model: Comment with table name: test_comments
+2025-02-14 02:38:23,530 - services.database_service - DEBUG - Checking model: RmsRequest with table name: test_requests
+2025-02-14 02:38:23,530 - services.database_service - DEBUG - Checking model: RmsRequestStatus with table name: test_request_status
+2025-02-14 02:38:23,530 - services.database_service - DEBUG - Checking model: Person with table name: test_persons
+2025-02-14 02:38:23,530 - services.database_service - DEBUG - Checking model: Relative with table name: test_relatives
+2025-02-14 02:38:23,531 - services.database_service - DEBUG - Checking model: RuleConfigRequest with table name: test_rule_config_request
+2025-02-14 02:38:23,531 - services.database_service - DEBUG - Checking model: RuleRequest with table name: test_rule_request
+2025-02-14 02:38:23,531 - services.database_service - INFO - Model found: RuleRequest
+2025-02-14 02:38:23,535 - services.database_service - INFO - Fetching data for model: <class 'models.requests.rule_request.RuleRequest'>
+2025-02-14 02:38:23,535 - services.database_service - INFO - Fetching data for model: <class 'models.requests.rule_request.RuleRequest'>
+2025-02-14 02:38:23,536 - database - DEBUG - Fetched relationships data: {}
+2025-02-14 02:38:23,540 - database - DEBUG - Combined and sorted entries: [{'type': 'status', 'text': 'PENDING APPROVAL', 'user_name': 'PABLO', 'timestamp': datetime.datetime(2025, 2, 6, 11, 54, 48, 413940)}, {'type': 'status', 'text': 'PENDING GOVERNANCE', 'user_name': 'PABLO', 'timestamp': datetime.datetime(2025, 2, 6, 11, 56, 37, 311449)}, {'type': 'status', 'text': 'PENDING UAT TABLE DETAIL', 'user_name': 'PABLO', 'timestamp': datetime.datetime(2025, 2, 6, 11, 56, 37, 311449)}, {'type': 'status', 'text': 'GOVERNANCE REJECTED', 'user_name': 'PABLO', 'timestamp': datetime.datetime(2025, 2, 6, 11, 56, 37, 311449)}, {'type': 'status', 'text': 'PENDING UAT TABLE DETAIL', 'user_name': 'PABLO', 'timestamp': datetime.datetime(2025, 2, 6, 12, 14, 37, 409734)}]
+2025-02-14 02:38:23,615 - database - DEBUG - get_current_user is being called.
+2025-02-14 02:38:23,615 - database - DEBUG - Retrieved user_name: PABLO
+2025-02-14 02:38:23,617 - database - DEBUG - Authenticated user: PABLO, Last Update: 2025-02-06 11:56:37.316479
+2025-02-14 02:38:23,618 - database - DEBUG - Fetching current user information for: PABLO-2025020610595873520
+2025-02-14 02:38:32,882 - database - DEBUG - get_current_user is being called.
+2025-02-14 02:38:32,883 - database - DEBUG - Retrieved user_name: PABLO
+2025-02-14 02:38:32,884 - database - DEBUG - Authenticated user: PABLO, Last Update: 2025-02-06 11:56:37.316479
+2025-02-14 02:38:32,884 - database - INFO - Loading main table page for model: test_persons
+2025-02-14 02:38:32,885 - services.database_service - DEBUG - Looking up model for table name: test_persons
+2025-02-14 02:38:32,885 - services.database_service - DEBUG - Checking model: User with table name: test_users
+2025-02-14 02:38:32,885 - services.database_service - DEBUG - Checking model: UserPreference with table name: test_user_preferences
+2025-02-14 02:38:32,885 - services.database_service - DEBUG - Checking model: Comment with table name: test_comments
+2025-02-14 02:38:32,886 - services.database_service - DEBUG - Checking model: RmsRequest with table name: test_requests
+2025-02-14 02:38:32,886 - services.database_service - DEBUG - Checking model: RmsRequestStatus with table name: test_request_status
+2025-02-14 02:38:32,886 - services.database_service - DEBUG - Checking model: Person with table name: test_persons
+2025-02-14 02:38:32,886 - services.database_service - INFO - Model found: Person
+2025-02-14 02:38:32,887 - services.database_service - INFO - Fetching data for model: <class 'models.requests.person.Person'>
+2025-02-14 02:38:32,887 - services.database_service - INFO - Fetching data for model: <class 'models.requests.person.Relative'>
+2025-02-14 02:38:32,887 - services.database_service - INFO - Fetching data for model: <class 'models.request.RmsRequest'>
+2025-02-14 02:38:32,887 - services.database_service - INFO - Fetching data for model: <class 'models.request_status.RmsRequestStatus'>
+2025-02-14 02:38:32,888 - services.database_service - INFO - Fetching data for model: <class 'models.comment.Comment'>
+2025-02-14 02:38:32,888 - services.database_service - INFO - Fetching data for model: <class 'models.requests.person.Person'>
+2025-02-14 02:38:32,889 - services.database_service - INFO - Fetching data for model: <class 'models.requests.person.Relative'>
+2025-02-14 02:38:32,889 - services.database_service - INFO - Fetching data for model: <class 'models.requests.rule_config_request.RuleConfigRequest'>
+2025-02-14 02:38:32,890 - services.database_service - INFO - Fetching data for model: <class 'models.requests.rule_request.RuleRequest'>
+2025-02-14 02:38:32,890 - services.database_service - INFO - Fetching data for model: <class 'models.request_status.RmsRequestStatus'>
+2025-02-14 02:38:32,890 - database - INFO - Applied Filters: {}
+2025-02-14 02:38:33,380 - database - DEBUG - get_current_user is being called.
+2025-02-14 02:38:33,381 - database - DEBUG - Retrieved user_name: PABLO
+2025-02-14 02:38:33,382 - database - DEBUG - Authenticated user: PABLO, Last Update: 2025-02-06 11:56:37.316479
+2025-02-14 02:38:33,393 - database - DEBUG - get_current_user is being called.
+2025-02-14 02:38:33,394 - database - DEBUG - Retrieved user_name: PABLO
+2025-02-14 02:38:33,395 - services.database_service - DEBUG - Looking up model for table name: test_persons
+2025-02-14 02:38:33,395 - database - DEBUG - Authenticated user: PABLO, Last Update: 2025-02-06 11:56:37.316479
+2025-02-14 02:38:33,396 - services.database_service - DEBUG - Checking model: User with table name: test_users
+2025-02-14 02:38:33,396 - services.database_service - DEBUG - Checking model: UserPreference with table name: test_user_preferences
+2025-02-14 02:38:33,396 - services.database_service - DEBUG - Checking model: Comment with table name: test_comments
+2025-02-14 02:38:33,396 - services.database_service - DEBUG - Checking model: RmsRequest with table name: test_requests
+2025-02-14 02:38:33,397 - services.database_service - DEBUG - Checking model: RmsRequestStatus with table name: test_request_status
+2025-02-14 02:38:33,397 - services.database_service - DEBUG - Checking model: Person with table name: test_persons
+2025-02-14 02:38:33,398 - services.database_service - INFO - Model found: Person
+2025-02-14 02:38:33,400 - database - DEBUG - Fetching current user information for: PABLO-2025020610595873520
+2025-02-14 02:38:33,499 - services.database_service - DEBUG - Looking up model for table name: test_persons
+2025-02-14 02:38:33,499 - services.database_service - DEBUG - Checking model: User with table name: test_users
+2025-02-14 02:38:33,500 - services.database_service - DEBUG - Checking model: UserPreference with table name: test_user_preferences
+2025-02-14 02:38:33,500 - services.database_service - DEBUG - Checking model: Comment with table name: test_comments
+2025-02-14 02:38:33,501 - services.database_service - DEBUG - Checking model: RmsRequest with table name: test_requests
+2025-02-14 02:38:33,501 - services.database_service - DEBUG - Checking model: RmsRequestStatus with table name: test_request_status
+2025-02-14 02:38:33,501 - services.database_service - DEBUG - Checking model: Person with table name: test_persons
+2025-02-14 02:38:33,502 - services.database_service - INFO - Model found: Person
+2025-02-14 02:38:36,687 - database - DEBUG - get_current_user is being called.
+2025-02-14 02:38:36,687 - database - DEBUG - Retrieved user_name: PABLO
+2025-02-14 02:38:36,689 - database - DEBUG - Authenticated user: PABLO, Last Update: 2025-02-06 11:56:37.316479
+2025-02-14 02:38:36,690 - database - DEBUG - Fetching details for unique_ref: PABLO-2025020900484365372
+2025-02-14 02:38:36,692 - services.database_service - DEBUG - Looking up model for table name: test_persons
+2025-02-14 02:38:36,692 - services.database_service - DEBUG - Checking model: User with table name: test_users
+2025-02-14 02:38:36,693 - services.database_service - DEBUG - Checking model: UserPreference with table name: test_user_preferences
+2025-02-14 02:38:36,693 - services.database_service - DEBUG - Checking model: Comment with table name: test_comments
+2025-02-14 02:38:36,693 - services.database_service - DEBUG - Checking model: RmsRequest with table name: test_requests
+2025-02-14 02:38:36,694 - services.database_service - DEBUG - Checking model: RmsRequestStatus with table name: test_request_status
+2025-02-14 02:38:36,694 - services.database_service - DEBUG - Checking model: Person with table name: test_persons
+2025-02-14 02:38:36,694 - services.database_service - INFO - Model found: Person
+2025-02-14 02:38:36,696 - services.database_service - INFO - Fetching data for model: <class 'models.requests.person.Person'>
+2025-02-14 02:38:36,697 - services.database_service - INFO - Fetching data for model: <class 'models.requests.person.Relative'>
+2025-02-14 02:38:36,697 - services.database_service - INFO - Fetching data for model: <class 'models.requests.person.Person'>
+2025-02-14 02:38:36,697 - services.database_service - INFO - Fetching data for model: <class 'models.requests.person.Relative'>
+2025-02-14 02:38:36,701 - database - DEBUG - Fetched relationships data: {'relatives': []}
+2025-02-14 02:38:36,703 - database - DEBUG - Combined and sorted entries: [{'type': 'status', 'text': 'PENDING GOVERNANCE', 'user_name': 'PABLO', 'timestamp': datetime.datetime(2025, 2, 9, 1, 35, 30, 928360)}, {'type': 'status', 'text': 'PENDING APPROVAL', 'user_name': 'PABLO', 'timestamp': datetime.datetime(2025, 2, 9, 1, 48, 43, 548038)}]
+2025-02-14 02:38:36,721 - database - DEBUG - get_current_user is being called.
+2025-02-14 02:38:36,722 - database - DEBUG - Retrieved user_name: PABLO
+2025-02-14 02:38:36,724 - database - DEBUG - Authenticated user: PABLO, Last Update: 2025-02-06 11:56:37.316479
+2025-02-14 02:38:36,724 - database - DEBUG - Fetching current user information for: PABLO-2025020610595873520
+2025-02-14 02:38:39,676 - python_multipart.multipart - DEBUG - Calling on_field_start with no data
+2025-02-14 02:38:39,677 - python_multipart.multipart - DEBUG - Calling on_field_name with data[0:10]
+2025-02-14 02:38:39,678 - python_multipart.multipart - DEBUG - Calling on_field_data with data[11:23]
+2025-02-14 02:38:39,678 - python_multipart.multipart - DEBUG - Calling on_field_end with no data
+2025-02-14 02:38:39,678 - python_multipart.multipart - DEBUG - Calling on_end with no data
+2025-02-14 02:38:39,678 - database - DEBUG - get_current_user is being called.
+2025-02-14 02:38:39,679 - database - DEBUG - Retrieved user_name: PABLO
+2025-02-14 02:38:39,680 - database - DEBUG - Authenticated user: PABLO, Last Update: 2025-02-06 11:56:37.316479
+2025-02-14 02:38:39,680 - database - DEBUG - Fetching details for model: test_persons
+2025-02-14 02:38:39,681 - services.database_service - DEBUG - Looking up model for table name: test_persons
+2025-02-14 02:38:39,681 - services.database_service - DEBUG - Checking model: User with table name: test_users
+2025-02-14 02:38:39,681 - services.database_service - DEBUG - Checking model: UserPreference with table name: test_user_preferences
+2025-02-14 02:38:39,681 - services.database_service - DEBUG - Checking model: Comment with table name: test_comments
+2025-02-14 02:38:39,682 - services.database_service - DEBUG - Checking model: RmsRequest with table name: test_requests
+2025-02-14 02:38:39,682 - services.database_service - DEBUG - Checking model: RmsRequestStatus with table name: test_request_status
+2025-02-14 02:38:39,682 - services.database_service - DEBUG - Checking model: Person with table name: test_persons
+2025-02-14 02:38:39,682 - services.database_service - INFO - Model found: Person
+2025-02-14 02:38:39,683 - services.database_service - INFO - Fetching data for model: <class 'models.requests.person.Person'>
+2025-02-14 02:38:39,683 - services.database_service - INFO - Fetching data for model: <class 'models.requests.person.Relative'>
+2025-02-14 02:38:39,683 - services.database_service - INFO - Fetching data for model: <class 'models.request.RmsRequest'>
+2025-02-14 02:38:39,684 - services.database_service - INFO - Fetching data for model: <class 'models.request_status.RmsRequestStatus'>
+2025-02-14 02:38:39,684 - services.database_service - INFO - Fetching data for model: <class 'models.comment.Comment'>
+2025-02-14 02:38:39,684 - services.database_service - INFO - Fetching data for model: <class 'models.requests.person.Person'>
+2025-02-14 02:38:39,684 - services.database_service - INFO - Fetching data for model: <class 'models.requests.person.Relative'>
+2025-02-14 02:38:39,685 - services.database_service - INFO - Fetching data for model: <class 'models.requests.rule_config_request.RuleConfigRequest'>
+2025-02-14 02:38:39,686 - services.database_service - INFO - Fetching data for model: <class 'models.requests.rule_request.RuleRequest'>
+2025-02-14 02:38:39,687 - database - DEBUG - recent_request: <models.request.RmsRequest object at 0x0000023582D24250>
+2025-02-14 02:38:39,688 - database - DEBUG - Populating form with recent RmsRequest: <models.request.RmsRequest object at 0x0000023582D24250>
+2025-02-14 02:38:39,689 - database - DEBUG - Fetched relationships data: [{'name': 'relatives', 'target_model': 'Relative', 'nested_metadata': {'model_name': 'Relative', 'columns': [{'name': 'unique_ref', 'type': 'VARCHAR', 'is_foreign_key': False, 'model_name': 'Relative', 'column_options': None, 'length': None, 'field_name': None, 'multi_select': False, 'required': False, 'search': False, 'forms': {}}, {'name': 'person_id', 'type': 'VARCHAR', 'is_foreign_key': True, 'model_name': 'Relative', 'column_options': None, 'length': None, 'field_name': None, 'multi_select': False, 'required': False, 'search': False, 'forms': {}}, {'name': 'name', 'type': 'VARCHAR', 'is_foreign_key': False, 'model_name': 'Relative', 'column_options': None, 'length': None, 'field_name': None, 'multi_select': False, 'required': False, 'search': False, 'forms': {'create-new': {'enabled': True}, 'view-existing': {'enabled': False}}}, {'name': 'relation_type', 'type': 'VARCHAR', 'is_foreign_key': False, 'model_name': 'Relative', 'column_options': None, 'length': None, 'field_name': None, 'multi_select': False, 'required': False, 'search': False, 'forms': {'create-new': {'enabled': True}, 'view-existing': {'enabled': False}}}, {'name': 'gender', 'type': 'VARCHAR', 'is_foreign_key': False, 'model_name': 'Relative', 'column_options': ['Male', 'Female', 'Other'], 'length': None, 'field_name': None, 'multi_select': False, 'required': False, 'search': False, 'forms': {'create-new': {'enabled': True}, 'view-existing': {'enabled': False}}}], 'form_fields': [{'name': 'name', 'type': 'VARCHAR', 'is_foreign_key': False, 'model_name': 'Relative', 'column_options': None, 'length': None, 'field_name': None, 'multi_select': False, 'required': False, 'search': False, 'forms': {'create-new': {'enabled': True}, 'view-existing': {'enabled': False}}}, {'name': 'relation_type', 'type': 'VARCHAR', 'is_foreign_key': False, 'model_name': 'Relative', 'column_options': None, 'length': None, 'field_name': None, 'multi_select': False, 'required': False, 'search': False, 'forms': {'create-new': {'enabled': True}, 'view-existing': {'enabled': False}}}, {'name': 'gender', 'type': 'VARCHAR', 'is_foreign_key': False, 'model_name': 'Relative', 'column_options': ['Male', 'Female', 'Other'], 'length': None, 'field_name': None, 'multi_select': False, 'required': False, 'search': False, 'forms': {'create-new': {'enabled': True}, 'view-existing': {'enabled': False}}}], 'relationships': [], 'predefined_options': {}, 'is_request': False, 'request_menu_category': None, 'frontend_table_name': None, 'request_status_config': None, 'checklist_fields': []}}]
+2025-02-14 02:39:06,005 - database - DEBUG - get_current_user is being called.
+2025-02-14 02:39:06,007 - database - DEBUG - Retrieved user_name: PABLO
+2025-02-14 02:39:06,008 - database - DEBUG - Authenticated user: PABLO, Last Update: 2025-02-06 11:56:37.316479
+2025-02-14 02:39:06,008 - python_multipart.multipart - DEBUG - Calling on_part_begin with no data
+2025-02-14 02:39:06,009 - python_multipart.multipart - DEBUG - Calling on_header_field with data[42:61]
+2025-02-14 02:39:06,009 - python_multipart.multipart - DEBUG - Calling on_header_value with data[63:93]
+2025-02-14 02:39:06,009 - python_multipart.multipart - DEBUG - Calling on_header_end with no data
+2025-02-14 02:39:06,009 - python_multipart.multipart - DEBUG - Calling on_headers_finished with no data
+2025-02-14 02:39:06,010 - python_multipart.multipart - DEBUG - Calling on_part_data with data[97:100]
+2025-02-14 02:39:06,010 - python_multipart.multipart - DEBUG - Calling on_part_end with no data
+2025-02-14 02:39:06,010 - python_multipart.multipart - DEBUG - Calling on_part_begin with no data
+2025-02-14 02:39:06,011 - python_multipart.multipart - DEBUG - Calling on_header_field with data[144:163]
+2025-02-14 02:39:06,011 - python_multipart.multipart - DEBUG - Calling on_header_value with data[165:199]
+2025-02-14 02:39:06,011 - python_multipart.multipart - DEBUG - Calling on_header_end with no data
+2025-02-14 02:39:06,011 - python_multipart.multipart - DEBUG - Calling on_headers_finished with no data
+2025-02-14 02:39:06,011 - python_multipart.multipart - DEBUG - Calling on_part_data with data[203:207]
+2025-02-14 02:39:06,012 - python_multipart.multipart - DEBUG - Calling on_part_end with no data
+2025-02-14 02:39:06,012 - python_multipart.multipart - DEBUG - Calling on_part_begin with no data
+2025-02-14 02:39:06,012 - python_multipart.multipart - DEBUG - Calling on_header_field with data[251:270]
+2025-02-14 02:39:06,012 - python_multipart.multipart - DEBUG - Calling on_header_value with data[272:306]
+2025-02-14 02:39:06,013 - python_multipart.multipart - DEBUG - Calling on_header_end with no data
+2025-02-14 02:39:06,013 - python_multipart.multipart - DEBUG - Calling on_headers_finished with no data
+2025-02-14 02:39:06,013 - python_multipart.multipart - DEBUG - Calling on_part_data with data[310:316]
+2025-02-14 02:39:06,013 - python_multipart.multipart - DEBUG - Calling on_part_end with no data
+2025-02-14 02:39:06,014 - python_multipart.multipart - DEBUG - Calling on_part_begin with no data
+2025-02-14 02:39:06,014 - python_multipart.multipart - DEBUG - Calling on_header_field with data[360:379]
+2025-02-14 02:39:06,014 - python_multipart.multipart - DEBUG - Calling on_header_value with data[381:403]
+2025-02-14 02:39:06,014 - python_multipart.multipart - DEBUG - Calling on_header_end with no data
+2025-02-14 02:39:06,015 - python_multipart.multipart - DEBUG - Calling on_headers_finished with no data
+2025-02-14 02:39:06,015 - python_multipart.multipart - DEBUG - Calling on_part_data with data[407:411]
+2025-02-14 02:39:06,015 - python_multipart.multipart - DEBUG - Calling on_part_end with no data
+2025-02-14 02:39:06,015 - python_multipart.multipart - DEBUG - Calling on_part_begin with no data
+2025-02-14 02:39:06,016 - python_multipart.multipart - DEBUG - Calling on_header_field with data[455:474]
+2025-02-14 02:39:06,016 - python_multipart.multipart - DEBUG - Calling on_header_value with data[476:509]
+2025-02-14 02:39:06,016 - python_multipart.multipart - DEBUG - Calling on_header_end with no data
+2025-02-14 02:39:06,016 - python_multipart.multipart - DEBUG - Calling on_headers_finished with no data
+2025-02-14 02:39:06,017 - python_multipart.multipart - DEBUG - Calling on_part_data with data[513:518]
+2025-02-14 02:39:06,017 - python_multipart.multipart - DEBUG - Calling on_part_end with no data
+2025-02-14 02:39:06,017 - python_multipart.multipart - DEBUG - Calling on_part_begin with no data
+2025-02-14 02:39:06,017 - python_multipart.multipart - DEBUG - Calling on_header_field with data[562:581]
+2025-02-14 02:39:06,018 - python_multipart.multipart - DEBUG - Calling on_header_value with data[583:607]
+2025-02-14 02:39:06,018 - python_multipart.multipart - DEBUG - Calling on_header_end with no data
+2025-02-14 02:39:06,018 - python_multipart.multipart - DEBUG - Calling on_headers_finished with no data
+2025-02-14 02:39:06,018 - python_multipart.multipart - DEBUG - Calling on_part_data with data[611:614]
+2025-02-14 02:39:06,019 - python_multipart.multipart - DEBUG - Calling on_part_end with no data
+2025-02-14 02:39:06,019 - python_multipart.multipart - DEBUG - Calling on_part_begin with no data
+2025-02-14 02:39:06,019 - python_multipart.multipart - DEBUG - Calling on_header_field with data[658:677]
+2025-02-14 02:39:06,020 - python_multipart.multipart - DEBUG - Calling on_header_value with data[679:716]
+2025-02-14 02:39:06,020 - python_multipart.multipart - DEBUG - Calling on_header_end with no data
+2025-02-14 02:39:06,020 - python_multipart.multipart - DEBUG - Calling on_headers_finished with no data
+2025-02-14 02:39:06,021 - python_multipart.multipart - DEBUG - Calling on_part_data with data[720:725]
+2025-02-14 02:39:06,021 - python_multipart.multipart - DEBUG - Calling on_part_end with no data
+2025-02-14 02:39:06,021 - python_multipart.multipart - DEBUG - Calling on_part_begin with no data
+2025-02-14 02:39:06,022 - python_multipart.multipart - DEBUG - Calling on_header_field with data[769:788]
+2025-02-14 02:39:06,022 - python_multipart.multipart - DEBUG - Calling on_header_value with data[790:811]
+2025-02-14 02:39:06,022 - python_multipart.multipart - DEBUG - Calling on_header_end with no data
+2025-02-14 02:39:06,022 - python_multipart.multipart - DEBUG - Calling on_headers_finished with no data
+2025-02-14 02:39:06,023 - python_multipart.multipart - DEBUG - Calling on_part_data with data[815:817]
+2025-02-14 02:39:06,023 - python_multipart.multipart - DEBUG - Calling on_part_end with no data
+2025-02-14 02:39:06,023 - python_multipart.multipart - DEBUG - Calling on_part_begin with no data
+2025-02-14 02:39:06,023 - python_multipart.multipart - DEBUG - Calling on_header_field with data[861:880]
+2025-02-14 02:39:06,024 - python_multipart.multipart - DEBUG - Calling on_header_value with data[882:908]
+2025-02-14 02:39:06,024 - python_multipart.multipart - DEBUG - Calling on_header_end with no data
+2025-02-14 02:39:06,024 - python_multipart.multipart - DEBUG - Calling on_headers_finished with no data
+2025-02-14 02:39:06,024 - python_multipart.multipart - DEBUG - Calling on_part_data with data[912:916]
+2025-02-14 02:39:06,025 - python_multipart.multipart - DEBUG - Calling on_part_end with no data
+2025-02-14 02:39:06,025 - python_multipart.multipart - DEBUG - Calling on_part_begin with no data
+2025-02-14 02:39:06,025 - python_multipart.multipart - DEBUG - Calling on_header_field with data[960:979]
+2025-02-14 02:39:06,026 - python_multipart.multipart - DEBUG - Calling on_header_value with data[981:1012]
+2025-02-14 02:39:06,026 - python_multipart.multipart - DEBUG - Calling on_header_end with no data
+2025-02-14 02:39:06,026 - python_multipart.multipart - DEBUG - Calling on_headers_finished with no data
+2025-02-14 02:39:06,026 - python_multipart.multipart - DEBUG - Calling on_part_data with data[1016:1143]
+2025-02-14 02:39:06,027 - python_multipart.multipart - DEBUG - Calling on_part_end with no data
+2025-02-14 02:39:06,027 - python_multipart.multipart - DEBUG - Calling on_end with no data
+2025-02-14 02:39:06,027 - database - DEBUG - [create_new] Raw form data: FormData([('organization', 'FRM'), ('sub_organization', 'FRAP'), ('line_of_business', 'CREDIT'), ('team', 'IMPL'), ('decision_engine', 'SASFM'), ('effort', 'BAU'), ('First and Last Name', 'PABLO'), ('age', '26'), ('gender[]', 'Male'), ('relationships', '{"relatives":[{"name":"ANA","relation_type":"WIFE","gender":"Female"},{"name":"GENA","relation_type":"MOM","gender":"Female"}]}')])
+2025-02-14 02:39:06,028 - database - DEBUG - [create_new] Data after key normalization: {'organization': 'FRM', 'sub_organization': 'FRAP', 'line_of_business': 'CREDIT', 'team': 'IMPL', 'decision_engine': 'SASFM', 'effort': 'BAU', 'First and Last Name': 'PABLO', 'age': '26', 'gender': 'Male', 'relationships': '{"relatives":[{"name":"ANA","relation_type":"WIFE","gender":"Female"},{"name":"GENA","relation_type":"MOM","gender":"Female"}]}'}
+2025-02-14 02:39:06,029 - database - INFO - [create_new] Received request to create a new entry for model: 'test_persons'
+2025-02-14 02:39:06,029 - database - DEBUG - [create_new] Raw form data after multi-option handling: {'organization': 'FRM', 'sub_organization': 'FRAP', 'line_of_business': 'CREDIT', 'team': 'IMPL', 'decision_engine': 'SASFM', 'effort': 'BAU', 'First and Last Name': 'PABLO', 'age': '26', 'gender': 'Male', 'relationships': '{"relatives":[{"name":"ANA","relation_type":"WIFE","gender":"Female"},{"name":"GENA","relation_type":"MOM","gender":"Female"}]}'}
+2025-02-14 02:39:06,029 - database - DEBUG - [create_new] Raw relationships field (string): '{"relatives":[{"name":"ANA","relation_type":"WIFE","gender":"Female"},{"name":"GENA","relation_type":"MOM","gender":"Female"}]}'
+2025-02-14 02:39:06,030 - database - DEBUG - [create_new] Parsed relationships_data (dict): {'relatives': [{'name': 'ANA', 'relation_type': 'WIFE', 'gender': 'Female'}, {'name': 'GENA', 'relation_type': 'MOM', 'gender': 'Female'}]}
+2025-02-14 02:39:06,030 - database - DEBUG - [create_new] Attempting to find model by tablename 'test_persons'
+2025-02-14 02:39:06,030 - services.database_service - DEBUG - Looking up model for table name: test_persons
+2025-02-14 02:39:06,030 - services.database_service - DEBUG - Checking model: User with table name: test_users
+2025-02-14 02:39:06,030 - services.database_service - DEBUG - Checking model: UserPreference with table name: test_user_preferences
+2025-02-14 02:39:06,031 - services.database_service - DEBUG - Checking model: Comment with table name: test_comments
+2025-02-14 02:39:06,031 - services.database_service - DEBUG - Checking model: RmsRequest with table name: test_requests
+2025-02-14 02:39:06,032 - services.database_service - DEBUG - Checking model: RmsRequestStatus with table name: test_request_status
+2025-02-14 02:39:06,032 - services.database_service - DEBUG - Checking model: Person with table name: test_persons
+2025-02-14 02:39:06,032 - services.database_service - INFO - Model found: Person
+2025-02-14 02:39:06,033 - database - DEBUG - [create_new] Merged form_object into data: {'organization': 'FRM', 'sub_organization': 'FRAP', 'line_of_business': 'CREDIT', 'team': 'IMPL', 'decision_engine': 'SASFM', 'effort': 'BAU', 'First and Last Name': 'PABLO', 'age': '26', 'gender': 'Male'}
+2025-02-14 02:39:06,033 - database - DEBUG - [create_new] Assigned group_id='PABLO-2025021402390617881' to data.
+2025-02-14 02:39:06,033 - database - DEBUG - [create_new] Allowed keys for filtering: {'unique_ref', 'First and Last Name', 'gender', 'organization', 'rms_request_id', 'effort', 'line_of_business', 'age', 'team', 'sub_organization', 'decision_engine', 'name'}
+2025-02-14 02:39:06,033 - database - DEBUG - [create_new] Column mappings: {'unique_ref': 'unique_ref', 'First and Last Name': 'name', 'name': 'name', 'age': 'age', 'gender': 'gender', 'rms_request_id': 'rms_request_id'}
+2025-02-14 02:39:06,034 - database - DEBUG - [create_new] Filtered main data with required defaults: {'organization': 'FRM', 'sub_organization': 'FRAP', 'line_of_business': 'CREDIT', 'team': 'IMPL', 'decision_engine': 'SASFM', 'effort': 'BAU', 'First and Last Name': 'PABLO', 'age': '26', 'gender': 'Male', 'rms_request_id': '', 'unique_ref': ''}
+2025-02-14 02:39:06,034 - database - DEBUG - [create_new] Removed empty value for 'unique_ref' to allow default.
+2025-02-14 02:39:06,034 - database - DEBUG - [create_new] Main data after bool conversion: {'organization': 'FRM', 'sub_organization': 'FRAP', 'line_of_business': 'CREDIT', 'team': 'IMPL', 'decision_engine': 'SASFM', 'effort': 'BAU', 'First and Last Name': 'PABLO', 'age': '26', 'gender': 'Male', 'rms_request_id': ''}
+2025-02-14 02:39:06,035 - database - DEBUG - [create_new] Model has 'is_request=True'. Creating RmsRequest + Status.
+2025-02-14 02:39:06,036 - database - DEBUG - [create_new] Building RmsRequest with: {'request_type': 'TEST_PERSONS', 'effort': 'BAU', 'organization': 'FRM', 'sub_organization': 'FRAP', 'line_of_business': 'CREDIT', 'team': 'IMPL', 'decision_engine': 'SASFM', 'group_id': 'PABLO-2025021402390617881'}
+2025-02-14 02:39:06,043 - database - DEBUG - [create_new] Created RmsRequest with unique_ref='PABLO-2025021402390649755'
+2025-02-14 02:39:06,044 - database - DEBUG - [create_new] Created RmsRequestStatus with status='PENDING APPROVAL'
+2025-02-14 02:39:06,045 - database - DEBUG - [create_new] Final normalized data for Person: {'name': 'PABLO', 'age': '26', 'gender': 'Male', 'rms_request_id': 'PABLO-2025021402390649755', 'unique_ref': 'PABLO-2025021402390649755'}
+2025-02-14 02:39:06,049 - database - DEBUG - [create_new] Created main Person object: <models.requests.person.Person object at 0x00000235828D4250>
+2025-02-14 02:39:06,050 - database - DEBUG - [create_new] Looping through relationships_data: {'relatives': [{'name': 'ANA', 'relation_type': 'WIFE', 'gender': 'Female'}, {'name': 'GENA', 'relation_type': 'MOM', 'gender': 'Female'}]}
+2025-02-14 02:39:06,050 - database - DEBUG - [create_new] Checking relationship 'relatives'
+2025-02-14 02:39:06,051 - database - DEBUG - [create_new] -> The related model for 'relatives' is 'Relative'
+2025-02-14 02:39:06,051 - database - DEBUG - [create_new] -> After loop, relatives = [<models.requests.person.Relative object at 0x00000235828E1BD0>, <models.requests.person.Relative object at 0x0000023582C11E10>]
+2025-02-14 02:39:06,052 - database - DEBUG - [create_new] Completed relationship handling. main_object: <models.requests.person.Person object at 0x00000235828D4250>
+2025-02-14 02:39:06,057 - database - INFO - [create_new] Successfully created 'test_persons' entry and relationships.
+2025-02-14 02:39:06,070 - services.database_service - DEBUG - Looking up model for table name: test_persons
+2025-02-14 02:39:06,070 - services.database_service - DEBUG - Checking model: User with table name: test_users
+2025-02-14 02:39:06,071 - services.database_service - DEBUG - Checking model: UserPreference with table name: test_user_preferences
+2025-02-14 02:39:06,071 - services.database_service - DEBUG - Checking model: Comment with table name: test_comments
+2025-02-14 02:39:06,071 - services.database_service - DEBUG - Checking model: RmsRequest with table name: test_requests
+2025-02-14 02:39:06,071 - services.database_service - DEBUG - Checking model: RmsRequestStatus with table name: test_request_status
+2025-02-14 02:39:06,071 - services.database_service - DEBUG - Checking model: Person with table name: test_persons
+2025-02-14 02:39:06,072 - services.database_service - INFO - Model found: Person
+2025-02-14 02:39:08,702 - database - DEBUG - get_current_user is being called.
+2025-02-14 02:39:08,702 - database - DEBUG - Retrieved user_name: PABLO
+2025-02-14 02:39:08,704 - database - DEBUG - Authenticated user: PABLO, Last Update: 2025-02-06 11:56:37.316479
+2025-02-14 02:39:08,705 - database - DEBUG - Fetching details for unique_ref: PABLO-2025021402390649755
+2025-02-14 02:39:08,705 - services.database_service - DEBUG - Looking up model for table name: test_persons
+2025-02-14 02:39:08,706 - services.database_service - DEBUG - Checking model: User with table name: test_users
+2025-02-14 02:39:08,706 - services.database_service - DEBUG - Checking model: UserPreference with table name: test_user_preferences
+2025-02-14 02:39:08,706 - services.database_service - DEBUG - Checking model: Comment with table name: test_comments
+2025-02-14 02:39:08,706 - services.database_service - DEBUG - Checking model: RmsRequest with table name: test_requests
+2025-02-14 02:39:08,707 - services.database_service - DEBUG - Checking model: RmsRequestStatus with table name: test_request_status
+2025-02-14 02:39:08,708 - services.database_service - DEBUG - Checking model: Person with table name: test_persons
+2025-02-14 02:39:08,708 - services.database_service - INFO - Model found: Person
+2025-02-14 02:39:08,709 - services.database_service - INFO - Fetching data for model: <class 'models.requests.person.Person'>
+2025-02-14 02:39:08,709 - services.database_service - INFO - Fetching data for model: <class 'models.requests.person.Relative'>
+2025-02-14 02:39:08,709 - services.database_service - INFO - Fetching data for model: <class 'models.requests.person.Person'>
+2025-02-14 02:39:08,710 - services.database_service - INFO - Fetching data for model: <class 'models.requests.person.Relative'>
+2025-02-14 02:39:08,711 - database - DEBUG - Fetched relationships data: {'relatives': [{'unique_ref': 'PABLO-2025021402390652270', 'person_id': 'PABLO-2025021402390649755', 'name': 'ANA', 'relation_type': 'WIFE', 'gender': 'Female'}, {'unique_ref': 'PABLO-2025021402390666943', 'person_id': 'PABLO-2025021402390649755', 'name': 'GENA', 'relation_type': 'MOM', 'gender': 'Female'}]}
+2025-02-14 02:39:08,713 - database - DEBUG - Combined and sorted entries: [{'type': 'status', 'text': 'PENDING APPROVAL', 'user_name': 'PABLO', 'timestamp': datetime.datetime(2025, 2, 14, 3, 39, 6, 44556)}]
+2025-02-14 02:39:08,731 - database - DEBUG - get_current_user is being called.
+2025-02-14 02:39:08,731 - database - DEBUG - Retrieved user_name: PABLO
+2025-02-14 02:39:08,732 - database - DEBUG - Authenticated user: PABLO, Last Update: 2025-02-06 11:56:37.316479
+2025-02-14 02:39:08,733 - database - DEBUG - Fetching current user information for: PABLO-2025020610595873520
+2025-02-14 02:39:34,178 - database - DEBUG - get_current_user is being called.
+2025-02-14 02:39:34,178 - database - DEBUG - Retrieved user_name: PABLO
+2025-02-14 02:39:34,179 - database - DEBUG - Authenticated user: PABLO, Last Update: 2025-02-06 11:56:37.316479
+2025-02-14 02:39:34,179 - database - INFO - Loading main table page for model: test_requests
+2025-02-14 02:39:34,180 - services.database_service - DEBUG - Looking up model for table name: test_requests
+2025-02-14 02:39:34,180 - services.database_service - DEBUG - Checking model: User with table name: test_users
+2025-02-14 02:39:34,181 - services.database_service - DEBUG - Checking model: UserPreference with table name: test_user_preferences
+2025-02-14 02:39:34,181 - services.database_service - DEBUG - Checking model: Comment with table name: test_comments
+2025-02-14 02:39:34,182 - services.database_service - DEBUG - Checking model: RmsRequest with table name: test_requests
+2025-02-14 02:39:34,182 - services.database_service - INFO - Model found: RmsRequest
+2025-02-14 02:39:34,182 - services.database_service - INFO - Fetching data for model: <class 'models.request.RmsRequest'>
+2025-02-14 02:39:34,182 - services.database_service - INFO - Fetching data for model: <class 'models.request_status.RmsRequestStatus'>
+2025-02-14 02:39:34,183 - services.database_service - INFO - Fetching data for model: <class 'models.comment.Comment'>
+2025-02-14 02:39:34,183 - services.database_service - INFO - Fetching data for model: <class 'models.requests.person.Person'>
+2025-02-14 02:39:34,184 - services.database_service - INFO - Fetching data for model: <class 'models.requests.person.Relative'>
+2025-02-14 02:39:34,184 - services.database_service - INFO - Fetching data for model: <class 'models.requests.rule_config_request.RuleConfigRequest'>
+2025-02-14 02:39:34,185 - services.database_service - INFO - Fetching data for model: <class 'models.requests.rule_request.RuleRequest'>
+2025-02-14 02:39:34,185 - services.database_service - INFO - Fetching data for model: <class 'models.request.RmsRequest'>
+2025-02-14 02:39:34,186 - services.database_service - INFO - Fetching data for model: <class 'models.request_status.RmsRequestStatus'>
+2025-02-14 02:39:34,186 - services.database_service - INFO - Fetching data for model: <class 'models.comment.Comment'>
+2025-02-14 02:39:34,186 - services.database_service - INFO - Fetching data for model: <class 'models.requests.person.Person'>
+2025-02-14 02:39:34,187 - services.database_service - INFO - Fetching data for model: <class 'models.requests.person.Relative'>
+2025-02-14 02:39:34,187 - services.database_service - INFO - Fetching data for model: <class 'models.requests.rule_config_request.RuleConfigRequest'>
+2025-02-14 02:39:34,187 - services.database_service - INFO - Fetching data for model: <class 'models.requests.rule_request.RuleRequest'>
+2025-02-14 02:39:34,188 - services.database_service - INFO - Fetching data for model: <class 'models.request_status.RmsRequestStatus'>
+2025-02-14 02:39:34,188 - database - INFO - Applied Filters: {}
+2025-02-14 02:39:34,667 - database - DEBUG - get_current_user is being called.
+2025-02-14 02:39:34,668 - database - DEBUG - Retrieved user_name: PABLO
+2025-02-14 02:39:34,669 - database - DEBUG - Authenticated user: PABLO, Last Update: 2025-02-06 11:56:37.316479
+2025-02-14 02:39:34,670 - database - DEBUG - get_current_user is being called.
+2025-02-14 02:39:34,670 - database - DEBUG - Retrieved user_name: PABLO
+2025-02-14 02:39:34,674 - database - DEBUG - Authenticated user: PABLO, Last Update: 2025-02-06 11:56:37.316479
+2025-02-14 02:39:34,674 - services.database_service - DEBUG - Looking up model for table name: test_requests
+2025-02-14 02:39:34,674 - services.database_service - DEBUG - Checking model: User with table name: test_users
+2025-02-14 02:39:34,675 - services.database_service - DEBUG - Checking model: UserPreference with table name: test_user_preferences
+2025-02-14 02:39:34,675 - services.database_service - DEBUG - Checking model: Comment with table name: test_comments
+2025-02-14 02:39:34,675 - services.database_service - DEBUG - Checking model: RmsRequest with table name: test_requests
+2025-02-14 02:39:34,676 - services.database_service - INFO - Model found: RmsRequest
+2025-02-14 02:39:34,676 - database - DEBUG - Fetching current user information for: PABLO-2025020610595873520
+2025-02-14 02:39:34,736 - services.database_service - DEBUG - Looking up model for table name: test_requests
+2025-02-14 02:39:34,737 - services.database_service - DEBUG - Checking model: User with table name: test_users
+2025-02-14 02:39:34,737 - services.database_service - DEBUG - Checking model: UserPreference with table name: test_user_preferences
+2025-02-14 02:39:34,737 - services.database_service - DEBUG - Checking model: Comment with table name: test_comments
+2025-02-14 02:39:34,737 - services.database_service - DEBUG - Checking model: RmsRequest with table name: test_requests
+2025-02-14 02:39:34,737 - services.database_service - INFO - Model found: RmsRequest
+2025-02-14 02:43:43,307 - database - DEBUG - get_current_user is being called.
+2025-02-14 02:43:43,308 - database - DEBUG - Retrieved user_name: PABLO
+2025-02-14 02:43:43,308 - database - DEBUG - Authenticated user: PABLO, Last Update: 2025-02-06 11:56:37.316479
+2025-02-14 02:43:43,309 - database - INFO - Loading main table page for model: test_rule_request
+2025-02-14 02:43:43,309 - services.database_service - DEBUG - Looking up model for table name: test_rule_request
+2025-02-14 02:43:43,309 - services.database_service - DEBUG - Checking model: User with table name: test_users
+2025-02-14 02:43:43,310 - services.database_service - DEBUG - Checking model: UserPreference with table name: test_user_preferences
+2025-02-14 02:43:43,310 - services.database_service - DEBUG - Checking model: Comment with table name: test_comments
+2025-02-14 02:43:43,310 - services.database_service - DEBUG - Checking model: RmsRequest with table name: test_requests
+2025-02-14 02:43:43,310 - services.database_service - DEBUG - Checking model: RmsRequestStatus with table name: test_request_status
+2025-02-14 02:43:43,311 - services.database_service - DEBUG - Checking model: Person with table name: test_persons
+2025-02-14 02:43:43,312 - services.database_service - DEBUG - Checking model: Relative with table name: test_relatives
+2025-02-14 02:43:43,312 - services.database_service - DEBUG - Checking model: RuleConfigRequest with table name: test_rule_config_request
+2025-02-14 02:43:43,312 - services.database_service - DEBUG - Checking model: RuleRequest with table name: test_rule_request
+2025-02-14 02:43:43,312 - services.database_service - INFO - Model found: RuleRequest
+2025-02-14 02:43:43,313 - services.database_service - INFO - Fetching data for model: <class 'models.requests.rule_request.RuleRequest'>
+2025-02-14 02:43:43,313 - services.database_service - INFO - Fetching data for model: <class 'models.request.RmsRequest'>
+2025-02-14 02:43:43,313 - services.database_service - INFO - Fetching data for model: <class 'models.request_status.RmsRequestStatus'>
+2025-02-14 02:43:43,314 - services.database_service - INFO - Fetching data for model: <class 'models.comment.Comment'>
+2025-02-14 02:43:43,315 - services.database_service - INFO - Fetching data for model: <class 'models.requests.person.Person'>
+2025-02-14 02:43:43,315 - services.database_service - INFO - Fetching data for model: <class 'models.requests.person.Relative'>
+2025-02-14 02:43:43,315 - services.database_service - INFO - Fetching data for model: <class 'models.requests.rule_config_request.RuleConfigRequest'>
+2025-02-14 02:43:43,316 - services.database_service - INFO - Fetching data for model: <class 'models.requests.rule_request.RuleRequest'>
+2025-02-14 02:43:43,316 - services.database_service - INFO - Fetching data for model: <class 'models.request_status.RmsRequestStatus'>
+2025-02-14 02:43:43,316 - database - INFO - Applied Filters: {}
+2025-02-14 02:43:43,841 - database - DEBUG - get_current_user is being called.
+2025-02-14 02:43:43,842 - database - DEBUG - Retrieved user_name: PABLO
+2025-02-14 02:43:43,844 - database - DEBUG - Authenticated user: PABLO, Last Update: 2025-02-06 11:56:37.316479
+2025-02-14 02:43:43,856 - database - DEBUG - get_current_user is being called.
+2025-02-14 02:43:43,857 - database - DEBUG - Retrieved user_name: PABLO
+2025-02-14 02:43:43,858 - database - DEBUG - Authenticated user: PABLO, Last Update: 2025-02-06 11:56:37.316479
+2025-02-14 02:43:43,859 - database - DEBUG - Fetching current user information for: PABLO-2025020610595873520
+2025-02-14 02:43:43,860 - services.database_service - DEBUG - Looking up model for table name: test_rule_request
+2025-02-14 02:43:43,861 - services.database_service - DEBUG - Checking model: User with table name: test_users
+2025-02-14 02:43:43,861 - services.database_service - DEBUG - Checking model: UserPreference with table name: test_user_preferences
+2025-02-14 02:43:43,861 - services.database_service - DEBUG - Checking model: Comment with table name: test_comments
+2025-02-14 02:43:43,862 - services.database_service - DEBUG - Checking model: RmsRequest with table name: test_requests
+2025-02-14 02:43:43,862 - services.database_service - DEBUG - Checking model: RmsRequestStatus with table name: test_request_status
+2025-02-14 02:43:43,862 - services.database_service - DEBUG - Checking model: Person with table name: test_persons
+2025-02-14 02:43:43,862 - services.database_service - DEBUG - Checking model: Relative with table name: test_relatives
+2025-02-14 02:43:43,863 - services.database_service - DEBUG - Checking model: RuleConfigRequest with table name: test_rule_config_request
+2025-02-14 02:43:43,863 - services.database_service - DEBUG - Checking model: RuleRequest with table name: test_rule_request
+2025-02-14 02:43:43,863 - services.database_service - INFO - Model found: RuleRequest
+2025-02-14 02:43:43,913 - services.database_service - DEBUG - Looking up model for table name: test_rule_request
+2025-02-14 02:43:43,914 - services.database_service - DEBUG - Checking model: User with table name: test_users
+2025-02-14 02:43:43,914 - services.database_service - DEBUG - Checking model: UserPreference with table name: test_user_preferences
+2025-02-14 02:43:43,914 - services.database_service - DEBUG - Checking model: Comment with table name: test_comments
+2025-02-14 02:43:43,914 - services.database_service - DEBUG - Checking model: RmsRequest with table name: test_requests
+2025-02-14 02:43:43,915 - services.database_service - DEBUG - Checking model: RmsRequestStatus with table name: test_request_status
+2025-02-14 02:43:43,915 - services.database_service - DEBUG - Checking model: Person with table name: test_persons
+2025-02-14 02:43:43,915 - services.database_service - DEBUG - Checking model: Relative with table name: test_relatives
+2025-02-14 02:43:43,916 - services.database_service - DEBUG - Checking model: RuleConfigRequest with table name: test_rule_config_request
+2025-02-14 02:43:43,916 - services.database_service - DEBUG - Checking model: RuleRequest with table name: test_rule_request
+2025-02-14 02:43:43,916 - services.database_service - INFO - Model found: RuleRequest
+2025-02-14 02:43:55,806 - database - DEBUG - get_current_user is being called.
+2025-02-14 02:43:55,807 - database - DEBUG - Retrieved user_name: PABLO
+2025-02-14 02:43:55,808 - database - DEBUG - Authenticated user: PABLO, Last Update: 2025-02-06 11:56:37.316479
+2025-02-14 02:43:55,808 - database - INFO - Loading main table page for model: test_rule_request
+2025-02-14 02:43:55,808 - services.database_service - DEBUG - Looking up model for table name: test_rule_request
+2025-02-14 02:43:55,809 - services.database_service - DEBUG - Checking model: User with table name: test_users
+2025-02-14 02:43:55,809 - services.database_service - DEBUG - Checking model: UserPreference with table name: test_user_preferences
+2025-02-14 02:43:55,809 - services.database_service - DEBUG - Checking model: Comment with table name: test_comments
+2025-02-14 02:43:55,809 - services.database_service - DEBUG - Checking model: RmsRequest with table name: test_requests
+2025-02-14 02:43:55,809 - services.database_service - DEBUG - Checking model: RmsRequestStatus with table name: test_request_status
+2025-02-14 02:43:55,810 - services.database_service - DEBUG - Checking model: Person with table name: test_persons
+2025-02-14 02:43:55,810 - services.database_service - DEBUG - Checking model: Relative with table name: test_relatives
+2025-02-14 02:43:55,811 - services.database_service - DEBUG - Checking model: RuleConfigRequest with table name: test_rule_config_request
+2025-02-14 02:43:55,811 - services.database_service - DEBUG - Checking model: RuleRequest with table name: test_rule_request
+2025-02-14 02:43:55,811 - services.database_service - INFO - Model found: RuleRequest
+2025-02-14 02:43:55,812 - services.database_service - INFO - Fetching data for model: <class 'models.requests.rule_request.RuleRequest'>
+2025-02-14 02:43:55,812 - services.database_service - INFO - Fetching data for model: <class 'models.request.RmsRequest'>
+2025-02-14 02:43:55,813 - services.database_service - INFO - Fetching data for model: <class 'models.request_status.RmsRequestStatus'>
+2025-02-14 02:43:55,813 - services.database_service - INFO - Fetching data for model: <class 'models.comment.Comment'>
+2025-02-14 02:43:55,813 - services.database_service - INFO - Fetching data for model: <class 'models.requests.person.Person'>
+2025-02-14 02:43:55,813 - services.database_service - INFO - Fetching data for model: <class 'models.requests.person.Relative'>
+2025-02-14 02:43:55,813 - services.database_service - INFO - Fetching data for model: <class 'models.requests.rule_config_request.RuleConfigRequest'>
+2025-02-14 02:43:55,814 - services.database_service - INFO - Fetching data for model: <class 'models.requests.rule_request.RuleRequest'>
+2025-02-14 02:43:55,815 - services.database_service - INFO - Fetching data for model: <class 'models.request_status.RmsRequestStatus'>
+2025-02-14 02:43:55,815 - database - INFO - Applied Filters: {}
+2025-02-14 02:43:56,240 - database - DEBUG - get_current_user is being called.
+2025-02-14 02:43:56,242 - database - DEBUG - Retrieved user_name: PABLO
+2025-02-14 02:43:56,243 - database - DEBUG - Authenticated user: PABLO, Last Update: 2025-02-06 11:56:37.316479
+2025-02-14 02:43:56,251 - services.database_service - DEBUG - Looking up model for table name: test_rule_request
+2025-02-14 02:43:56,251 - database - DEBUG - get_current_user is being called.
+2025-02-14 02:43:56,251 - services.database_service - DEBUG - Checking model: User with table name: test_users
+2025-02-14 02:43:56,252 - database - DEBUG - Retrieved user_name: PABLO
+2025-02-14 02:43:56,252 - services.database_service - DEBUG - Checking model: UserPreference with table name: test_user_preferences
+2025-02-14 02:43:56,253 - services.database_service - DEBUG - Checking model: Comment with table name: test_comments
+2025-02-14 02:43:56,254 - database - DEBUG - Authenticated user: PABLO, Last Update: 2025-02-06 11:56:37.316479
+2025-02-14 02:43:56,254 - services.database_service - DEBUG - Checking model: RmsRequest with table name: test_requests
+2025-02-14 02:43:56,254 - services.database_service - DEBUG - Checking model: RmsRequestStatus with table name: test_request_status
+2025-02-14 02:43:56,255 - services.database_service - DEBUG - Checking model: Person with table name: test_persons
+2025-02-14 02:43:56,255 - services.database_service - DEBUG - Checking model: Relative with table name: test_relatives
+2025-02-14 02:43:56,255 - services.database_service - DEBUG - Checking model: RuleConfigRequest with table name: test_rule_config_request
+2025-02-14 02:43:56,255 - services.database_service - DEBUG - Checking model: RuleRequest with table name: test_rule_request
+2025-02-14 02:43:56,255 - services.database_service - INFO - Model found: RuleRequest
+2025-02-14 02:43:56,257 - database - DEBUG - Fetching current user information for: PABLO-2025020610595873520
+2025-02-14 02:43:56,297 - services.database_service - DEBUG - Looking up model for table name: test_rule_request
+2025-02-14 02:43:56,297 - services.database_service - DEBUG - Checking model: User with table name: test_users
+2025-02-14 02:43:56,297 - services.database_service - DEBUG - Checking model: UserPreference with table name: test_user_preferences
+2025-02-14 02:43:56,298 - services.database_service - DEBUG - Checking model: Comment with table name: test_comments
+2025-02-14 02:43:56,298 - services.database_service - DEBUG - Checking model: RmsRequest with table name: test_requests
+2025-02-14 02:43:56,299 - services.database_service - DEBUG - Checking model: RmsRequestStatus with table name: test_request_status
+2025-02-14 02:43:56,299 - services.database_service - DEBUG - Checking model: Person with table name: test_persons
+2025-02-14 02:43:56,299 - services.database_service - DEBUG - Checking model: Relative with table name: test_relatives
+2025-02-14 02:43:56,300 - services.database_service - DEBUG - Checking model: RuleConfigRequest with table name: test_rule_config_request
+2025-02-14 02:43:56,300 - services.database_service - DEBUG - Checking model: RuleRequest with table name: test_rule_request
+2025-02-14 02:43:56,300 - services.database_service - INFO - Model found: RuleRequest
+2025-02-14 02:44:01,952 - database - DEBUG - get_current_user is being called.
+2025-02-14 02:44:01,953 - database - DEBUG - Retrieved user_name: PABLO
+2025-02-14 02:44:01,954 - database - DEBUG - Authenticated user: PABLO, Last Update: 2025-02-06 11:56:37.316479
+2025-02-14 02:44:01,954 - database - INFO - Loading main table page for model: test_persons
+2025-02-14 02:44:01,955 - services.database_service - DEBUG - Looking up model for table name: test_persons
+2025-02-14 02:44:01,955 - services.database_service - DEBUG - Checking model: User with table name: test_users
+2025-02-14 02:44:01,955 - services.database_service - DEBUG - Checking model: UserPreference with table name: test_user_preferences
+2025-02-14 02:44:01,955 - services.database_service - DEBUG - Checking model: Comment with table name: test_comments
+2025-02-14 02:44:01,955 - services.database_service - DEBUG - Checking model: RmsRequest with table name: test_requests
+2025-02-14 02:44:01,955 - services.database_service - DEBUG - Checking model: RmsRequestStatus with table name: test_request_status
+2025-02-14 02:44:01,956 - services.database_service - DEBUG - Checking model: Person with table name: test_persons
+2025-02-14 02:44:01,956 - services.database_service - INFO - Model found: Person
+2025-02-14 02:44:01,956 - services.database_service - INFO - Fetching data for model: <class 'models.requests.person.Person'>
+2025-02-14 02:44:01,957 - services.database_service - INFO - Fetching data for model: <class 'models.requests.person.Relative'>
+2025-02-14 02:44:01,957 - services.database_service - INFO - Fetching data for model: <class 'models.request.RmsRequest'>
+2025-02-14 02:44:01,958 - services.database_service - INFO - Fetching data for model: <class 'models.request_status.RmsRequestStatus'>
+2025-02-14 02:44:01,958 - services.database_service - INFO - Fetching data for model: <class 'models.comment.Comment'>
+2025-02-14 02:44:01,959 - services.database_service - INFO - Fetching data for model: <class 'models.requests.person.Person'>
+2025-02-14 02:44:01,959 - services.database_service - INFO - Fetching data for model: <class 'models.requests.person.Relative'>
+2025-02-14 02:44:01,959 - services.database_service - INFO - Fetching data for model: <class 'models.requests.rule_config_request.RuleConfigRequest'>
+2025-02-14 02:44:01,959 - services.database_service - INFO - Fetching data for model: <class 'models.requests.rule_request.RuleRequest'>
+2025-02-14 02:44:01,960 - services.database_service - INFO - Fetching data for model: <class 'models.request_status.RmsRequestStatus'>
+2025-02-14 02:44:01,961 - database - INFO - Applied Filters: {}
+2025-02-14 02:44:02,511 - database - DEBUG - get_current_user is being called.
+2025-02-14 02:44:02,512 - database - DEBUG - Retrieved user_name: PABLO
+2025-02-14 02:44:02,514 - database - DEBUG - Authenticated user: PABLO, Last Update: 2025-02-06 11:56:37.316479
+2025-02-14 02:44:02,545 - database - DEBUG - get_current_user is being called.
+2025-02-14 02:44:02,546 - database - DEBUG - Retrieved user_name: PABLO
+2025-02-14 02:44:02,548 - database - DEBUG - Authenticated user: PABLO, Last Update: 2025-02-06 11:56:37.316479
+2025-02-14 02:44:02,548 - database - DEBUG - Fetching current user information for: PABLO-2025020610595873520
+2025-02-14 02:44:02,551 - services.database_service - DEBUG - Looking up model for table name: test_persons
+2025-02-14 02:44:02,552 - services.database_service - DEBUG - Checking model: User with table name: test_users
+2025-02-14 02:44:02,552 - services.database_service - DEBUG - Checking model: UserPreference with table name: test_user_preferences
+2025-02-14 02:44:02,553 - services.database_service - DEBUG - Checking model: Comment with table name: test_comments
+2025-02-14 02:44:02,553 - services.database_service - DEBUG - Checking model: RmsRequest with table name: test_requests
+2025-02-14 02:44:02,553 - services.database_service - DEBUG - Checking model: RmsRequestStatus with table name: test_request_status
+2025-02-14 02:44:02,554 - services.database_service - DEBUG - Checking model: Person with table name: test_persons
+2025-02-14 02:44:02,554 - services.database_service - INFO - Model found: Person
+2025-02-14 02:44:02,633 - services.database_service - DEBUG - Looking up model for table name: test_persons
+2025-02-14 02:44:02,634 - services.database_service - DEBUG - Checking model: User with table name: test_users
+2025-02-14 02:44:02,634 - services.database_service - DEBUG - Checking model: UserPreference with table name: test_user_preferences
+2025-02-14 02:44:02,635 - services.database_service - DEBUG - Checking model: Comment with table name: test_comments
+2025-02-14 02:44:02,635 - services.database_service - DEBUG - Checking model: RmsRequest with table name: test_requests
+2025-02-14 02:44:02,636 - services.database_service - DEBUG - Checking model: RmsRequestStatus with table name: test_request_status
+2025-02-14 02:44:02,636 - services.database_service - DEBUG - Checking model: Person with table name: test_persons
+2025-02-14 02:44:02,636 - services.database_service - INFO - Model found: Person
+2025-02-14 02:44:11,401 - database - DEBUG - get_current_user is being called.
+2025-02-14 02:44:11,401 - database - DEBUG - Retrieved user_name: PABLO
+2025-02-14 02:44:11,402 - database - DEBUG - Authenticated user: PABLO, Last Update: 2025-02-06 11:56:37.316479
+2025-02-14 02:44:11,403 - database - INFO - Loading main table page for model: test_rule_request
+2025-02-14 02:44:11,403 - services.database_service - DEBUG - Looking up model for table name: test_rule_request
+2025-02-14 02:44:11,403 - services.database_service - DEBUG - Checking model: User with table name: test_users
+2025-02-14 02:44:11,404 - services.database_service - DEBUG - Checking model: UserPreference with table name: test_user_preferences
+2025-02-14 02:44:11,404 - services.database_service - DEBUG - Checking model: Comment with table name: test_comments
+2025-02-14 02:44:11,405 - services.database_service - DEBUG - Checking model: RmsRequest with table name: test_requests
+2025-02-14 02:44:11,405 - services.database_service - DEBUG - Checking model: RmsRequestStatus with table name: test_request_status
+2025-02-14 02:44:11,405 - services.database_service - DEBUG - Checking model: Person with table name: test_persons
+2025-02-14 02:44:11,406 - services.database_service - DEBUG - Checking model: Relative with table name: test_relatives
+2025-02-14 02:44:11,406 - services.database_service - DEBUG - Checking model: RuleConfigRequest with table name: test_rule_config_request
+2025-02-14 02:44:11,406 - services.database_service - DEBUG - Checking model: RuleRequest with table name: test_rule_request
+2025-02-14 02:44:11,406 - services.database_service - INFO - Model found: RuleRequest
+2025-02-14 02:44:11,407 - services.database_service - INFO - Fetching data for model: <class 'models.requests.rule_request.RuleRequest'>
+2025-02-14 02:44:11,407 - services.database_service - INFO - Fetching data for model: <class 'models.request.RmsRequest'>
+2025-02-14 02:44:11,407 - services.database_service - INFO - Fetching data for model: <class 'models.request_status.RmsRequestStatus'>
+2025-02-14 02:44:11,408 - services.database_service - INFO - Fetching data for model: <class 'models.comment.Comment'>
+2025-02-14 02:44:11,408 - services.database_service - INFO - Fetching data for model: <class 'models.requests.person.Person'>
+2025-02-14 02:44:11,409 - services.database_service - INFO - Fetching data for model: <class 'models.requests.person.Relative'>
+2025-02-14 02:44:11,409 - services.database_service - INFO - Fetching data for model: <class 'models.requests.rule_config_request.RuleConfigRequest'>
+2025-02-14 02:44:11,409 - services.database_service - INFO - Fetching data for model: <class 'models.requests.rule_request.RuleRequest'>
+2025-02-14 02:44:11,410 - services.database_service - INFO - Fetching data for model: <class 'models.request_status.RmsRequestStatus'>
+2025-02-14 02:44:11,410 - database - INFO - Applied Filters: {}
+2025-02-14 02:44:11,907 - database - DEBUG - get_current_user is being called.
+2025-02-14 02:44:11,907 - database - DEBUG - Retrieved user_name: PABLO
+2025-02-14 02:44:11,908 - database - DEBUG - Authenticated user: PABLO, Last Update: 2025-02-06 11:56:37.316479
+2025-02-14 02:44:11,928 - database - DEBUG - get_current_user is being called.
+2025-02-14 02:44:11,929 - database - DEBUG - Retrieved user_name: PABLO
+2025-02-14 02:44:11,930 - database - DEBUG - Authenticated user: PABLO, Last Update: 2025-02-06 11:56:37.316479
+2025-02-14 02:44:11,931 - database - DEBUG - Fetching current user information for: PABLO-2025020610595873520
+2025-02-14 02:44:11,933 - services.database_service - DEBUG - Looking up model for table name: test_rule_request
+2025-02-14 02:44:11,934 - services.database_service - DEBUG - Checking model: User with table name: test_users
+2025-02-14 02:44:11,935 - services.database_service - DEBUG - Checking model: UserPreference with table name: test_user_preferences
+2025-02-14 02:44:11,935 - services.database_service - DEBUG - Checking model: Comment with table name: test_comments
+2025-02-14 02:44:11,935 - services.database_service - DEBUG - Checking model: RmsRequest with table name: test_requests
+2025-02-14 02:44:11,946 - services.database_service - DEBUG - Checking model: RmsRequestStatus with table name: test_request_status
+2025-02-14 02:44:11,988 - services.database_service - DEBUG - Checking model: Person with table name: test_persons
+2025-02-14 02:44:11,988 - services.database_service - DEBUG - Checking model: Relative with table name: test_relatives
+2025-02-14 02:44:11,989 - services.database_service - DEBUG - Checking model: RuleConfigRequest with table name: test_rule_config_request
+2025-02-14 02:44:11,989 - services.database_service - DEBUG - Checking model: RuleRequest with table name: test_rule_request
+2025-02-14 02:44:11,994 - services.database_service - INFO - Model found: RuleRequest
+2025-02-14 02:44:12,038 - services.database_service - DEBUG - Looking up model for table name: test_rule_request
+2025-02-14 02:44:12,038 - services.database_service - DEBUG - Checking model: User with table name: test_users
+2025-02-14 02:44:12,039 - services.database_service - DEBUG - Checking model: UserPreference with table name: test_user_preferences
+2025-02-14 02:44:12,039 - services.database_service - DEBUG - Checking model: Comment with table name: test_comments
+2025-02-14 02:44:12,039 - services.database_service - DEBUG - Checking model: RmsRequest with table name: test_requests
+2025-02-14 02:44:12,040 - services.database_service - DEBUG - Checking model: RmsRequestStatus with table name: test_request_status
+2025-02-14 02:44:12,040 - services.database_service - DEBUG - Checking model: Person with table name: test_persons
+2025-02-14 02:44:12,040 - services.database_service - DEBUG - Checking model: Relative with table name: test_relatives
+2025-02-14 02:44:12,040 - services.database_service - DEBUG - Checking model: RuleConfigRequest with table name: test_rule_config_request
+2025-02-14 02:44:12,041 - services.database_service - DEBUG - Checking model: RuleRequest with table name: test_rule_request
+2025-02-14 02:44:12,041 - services.database_service - INFO - Model found: RuleRequest
+2025-02-14 02:45:05,865 - database - DEBUG - get_current_user is being called.
+2025-02-14 02:45:05,866 - database - DEBUG - Retrieved user_name: PABLO
+2025-02-14 02:45:05,867 - database - DEBUG - Authenticated user: PABLO, Last Update: 2025-02-06 11:56:37.316479
+2025-02-14 02:45:05,868 - database - INFO - Loading main table page for model: test_rule_request
+2025-02-14 02:45:05,868 - services.database_service - DEBUG - Looking up model for table name: test_rule_request
+2025-02-14 02:45:05,868 - services.database_service - DEBUG - Checking model: User with table name: test_users
+2025-02-14 02:45:05,869 - services.database_service - DEBUG - Checking model: UserPreference with table name: test_user_preferences
+2025-02-14 02:45:05,869 - services.database_service - DEBUG - Checking model: Comment with table name: test_comments
+2025-02-14 02:45:05,869 - services.database_service - DEBUG - Checking model: RmsRequest with table name: test_requests
+2025-02-14 02:45:05,869 - services.database_service - DEBUG - Checking model: RmsRequestStatus with table name: test_request_status
+2025-02-14 02:45:05,870 - services.database_service - DEBUG - Checking model: Person with table name: test_persons
+2025-02-14 02:45:05,870 - services.database_service - DEBUG - Checking model: Relative with table name: test_relatives
+2025-02-14 02:45:05,871 - services.database_service - DEBUG - Checking model: RuleConfigRequest with table name: test_rule_config_request
+2025-02-14 02:45:05,871 - services.database_service - DEBUG - Checking model: RuleRequest with table name: test_rule_request
+2025-02-14 02:45:05,871 - services.database_service - INFO - Model found: RuleRequest
+2025-02-14 02:45:05,872 - services.database_service - INFO - Fetching data for model: <class 'models.requests.rule_request.RuleRequest'>
+2025-02-14 02:45:05,872 - services.database_service - INFO - Fetching data for model: <class 'models.request.RmsRequest'>
+2025-02-14 02:45:05,873 - services.database_service - INFO - Fetching data for model: <class 'models.request_status.RmsRequestStatus'>
+2025-02-14 02:45:05,873 - services.database_service - INFO - Fetching data for model: <class 'models.comment.Comment'>
+2025-02-14 02:45:05,873 - services.database_service - INFO - Fetching data for model: <class 'models.requests.person.Person'>
+2025-02-14 02:45:05,874 - services.database_service - INFO - Fetching data for model: <class 'models.requests.person.Relative'>
+2025-02-14 02:45:05,874 - services.database_service - INFO - Fetching data for model: <class 'models.requests.rule_config_request.RuleConfigRequest'>
+2025-02-14 02:45:05,874 - services.database_service - INFO - Fetching data for model: <class 'models.requests.rule_request.RuleRequest'>
+2025-02-14 02:45:05,874 - services.database_service - INFO - Fetching data for model: <class 'models.request_status.RmsRequestStatus'>
+2025-02-14 02:45:05,875 - database - INFO - Applied Filters: {}
+2025-02-14 02:45:06,311 - database - DEBUG - get_current_user is being called.
+2025-02-14 02:45:06,311 - database - DEBUG - Retrieved user_name: PABLO
+2025-02-14 02:45:06,313 - database - DEBUG - Authenticated user: PABLO, Last Update: 2025-02-06 11:56:37.316479
+2025-02-14 02:45:06,321 - database - DEBUG - get_current_user is being called.
+2025-02-14 02:45:06,322 - database - DEBUG - Retrieved user_name: PABLO
+2025-02-14 02:45:06,323 - database - DEBUG - Authenticated user: PABLO, Last Update: 2025-02-06 11:56:37.316479
+2025-02-14 02:45:06,324 - database - DEBUG - Fetching current user information for: PABLO-2025020610595873520
+2025-02-14 02:45:06,326 - services.database_service - DEBUG - Looking up model for table name: test_rule_request
+2025-02-14 02:45:06,326 - services.database_service - DEBUG - Checking model: User with table name: test_users
+2025-02-14 02:45:06,326 - services.database_service - DEBUG - Checking model: UserPreference with table name: test_user_preferences
+2025-02-14 02:45:06,326 - services.database_service - DEBUG - Checking model: Comment with table name: test_comments
+2025-02-14 02:45:06,327 - services.database_service - DEBUG - Checking model: RmsRequest with table name: test_requests
+2025-02-14 02:45:06,327 - services.database_service - DEBUG - Checking model: RmsRequestStatus with table name: test_request_status
+2025-02-14 02:45:06,327 - services.database_service - DEBUG - Checking model: Person with table name: test_persons
+2025-02-14 02:45:06,328 - services.database_service - DEBUG - Checking model: Relative with table name: test_relatives
+2025-02-14 02:45:06,328 - services.database_service - DEBUG - Checking model: RuleConfigRequest with table name: test_rule_config_request
+2025-02-14 02:45:06,329 - services.database_service - DEBUG - Checking model: RuleRequest with table name: test_rule_request
+2025-02-14 02:45:06,329 - services.database_service - INFO - Model found: RuleRequest
+2025-02-14 02:45:06,402 - services.database_service - DEBUG - Looking up model for table name: test_rule_request
+2025-02-14 02:45:06,402 - services.database_service - DEBUG - Checking model: User with table name: test_users
+2025-02-14 02:45:06,403 - services.database_service - DEBUG - Checking model: UserPreference with table name: test_user_preferences
+2025-02-14 02:45:06,403 - services.database_service - DEBUG - Checking model: Comment with table name: test_comments
+2025-02-14 02:45:06,403 - services.database_service - DEBUG - Checking model: RmsRequest with table name: test_requests
+2025-02-14 02:45:06,403 - services.database_service - DEBUG - Checking model: RmsRequestStatus with table name: test_request_status
+2025-02-14 02:45:06,403 - services.database_service - DEBUG - Checking model: Person with table name: test_persons
+2025-02-14 02:45:06,404 - services.database_service - DEBUG - Checking model: Relative with table name: test_relatives
+2025-02-14 02:45:06,404 - services.database_service - DEBUG - Checking model: RuleConfigRequest with table name: test_rule_config_request
+2025-02-14 02:45:06,405 - services.database_service - DEBUG - Checking model: RuleRequest with table name: test_rule_request
+2025-02-14 02:45:06,405 - services.database_service - INFO - Model found: RuleRequest
+2025-02-14 02:45:08,271 - services.database_service - DEBUG - Looking up model for table name: test_rule_request
+2025-02-14 02:45:08,272 - services.database_service - DEBUG - Checking model: User with table name: test_users
+2025-02-14 02:45:08,272 - services.database_service - DEBUG - Checking model: UserPreference with table name: test_user_preferences
+2025-02-14 02:45:08,272 - services.database_service - DEBUG - Checking model: Comment with table name: test_comments
+2025-02-14 02:45:08,272 - services.database_service - DEBUG - Checking model: RmsRequest with table name: test_requests
+2025-02-14 02:45:08,273 - services.database_service - DEBUG - Checking model: RmsRequestStatus with table name: test_request_status
+2025-02-14 02:45:08,273 - services.database_service - DEBUG - Checking model: Person with table name: test_persons
+2025-02-14 02:45:08,273 - services.database_service - DEBUG - Checking model: Relative with table name: test_relatives
+2025-02-14 02:45:08,273 - services.database_service - DEBUG - Checking model: RuleConfigRequest with table name: test_rule_config_request
+2025-02-14 02:45:08,273 - services.database_service - DEBUG - Checking model: RuleRequest with table name: test_rule_request
+2025-02-14 02:45:08,274 - services.database_service - INFO - Model found: RuleRequest
+2025-02-14 02:45:09,292 - services.database_service - DEBUG - Looking up model for table name: test_rule_request
+2025-02-14 02:45:09,292 - services.database_service - DEBUG - Checking model: User with table name: test_users
+2025-02-14 02:45:09,292 - services.database_service - DEBUG - Checking model: UserPreference with table name: test_user_preferences
+2025-02-14 02:45:09,292 - services.database_service - DEBUG - Checking model: Comment with table name: test_comments
+2025-02-14 02:45:09,292 - services.database_service - DEBUG - Checking model: RmsRequest with table name: test_requests
+2025-02-14 02:45:09,293 - services.database_service - DEBUG - Checking model: RmsRequestStatus with table name: test_request_status
+2025-02-14 02:45:09,293 - services.database_service - DEBUG - Checking model: Person with table name: test_persons
+2025-02-14 02:45:09,293 - services.database_service - DEBUG - Checking model: Relative with table name: test_relatives
+2025-02-14 02:45:09,293 - services.database_service - DEBUG - Checking model: RuleConfigRequest with table name: test_rule_config_request
+2025-02-14 02:45:09,293 - services.database_service - DEBUG - Checking model: RuleRequest with table name: test_rule_request
+2025-02-14 02:45:09,293 - services.database_service - INFO - Model found: RuleRequest
+2025-02-14 02:45:09,479 - services.database_service - DEBUG - Looking up model for table name: test_rule_request
+2025-02-14 02:45:09,479 - services.database_service - DEBUG - Checking model: User with table name: test_users
+2025-02-14 02:45:09,479 - services.database_service - DEBUG - Checking model: UserPreference with table name: test_user_preferences
+2025-02-14 02:45:09,480 - services.database_service - DEBUG - Checking model: Comment with table name: test_comments
+2025-02-14 02:45:09,480 - services.database_service - DEBUG - Checking model: RmsRequest with table name: test_requests
+2025-02-14 02:45:09,480 - services.database_service - DEBUG - Checking model: RmsRequestStatus with table name: test_request_status
+2025-02-14 02:45:09,480 - services.database_service - DEBUG - Checking model: Person with table name: test_persons
+2025-02-14 02:45:09,481 - services.database_service - DEBUG - Checking model: Relative with table name: test_relatives
+2025-02-14 02:45:09,481 - services.database_service - DEBUG - Checking model: RuleConfigRequest with table name: test_rule_config_request
+2025-02-14 02:45:09,481 - services.database_service - DEBUG - Checking model: RuleRequest with table name: test_rule_request
+2025-02-14 02:45:09,482 - services.database_service - INFO - Model found: RuleRequest
+2025-02-14 02:45:09,485 - services.database_service - DEBUG - Looking up model for table name: test_rule_request
+2025-02-14 02:45:09,485 - services.database_service - DEBUG - Checking model: User with table name: test_users
+2025-02-14 02:45:09,485 - services.database_service - DEBUG - Checking model: UserPreference with table name: test_user_preferences
+2025-02-14 02:45:09,485 - services.database_service - DEBUG - Checking model: Comment with table name: test_comments
+2025-02-14 02:45:09,485 - services.database_service - DEBUG - Checking model: RmsRequest with table name: test_requests
+2025-02-14 02:45:09,486 - services.database_service - DEBUG - Checking model: RmsRequestStatus with table name: test_request_status
+2025-02-14 02:45:09,486 - services.database_service - DEBUG - Checking model: Person with table name: test_persons
+2025-02-14 02:45:09,486 - services.database_service - DEBUG - Checking model: Relative with table name: test_relatives
+2025-02-14 02:45:09,486 - services.database_service - DEBUG - Checking model: RuleConfigRequest with table name: test_rule_config_request
+2025-02-14 02:45:09,487 - services.database_service - DEBUG - Checking model: RuleRequest with table name: test_rule_request
+2025-02-14 02:45:09,487 - services.database_service - INFO - Model found: RuleRequest
+2025-02-14 02:46:16,431 - database - DEBUG - get_current_user is being called.
+2025-02-14 02:46:16,432 - database - DEBUG - Retrieved user_name: PABLO
+2025-02-14 02:46:16,433 - database - DEBUG - Authenticated user: PABLO, Last Update: 2025-02-06 11:56:37.316479
+2025-02-14 02:46:16,434 - database - INFO - Loading main table page for model: test_rule_request
+2025-02-14 02:46:16,434 - services.database_service - DEBUG - Looking up model for table name: test_rule_request
+2025-02-14 02:46:16,434 - services.database_service - DEBUG - Checking model: User with table name: test_users
+2025-02-14 02:46:16,434 - services.database_service - DEBUG - Checking model: UserPreference with table name: test_user_preferences
+2025-02-14 02:46:16,435 - services.database_service - DEBUG - Checking model: Comment with table name: test_comments
+2025-02-14 02:46:16,435 - services.database_service - DEBUG - Checking model: RmsRequest with table name: test_requests
+2025-02-14 02:46:16,435 - services.database_service - DEBUG - Checking model: RmsRequestStatus with table name: test_request_status
+2025-02-14 02:46:16,435 - services.database_service - DEBUG - Checking model: Person with table name: test_persons
+2025-02-14 02:46:16,435 - services.database_service - DEBUG - Checking model: Relative with table name: test_relatives
+2025-02-14 02:46:16,436 - services.database_service - DEBUG - Checking model: RuleConfigRequest with table name: test_rule_config_request
+2025-02-14 02:46:16,436 - services.database_service - DEBUG - Checking model: RuleRequest with table name: test_rule_request
+2025-02-14 02:46:16,436 - services.database_service - INFO - Model found: RuleRequest
+2025-02-14 02:46:16,436 - services.database_service - INFO - Fetching data for model: <class 'models.requests.rule_request.RuleRequest'>
+2025-02-14 02:46:16,436 - services.database_service - INFO - Fetching data for model: <class 'models.request.RmsRequest'>
+2025-02-14 02:46:16,437 - services.database_service - INFO - Fetching data for model: <class 'models.request_status.RmsRequestStatus'>
+2025-02-14 02:46:16,438 - services.database_service - INFO - Fetching data for model: <class 'models.comment.Comment'>
+2025-02-14 02:46:16,438 - services.database_service - INFO - Fetching data for model: <class 'models.requests.person.Person'>
+2025-02-14 02:46:16,438 - services.database_service - INFO - Fetching data for model: <class 'models.requests.person.Relative'>
+2025-02-14 02:46:16,439 - services.database_service - INFO - Fetching data for model: <class 'models.requests.rule_config_request.RuleConfigRequest'>
+2025-02-14 02:46:16,440 - services.database_service - INFO - Fetching data for model: <class 'models.requests.rule_request.RuleRequest'>
+2025-02-14 02:46:16,441 - services.database_service - INFO - Fetching data for model: <class 'models.request_status.RmsRequestStatus'>
+2025-02-14 02:46:16,441 - database - INFO - Applied Filters: {}
+2025-02-14 02:46:16,843 - database - DEBUG - get_current_user is being called.
+2025-02-14 02:46:16,844 - database - DEBUG - Retrieved user_name: PABLO
+2025-02-14 02:46:16,846 - database - DEBUG - Authenticated user: PABLO, Last Update: 2025-02-06 11:56:37.316479
+2025-02-14 02:46:16,846 - database - DEBUG - get_current_user is being called.
+2025-02-14 02:46:16,847 - database - DEBUG - Retrieved user_name: PABLO
+2025-02-14 02:46:16,848 - database - DEBUG - Authenticated user: PABLO, Last Update: 2025-02-06 11:56:37.316479
+2025-02-14 02:46:16,850 - database - DEBUG - Fetching current user information for: PABLO-2025020610595873520
+2025-02-14 02:46:16,850 - services.database_service - DEBUG - Looking up model for table name: test_rule_request
+2025-02-14 02:46:16,850 - services.database_service - DEBUG - Checking model: User with table name: test_users
+2025-02-14 02:46:16,850 - services.database_service - DEBUG - Checking model: UserPreference with table name: test_user_preferences
+2025-02-14 02:46:16,850 - services.database_service - DEBUG - Checking model: Comment with table name: test_comments
+2025-02-14 02:46:16,851 - services.database_service - DEBUG - Checking model: RmsRequest with table name: test_requests
+2025-02-14 02:46:16,851 - services.database_service - DEBUG - Checking model: RmsRequestStatus with table name: test_request_status
+2025-02-14 02:46:16,851 - services.database_service - DEBUG - Checking model: Person with table name: test_persons
+2025-02-14 02:46:16,851 - services.database_service - DEBUG - Checking model: Relative with table name: test_relatives
+2025-02-14 02:46:16,851 - services.database_service - DEBUG - Checking model: RuleConfigRequest with table name: test_rule_config_request
+2025-02-14 02:46:16,852 - services.database_service - DEBUG - Checking model: RuleRequest with table name: test_rule_request
+2025-02-14 02:46:16,852 - services.database_service - INFO - Model found: RuleRequest
+2025-02-14 02:46:16,916 - services.database_service - DEBUG - Looking up model for table name: test_rule_request
+2025-02-14 02:46:16,916 - services.database_service - DEBUG - Checking model: User with table name: test_users
+2025-02-14 02:46:16,916 - services.database_service - DEBUG - Checking model: UserPreference with table name: test_user_preferences
+2025-02-14 02:46:16,916 - services.database_service - DEBUG - Checking model: Comment with table name: test_comments
+2025-02-14 02:46:16,917 - services.database_service - DEBUG - Checking model: RmsRequest with table name: test_requests
+2025-02-14 02:46:16,918 - services.database_service - DEBUG - Checking model: RmsRequestStatus with table name: test_request_status
+2025-02-14 02:46:16,918 - services.database_service - DEBUG - Checking model: Person with table name: test_persons
+2025-02-14 02:46:16,918 - services.database_service - DEBUG - Checking model: Relative with table name: test_relatives
+2025-02-14 02:46:16,918 - services.database_service - DEBUG - Checking model: RuleConfigRequest with table name: test_rule_config_request
+2025-02-14 02:46:16,919 - services.database_service - DEBUG - Checking model: RuleRequest with table name: test_rule_request
+2025-02-14 02:46:16,919 - services.database_service - INFO - Model found: RuleRequest
+2025-02-14 02:47:14,403 - database - DEBUG - get_current_user is being called.
+2025-02-14 02:47:14,404 - database - DEBUG - Retrieved user_name: PABLO
+2025-02-14 02:47:14,420 - database - DEBUG - Authenticated user: PABLO, Last Update: 2025-02-06 11:56:37.316479
+2025-02-14 02:47:14,421 - database - INFO - Loading main table page for model: test_rule_request
+2025-02-14 02:47:14,421 - services.database_service - DEBUG - Looking up model for table name: test_rule_request
+2025-02-14 02:47:14,421 - services.database_service - DEBUG - Checking model: User with table name: test_users
+2025-02-14 02:47:14,421 - services.database_service - DEBUG - Checking model: UserPreference with table name: test_user_preferences
+2025-02-14 02:47:14,421 - services.database_service - DEBUG - Checking model: Comment with table name: test_comments
+2025-02-14 02:47:14,422 - services.database_service - DEBUG - Checking model: RmsRequest with table name: test_requests
+2025-02-14 02:47:14,422 - services.database_service - DEBUG - Checking model: RmsRequestStatus with table name: test_request_status
+2025-02-14 02:47:14,422 - services.database_service - DEBUG - Checking model: Person with table name: test_persons
+2025-02-14 02:47:14,422 - services.database_service - DEBUG - Checking model: Relative with table name: test_relatives
+2025-02-14 02:47:14,423 - services.database_service - DEBUG - Checking model: RuleConfigRequest with table name: test_rule_config_request
+2025-02-14 02:47:14,423 - services.database_service - DEBUG - Checking model: RuleRequest with table name: test_rule_request
+2025-02-14 02:47:14,424 - services.database_service - INFO - Model found: RuleRequest
+2025-02-14 02:47:14,424 - services.database_service - INFO - Fetching data for model: <class 'models.requests.rule_request.RuleRequest'>
+2025-02-14 02:47:14,424 - services.database_service - INFO - Fetching data for model: <class 'models.request.RmsRequest'>
+2025-02-14 02:47:14,425 - services.database_service - INFO - Fetching data for model: <class 'models.request_status.RmsRequestStatus'>
+2025-02-14 02:47:14,425 - services.database_service - INFO - Fetching data for model: <class 'models.comment.Comment'>
+2025-02-14 02:47:14,426 - services.database_service - INFO - Fetching data for model: <class 'models.requests.person.Person'>
+2025-02-14 02:47:14,426 - services.database_service - INFO - Fetching data for model: <class 'models.requests.person.Relative'>
+2025-02-14 02:47:14,426 - services.database_service - INFO - Fetching data for model: <class 'models.requests.rule_config_request.RuleConfigRequest'>
+2025-02-14 02:47:14,427 - services.database_service - INFO - Fetching data for model: <class 'models.requests.rule_request.RuleRequest'>
+2025-02-14 02:47:14,428 - services.database_service - INFO - Fetching data for model: <class 'models.request_status.RmsRequestStatus'>
+2025-02-14 02:47:14,428 - database - INFO - Applied Filters: {}
+2025-02-14 02:47:14,819 - database - DEBUG - get_current_user is being called.
+2025-02-14 02:47:14,820 - database - DEBUG - Retrieved user_name: PABLO
+2025-02-14 02:47:14,822 - database - DEBUG - Authenticated user: PABLO, Last Update: 2025-02-06 11:56:37.316479
+2025-02-14 02:47:14,877 - services.database_service - DEBUG - Looking up model for table name: test_rule_request
+2025-02-14 02:47:14,883 - services.database_service - DEBUG - Checking model: User with table name: test_users
+2025-02-14 02:47:14,884 - services.database_service - DEBUG - Checking model: UserPreference with table name: test_user_preferences
+2025-02-14 02:47:14,884 - services.database_service - DEBUG - Checking model: Comment with table name: test_comments
+2025-02-14 02:47:14,885 - services.database_service - DEBUG - Checking model: RmsRequest with table name: test_requests
+2025-02-14 02:47:14,885 - services.database_service - DEBUG - Checking model: RmsRequestStatus with table name: test_request_status
+2025-02-14 02:47:14,885 - services.database_service - DEBUG - Checking model: Person with table name: test_persons
+2025-02-14 02:47:14,886 - services.database_service - DEBUG - Checking model: Relative with table name: test_relatives
+2025-02-14 02:47:14,886 - services.database_service - DEBUG - Checking model: RuleConfigRequest with table name: test_rule_config_request
+2025-02-14 02:47:14,887 - services.database_service - DEBUG - Checking model: RuleRequest with table name: test_rule_request
+2025-02-14 02:47:14,887 - services.database_service - INFO - Model found: RuleRequest
+2025-02-14 02:47:14,889 - database - DEBUG - get_current_user is being called.
+2025-02-14 02:47:14,889 - database - DEBUG - Retrieved user_name: PABLO
+2025-02-14 02:47:14,891 - database - DEBUG - Authenticated user: PABLO, Last Update: 2025-02-06 11:56:37.316479
+2025-02-14 02:47:14,892 - database - DEBUG - Fetching current user information for: PABLO-2025020610595873520
+2025-02-14 02:47:14,961 - services.database_service - DEBUG - Looking up model for table name: test_rule_request
+2025-02-14 02:47:14,961 - services.database_service - DEBUG - Checking model: User with table name: test_users
+2025-02-14 02:47:14,961 - services.database_service - DEBUG - Checking model: UserPreference with table name: test_user_preferences
+2025-02-14 02:47:14,962 - services.database_service - DEBUG - Checking model: Comment with table name: test_comments
+2025-02-14 02:47:14,962 - services.database_service - DEBUG - Checking model: RmsRequest with table name: test_requests
+2025-02-14 02:47:14,962 - services.database_service - DEBUG - Checking model: RmsRequestStatus with table name: test_request_status
+2025-02-14 02:47:14,963 - services.database_service - DEBUG - Checking model: Person with table name: test_persons
+2025-02-14 02:47:14,963 - services.database_service - DEBUG - Checking model: Relative with table name: test_relatives
+2025-02-14 02:47:14,963 - services.database_service - DEBUG - Checking model: RuleConfigRequest with table name: test_rule_config_request
+2025-02-14 02:47:14,964 - services.database_service - DEBUG - Checking model: RuleRequest with table name: test_rule_request
+2025-02-14 02:47:14,964 - services.database_service - INFO - Model found: RuleRequest
+2025-02-14 02:48:18,198 - services.database_service - DEBUG - Looking up model for table name: test_rule_request
+2025-02-14 02:48:18,198 - services.database_service - DEBUG - Checking model: User with table name: test_users
+2025-02-14 02:48:18,198 - services.database_service - DEBUG - Checking model: UserPreference with table name: test_user_preferences
+2025-02-14 02:48:18,198 - services.database_service - DEBUG - Checking model: Comment with table name: test_comments
+2025-02-14 02:48:18,199 - services.database_service - DEBUG - Checking model: RmsRequest with table name: test_requests
+2025-02-14 02:48:18,199 - services.database_service - DEBUG - Checking model: RmsRequestStatus with table name: test_request_status
+2025-02-14 02:48:18,199 - services.database_service - DEBUG - Checking model: Person with table name: test_persons
+2025-02-14 02:48:18,200 - services.database_service - DEBUG - Checking model: Relative with table name: test_relatives
+2025-02-14 02:48:18,200 - services.database_service - DEBUG - Checking model: RuleConfigRequest with table name: test_rule_config_request
+2025-02-14 02:48:18,201 - services.database_service - DEBUG - Checking model: RuleRequest with table name: test_rule_request
+2025-02-14 02:48:18,201 - services.database_service - INFO - Model found: RuleRequest
+2025-02-14 02:48:18,846 - services.database_service - DEBUG - Looking up model for table name: test_rule_request
+2025-02-14 02:48:18,846 - services.database_service - DEBUG - Checking model: User with table name: test_users
+2025-02-14 02:48:18,847 - services.database_service - DEBUG - Checking model: UserPreference with table name: test_user_preferences
+2025-02-14 02:48:18,847 - services.database_service - DEBUG - Checking model: Comment with table name: test_comments
+2025-02-14 02:48:18,847 - services.database_service - DEBUG - Checking model: RmsRequest with table name: test_requests
+2025-02-14 02:48:18,847 - services.database_service - DEBUG - Checking model: RmsRequestStatus with table name: test_request_status
+2025-02-14 02:48:18,848 - services.database_service - DEBUG - Checking model: Person with table name: test_persons
+2025-02-14 02:48:18,848 - services.database_service - DEBUG - Checking model: Relative with table name: test_relatives
+2025-02-14 02:48:18,848 - services.database_service - DEBUG - Checking model: RuleConfigRequest with table name: test_rule_config_request
+2025-02-14 02:48:18,848 - services.database_service - DEBUG - Checking model: RuleRequest with table name: test_rule_request
+2025-02-14 02:48:18,848 - services.database_service - INFO - Model found: RuleRequest
+2025-02-14 02:48:20,235 - services.database_service - DEBUG - Looking up model for table name: test_rule_request
+2025-02-14 02:48:20,236 - services.database_service - DEBUG - Checking model: User with table name: test_users
+2025-02-14 02:48:20,236 - services.database_service - DEBUG - Checking model: UserPreference with table name: test_user_preferences
+2025-02-14 02:48:20,236 - services.database_service - DEBUG - Checking model: Comment with table name: test_comments
+2025-02-14 02:48:20,236 - services.database_service - DEBUG - Checking model: RmsRequest with table name: test_requests
+2025-02-14 02:48:20,236 - services.database_service - DEBUG - Checking model: RmsRequestStatus with table name: test_request_status
+2025-02-14 02:48:20,237 - services.database_service - DEBUG - Checking model: Person with table name: test_persons
+2025-02-14 02:48:20,237 - services.database_service - DEBUG - Checking model: Relative with table name: test_relatives
+2025-02-14 02:48:20,237 - services.database_service - DEBUG - Checking model: RuleConfigRequest with table name: test_rule_config_request
+2025-02-14 02:48:20,238 - services.database_service - DEBUG - Checking model: RuleRequest with table name: test_rule_request
+2025-02-14 02:48:20,238 - services.database_service - INFO - Model found: RuleRequest

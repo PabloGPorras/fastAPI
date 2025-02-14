@@ -90,24 +90,26 @@
 
 
 <script>
+// Document ready handler
 $(document).ready(function () {
-    // First, fetch table metadata (columns & filters)
+    // Fetch table metadata (columns & filters)
     $.ajax({
-        url: `/table/{{ model_name }}/metadata`, // 🔹 New endpoint for metadata
+        url: `/table/{{ model_name }}/metadata`, // New endpoint for metadata
         type: "POST",
         success: function (response) {
-            const columnOptions = response.column_options || {}; // Get filter options
+            // Extract column options (may only include keys for dropdown filters)
+            const columnOptions = response.column_options || {};
 
-            // Create column structure
+            // Build column structure (list of column names)
             const columns = response.columns.map((col) => ({
                 title: col.toUpperCase(),
                 data: col
             }));
 
-            // Insert the custom "Actions" column at the beginning
+            // Insert the custom "Actions" column at the beginning if needed
             columns.unshift(getActionsColumn());
 
-            // Destroy existing DataTable if already initialized
+            // Destroy any existing DataTable instance and clear headers/filters
             if ($.fn.DataTable.isDataTable("#dataTable")) {
                 $('#dataTable').DataTable().destroy();
                 $("#tableHeaders").empty();
@@ -119,17 +121,18 @@ $(document).ready(function () {
                 $("#tableHeaders").append(`<th>${col.title}</th>`);
             });
 
-            // Initialize DataTable (but use new /data endpoint for rows)
+            // Initialize the DataTable (using new /data endpoint for rows)
             var table = $('#dataTable').DataTable({
                 processing: true,
                 serverSide: true,
                 ajax: {
-                    url: `/table/{{ model_name }}/data`, // 🔹 Only fetching rows now
+                    url: `/table/{{ model_name }}/data`,
                     type: "POST",
                     contentType: "application/json",
                     data: function (d) {
                         let filters = {};
-                        $(".custom-filter").each(function () {
+                        // Gather filters from both dropdowns and free-text inputs
+                        $(".custom-filter, .custom-filter-input").each(function () {
                             let col = $(this).attr("data-column");
                             let val = $(this).val();
                             if (val) {
@@ -141,7 +144,7 @@ $(document).ready(function () {
                             draw: d.draw,
                             start: d.start,
                             length: d.length,
-                            search_value: $("#customSearchInput").val(),  // ✅ Include search query
+                            search_value: $("#customSearchInput").val(),
                             order_column_index: d.order?.[0]?.column ?? 0,
                             order_dir: d.order?.[0]?.dir ?? "asc",
                             filters: filters
@@ -162,7 +165,6 @@ $(document).ready(function () {
                 paging: true,
                 searching: true,
                 ordering: true,
-                // autoWidth: true,
                 colReorder: true,
                 fixedHeader: true,
                 scrollX: true,
@@ -175,19 +177,20 @@ $(document).ready(function () {
                 dom: 'lrtip'
             });
 
-            // ✅ Setup filters using the modular function
-            setupFilters(table, columnOptions);
+            // Setup filters using the updated function.
+            // Note: response.columns is used here to ensure we cover all columns.
+            setupFilters(table, columnOptions, response.columns);
 
-            // ✅ Setup column visibility using the modular function
+            // Setup column visibility (if applicable)
             setupColumnVisibility(table);
 
-            // ✅ Custom Search Input Handler
-            $("#customSearchInput").on("keyup", function () {
+            // Custom Search Input Handler
+            $("#customSearchInput").on("keyup", debounce(function () {
                 console.log("[Search] Searching:", $(this).val());
-                table.ajax.reload(); // ✅ Trigger server-side refresh
-            });
+                table.ajax.reload();
+            }, 500)); // Adjust delay as needed (e.g., 300ms, 500ms, etc.)
 
-            // ✅ Enable row selection on click
+            // Enable row selection on click
             $('#dataTable tbody').on('click', 'tr', function (event) {
                 if (!$(event.target).hasClass('row-checkbox')) {
                     var checkbox = $(this).find('.row-checkbox');
@@ -196,12 +199,12 @@ $(document).ready(function () {
                 }
             });
 
-            // ✅ Handle clicking the checkbox directly
+            // Handle clicking the checkbox directly
             $('#dataTable tbody').on('change', '.row-checkbox', function () {
                 $(this).closest('tr').toggleClass('selected-row', this.checked);
             });
 
-            // ✅ Bind refresh function to the refresh button
+            // Bind refresh function to the refresh button
             $("#refreshTableBtn").on("click", function () {
                 refreshTable();
             });
@@ -220,5 +223,13 @@ function refreshTable() {
     $('#dataTable').DataTable().ajax.reload(null, false);
 }
 
+// Debounce function to limit how often a function is called
+function debounce(func, delay) {
+    let timeout;
+    return function (...args) {
+        clearTimeout(timeout);
+        timeout = setTimeout(() => func.apply(this, args), delay);
+    };
+}
 
 </script>

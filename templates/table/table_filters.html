@@ -7,25 +7,36 @@
         </select>
     </div>
 </template>
-<script>
-    function setupFilters(table, columnOptions) {
-        let filterContainer = $("#filterContainer");
-        filterContainer.empty(); // Clear previous filters
 
-        Object.keys(columnOptions).forEach((colName) => {
-            // Clone the template content
+<!-- Template for a single free-text filter -->
+<template id="free-text-filter-template">
+    <div class="filter-group">
+        <label class="filter-label"></label>
+        <input type="text" class="form-control custom-filter-input" data-column="" placeholder="Enter filter text">
+    </div>
+</template>
+
+
+<script>
+function setupFilters(table, columnOptions, allColumns) {
+    let filterContainer = $("#filterContainer");
+    filterContainer.empty(); // Clear previous filters
+
+    // Iterate over all columns (skip any column you don't want filtered, e.g., "actions")
+    allColumns.forEach((colName) => {
+        if (colName === "actions") return;
+
+        if (columnOptions[colName] && columnOptions[colName].length > 0) {
+            // Use the dropdown template for columns with predefined options
             let template = document.getElementById("filter-template");
             let clone = template.content.cloneNode(true);
 
-            // Set column name as label text
             let label = clone.querySelector(".filter-label");
             label.textContent = colName.toUpperCase();
 
-            // Set the data-column attribute for filtering
             let select = clone.querySelector("select");
             select.setAttribute("data-column", colName);
 
-            // Populate dropdown with options
             columnOptions[colName].forEach((option) => {
                 let optionElement = document.createElement("option");
                 optionElement.value = option;
@@ -38,9 +49,27 @@
                 table.ajax.reload();
             });
 
-            // Append the cloned filter to the container
             filterContainer.append(clone);
-        });
-    }
+        } else {
+            // Use the single free-text input for columns without predefined options
+            let template = document.getElementById("free-text-filter-template");
+            let clone = template.content.cloneNode(true);
+
+            let label = clone.querySelector(".filter-label");
+            label.textContent = colName.toUpperCase();
+
+            let input = clone.querySelector("input");
+            input.setAttribute("data-column", colName);
+
+            // Reload DataTable when free text changes (you could also use keyup for instant updates)
+            input.addEventListener("change", function () {
+                table.ajax.reload();
+            });
+
+            filterContainer.append(clone);
+        }
+    });
+}
+
 
 </script>
