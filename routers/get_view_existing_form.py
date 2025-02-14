@@ -3,8 +3,11 @@ from fastapi.responses import HTMLResponse
 from sqlalchemy import inspect
 from core.get_db_session import get_db_session
 from get_current_user import get_current_user
+from models.user import User
+from models.request import RmsRequest
+from models.comment import Comment
+from models.request_status import RmsRequestStatus
 from services.database_service import DatabaseService
-from example_model import Comment, RmsRequest, RmsRequestStatus, User
 from core.templates import templates
 from database import logger
 from sqlalchemy.orm import Session
@@ -13,12 +16,17 @@ router = APIRouter()
 
 @router.post("/get-view-existing-form", response_class=HTMLResponse)
 async def get_view_existing_form(
-    request: Request, 
-    unique_ref: str = Form(...), 
+    request: Request,  
+    session: Session = Depends(get_db_session),
     user: User = Depends(get_current_user),
-    session: Session = Depends(get_db_session),  # Injected session dependency
-    ):
+):
     try:
+        body = await request.json()  # ✅ Parse JSON request
+        unique_ref = body.get("unique_ref")  # ✅ Extract `unique_ref`
+
+        if not unique_ref:
+            raise HTTPException(status_code=400, detail="unique_ref is required")
+        
         logger.debug(f"Fetching details for unique_ref: {unique_ref}")
 
         # Fetch RmsRequest
@@ -101,11 +109,8 @@ async def get_view_existing_form(
         combined_entries.sort(key=lambda x: x["timestamp"])  # Sort by timestamp
 
         logger.debug(f"Combined and sorted entries: {combined_entries}")
-        test = checklist_metadata.get("form_fields", [])
-        logger.debug(f"checklist_form_fields: {test}")
-        test2 = metadata.get("form_fields", [])
-        logger.debug(f"form_fields: {test2}")
-        # Render the template
+
+        # ✅ Return only the modal HTML (so it appends to <body>)
         return templates.TemplateResponse(
             "modal/view_existing_modal.html",
             {
@@ -113,27 +118,26 @@ async def get_view_existing_form(
                 "metadata": metadata,
                 "form_fields": metadata.get("form_fields", []),
                 "relationships": metadata["relationships"],
-
                 "checklist_metadata": checklist_metadata,
                 "checklist_form_fields": checklist_metadata.get("form_fields", []),
                 "checklist_relationships": checklist_metadata["relationships"],
-
-                "relationship_data": relationships_data,  # Pass relationship data to the template
+                "relationship_data": relationships_data,
                 "predefined_options": metadata["predefined_options"],
                 "is_request": metadata["is_request"],
                 "item_data": item_data,
-                "entries": combined_entries,  # Pass combined entries to the template
+                "entries": combined_entries,
                 "model_name": model_name,
                 "RmsRequest": RmsRequest,
                 "unique_ref": unique_ref,
-                "user": user,
                 "check_list": check_list,
-                "form_name": 'view-existing'
+                "form_name": 'view-existing',
+                "user": user,
             },
         )
     except Exception as e:
         session.rollback()
         logger.error(f"Error: {e}", exc_info=True)
         raise HTTPException(500, "Internal Server Error")
+
 
 

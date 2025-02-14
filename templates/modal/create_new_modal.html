@@ -39,83 +39,78 @@
   </div>
 </div>
 <script>
-  (function() {
+(function() {
     console.log("[Script] Script loaded.");
     const detailsForm = document.getElementById("detailsForm2");
     const saveButton = document.getElementById("saveButton");
 
     if (!detailsForm || !saveButton) {
-      console.error("[Script] Form or Save button not found!");
-      return;
+        console.error("[Script] Form or Save button not found!");
+        return;
     }
 
     detailsForm.addEventListener("submit", function(e) {
-      e.preventDefault();
-      console.log("[Form] Submit event intercepted.");
+        e.preventDefault();
+        console.log("[Form] Submit event intercepted.");
 
-      // Disable the Save button
-      saveButton.disabled = true;
-      console.log("[Form] Save button disabled.");
+        // Disable the Save button to prevent duplicate submissions
+        saveButton.disabled = true;
+        console.log("[Form] Save button disabled.");
 
-      // Prepare form data
-      const formData = new FormData(detailsForm);
+        // Prepare form data
+        const formData = new FormData(detailsForm);
 
-      // Send the form data using fetch
-      fetch(detailsForm.action, {
-        method: "POST",
-        body: formData
-      })
-      .then(response => {
-        console.log("[Fetch] Response received with status:", response.status);
-        if (response.ok) {
-          console.log("[Fetch] Request successful. Refreshing table...");
+        // Send the form data using fetch
+        fetch(detailsForm.action, {
+            method: "POST",
+            body: formData
+        })
+        .then(response => {
+            console.log("[Fetch] Response received with status:", response.status);
+            if (response.ok) {
+                console.log("[Fetch] Request successful. Refreshing DataTable...");
 
-          // Show success message
-          const successContainer = document.getElementById("success-container");
-          if (successContainer) {
-            successContainer.textContent = "Request created successfully.";
-            successContainer.style.display = "block";
-          }
-
-          // ✅ Fetch updated table rows instead of reloading the page
-          fetch(`/table/{{ model_name }}/rows`)
-            .then(res => res.json())
-            .then(data => {
-              document.getElementById("tableBody").innerHTML = data.html; // ✅ Update table rows
-              console.log("[Fetch] Table updated successfully.");
-
-              // Close modal after refresh
-              setTimeout(() => {
-                const modalElement = document.getElementById("createNewModal");
-                if (modalElement) {
-                  let modalInstance = bootstrap.Modal.getInstance(modalElement);
-                  modalInstance.hide();
-                  console.log("[Modal] Closed after refresh.");
+                // Show success message
+                const successContainer = document.getElementById("success-container");
+                if (successContainer) {
+                    successContainer.textContent = "Request created successfully.";
+                    successContainer.style.display = "block";
                 }
-              }, 500);
-            });
 
-        } else {
-          console.error("[Fetch] Request failed with status:", response.status);
-          return response.text().then(text => {
+                // ✅ Refresh DataTable instead of manually fetching data
+                refreshTable();
+
+                // ✅ Close modal after DataTable refresh
+                setTimeout(() => {
+                    const modalElement = document.getElementById("createNewModal");
+                    if (modalElement) {
+                        let modalInstance = bootstrap.Modal.getInstance(modalElement);
+                        modalInstance.hide();
+                        console.log("[Modal] Closed after refresh.");
+                    }
+                }, 500);
+            } else {
+                console.error("[Fetch] Request failed with status:", response.status);
+                return response.text().then(text => {
+                    const errorContainer = document.getElementById("error-container");
+                    if (errorContainer) {
+                        errorContainer.textContent = text || "An error occurred.";
+                        errorContainer.style.display = "block";
+                    }
+                    saveButton.disabled = false; // Re-enable button in case of failure
+                });
+            }
+        })
+        .catch(error => {
+            console.error("[Fetch] Error during request:", error);
             const errorContainer = document.getElementById("error-container");
             if (errorContainer) {
-              errorContainer.textContent = text || "An error occurred.";
-              errorContainer.style.display = "block";
+                errorContainer.textContent = error.message || "An unexpected error occurred.";
+                errorContainer.style.display = "block";
             }
-            saveButton.disabled = false; // Re-enable the button if needed
-          });
-        }
-      })
-      .catch(error => {
-        console.error("[Fetch] Error during request:", error);
-        const errorContainer = document.getElementById("error-container");
-        if (errorContainer) {
-          errorContainer.textContent = error.message || "An unexpected error occurred.";
-          errorContainer.style.display = "block";
-        }
-        saveButton.disabled = false;
-      });
+            saveButton.disabled = false;
+        });
     });
-  })();
+})();
+
 </script>

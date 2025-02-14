@@ -1,0 +1,46 @@
+<!-- Hidden template for filter dropdown -->
+<template id="filter-template">
+    <div class="filter-group">
+        <label class="filter-label"></label> <!-- Column name will be set dynamically -->
+        <select class="form-control custom-filter" data-column="">
+            <option value="">All</option> <!-- Default "All" option -->
+        </select>
+    </div>
+</template>
+<script>
+    function setupFilters(table, columnOptions) {
+        let filterContainer = $("#filterContainer");
+        filterContainer.empty(); // Clear previous filters
+
+        Object.keys(columnOptions).forEach((colName) => {
+            // Clone the template content
+            let template = document.getElementById("filter-template");
+            let clone = template.content.cloneNode(true);
+
+            // Set column name as label text
+            let label = clone.querySelector(".filter-label");
+            label.textContent = colName.toUpperCase();
+
+            // Set the data-column attribute for filtering
+            let select = clone.querySelector("select");
+            select.setAttribute("data-column", colName);
+
+            // Populate dropdown with options
+            columnOptions[colName].forEach((option) => {
+                let optionElement = document.createElement("option");
+                optionElement.value = option;
+                optionElement.textContent = option;
+                select.appendChild(optionElement);
+            });
+
+            // Reload DataTable when filter changes
+            select.addEventListener("change", function () {
+                table.ajax.reload();
+            });
+
+            // Append the cloned filter to the container
+            filterContainer.append(clone);
+        });
+    }
+
+</script>

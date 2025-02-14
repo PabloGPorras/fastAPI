@@ -3,11 +3,14 @@ import json
 import os
 from fastapi import Depends, HTTPException
 from sqlalchemy import and_
+from core.id_method import id_method
 from core.get_db_session import get_db_session
 from core.current_timestamp import get_current_timestamp
-from example_model import User, UserPreference, id_method
 from database import logger
 from sqlalchemy.orm import Session
+
+from models.user import User
+from models.user_preference import UserPreference
 
 
 def get_current_user(session: Session = Depends(get_db_session)) -> User:

@@ -67,6 +67,10 @@
         border-color: var(--table-header-bg, #007bff);
     }
 </style>
+
+
+{% include "table/table_filters.html" %}
+{% include "table/row_action_button.html" %}
 <div id="tableContainer">
     <form id="status-form">
         <div class="table-responsive">
@@ -86,192 +90,135 @@
 
 
 <script>
-    $(document).ready(function () {
-        $.ajax({
-            url: `/table/{{ model_name }}/rows`,
-            type: "GET",
-            success: function (response) {
-                const columns = response.columns.map((col, index) => ({
-                    title: col.toUpperCase(),
-                    data: col,
-                    searchPanes: { show: true } // Ensure the column has a SearchPane
-                }));
+$(document).ready(function () {
+    // First, fetch table metadata (columns & filters)
+    $.ajax({
+        url: `/table/{{ model_name }}/metadata`, // 🔹 New endpoint for metadata
+        type: "POST",
+        success: function (response) {
+            const columnOptions = response.column_options || {}; // Get filter options
 
-                // Insert the custom "Actions" column at the beginning
-                columns.unshift({
-                    title: "", // Column header
-                    data: null, // We will use `render` to define its content
-                    orderable: false,
-                    searchable: false,
-                    className: "text-center",
-                    render: function (data, type, row) {
-                        return `
-                        <div id="row-action-container" class="d-flex align-items-center" style="gap: 10px; height: 40px;">
-                            <!-- Checkbox -->
-                            <input type="checkbox" class="form-check-input row-checkbox" 
-                                name="selected_rows" 
-                                value="${row.unique_ref}" 
-                                style="height: 100%; width: 40px; display: flex; align-items: center; justify-content: center;">
+            // Create column structure
+            const columns = response.columns.map((col) => ({
+                title: col.toUpperCase(),
+                data: col
+            }));
 
-                            <!-- Button Group -->
-                            <div class="btn-group" style="height: 100%; width: 40px;">
-                                <!-- Primary Button with Bolt Icon -->
-                                <button type="button" 
-                                        class="btn btn-primary btn-sm dropdown-toggle" 
-                                        data-bs-toggle="dropdown"
-                                        aria-expanded="false" 
-                                        style="height: 100%; width: 100%;">
-                                    <i class="fas fa-bolt"></i>
-                                </button>
-                                <!-- Dropdown Menu -->
-                                <ul class="dropdown-menu dropdown-menu-end">
-                                    <li>
-                                        <button class="dropdown-item text-primary" 
-                                                hx-post="/get-view-existing-form" 
-                                                hx-target="#viewExistingModalContainer" 
-                                                hx-trigger="click" 
-                                                hx-swap="innerHTML"
-                                                hx-vals='{"unique_ref": "${row.unique_ref}"}'>
-                                            <i class="fas fa-eye"></i> View
-                                        </button>
-                                    </li>
-                                </ul>
-                            </div>
-                        </div>
-                    `;
-                    }
-                });
+            // Insert the custom "Actions" column at the beginning
+            columns.unshift(getActionsColumn());
 
-                // Destroy existing DataTable if initialized
-                if ($.fn.DataTable.isDataTable("#dataTable")) {
-                    $('#dataTable').DataTable().destroy();
-                    $("#tableHeaders").empty();
-                    $("#columnFilters").empty();
-                }
-
-                // Populate table headers dynamically
-                columns.forEach(col => {
-                    $("#tableHeaders").append(`<th>${col.title}</th>`);
-                });
-
-                // Initialize DataTable
-                var table = $('#dataTable').DataTable({
-                    processing: true,
-                    serverSide: false,
-                    ajax: {
-                        url: `/table/{{ model_name }}/rows`,
-                        type: "GET",
-                        dataSrc: "data"
-                    },
-                    columns: columns,
-                    paging: true,
-                    searching: true,
-                    ordering: true,
-                    autoWidth: true,
-                    colReorder: true,
-                    fixedHeader: true,
-                    scrollX: true,
-                    scrollY: "715px",
-                    scrollCollapse: true,
-                    lengthMenu: [10, 25, 50, 100],
-                    fixedColumns: {
-                        left: 1 // Freezes the first column
-                    },
-                    language: {
-                        searchPlaceholder: "Search...",
-                        lengthMenu: "Show _MENU_ entries",
-                        info: "Showing _START_ to _END_ of _TOTAL_ entries"
-                    },
-                    // Enable SearchPanes with all columns and collapsed state
-                    searchPanes: {
-                        threshold: 1, // Ensure all columns appear
-                        // cascadePanes: true,
-                        // controls: false,
-                        initCollapsed: true,
-                        viewTotal: true,
-                        dtOpts: {
-                            dom: 'tp' // Removes sorting controls (default includes "frtip")
-
-                        },
-                        collapsed: true // Collapses all panes by default
-                    },
-                    dom: 'lrtip' // Remove searchPanes from default placement
-                });
-
-                // Custom Search Input Handler
-                $("#customSearchInput").on("keyup", function () {
-                    table.search($(this).val()).draw(); // Bind custom input to DataTable search
-                });
-
-
-                // Function to refresh the table
-                function refreshTable() {
-                    $('#dataTable').DataTable().ajax.reload(null, false); // Reload table data without resetting pagination
-                }
-
-                // Enable row selection on click
-                $('#dataTable tbody').on('click', 'tr', function (event) {
-                    if (!$(event.target).hasClass('row-checkbox')) {
-                        // Only toggle selection if the checkbox itself was NOT clicked
-                        var checkbox = $(this).find('.row-checkbox');
-                        var isChecked = checkbox.prop('checked');
-
-                        checkbox.prop('checked', !isChecked);
-                        $(this).toggleClass('selected-row', !isChecked);
-                    }
-                });
-
-                // Handle clicking the checkbox directly
-                $('#dataTable tbody').on('change', '.row-checkbox', function (event) {
-                    var row = $(this).closest('tr');
-                    var isChecked = $(this).prop('checked');
-
-                    row.toggleClass('selected-row', isChecked);
-                });
-
-                // Bind refresh function to the custom button
-                $("#refreshTableBtn").on("click", function () {
-                    refreshTable();
-                });
-
-                // Move SearchPanes to the Modal when the table initializes
-                table.searchPanes.container().appendTo('#searchPanesContainer');
-
-                // Refresh SearchPanes when the modal opens
-                $('#searchPaneModal').on('shown.bs.modal', function () {
-                    table.searchPanes.rebuildPane();
-                });
-
-                // Add column visibility checkboxes
-                let columnVisibilityContainer = $("#columnVisibilityContainer");
-                columnVisibilityContainer.empty();
-
-                table.columns().every(function (index) {
-                    var column = this;
-                    var columnTitle = column.header().textContent.trim();
-
-                    // Skip empty title columns (like action buttons)
-                    if (columnTitle === "") return;
-
-                    let checkbox = $(`<div class="form-check">
-                    <input class="form-check-input column-toggle" type="checkbox" checked data-column="${index}">
-                    <label class="form-check-label">${columnTitle}</label>
-                </div>`);
-
-                    checkbox.find(".column-toggle").on("change", function () {
-                        let columnIdx = $(this).data("column");
-                        let isVisible = $(this).is(":checked");
-                        table.column(columnIdx).visible(isVisible);
-                    });
-
-                    columnVisibilityContainer.append(checkbox);
-                });
-            },
-            error: function (xhr) {
-                console.error("Error fetching table columns:", xhr);
-                $("#tableHeaders").html('<th colspan="100%" class="text-center text-danger">Failed to load columns</th>');
+            // Destroy existing DataTable if already initialized
+            if ($.fn.DataTable.isDataTable("#dataTable")) {
+                $('#dataTable').DataTable().destroy();
+                $("#tableHeaders").empty();
+                $("#columnFilters").empty();
             }
-        });
+
+            // Populate table headers dynamically
+            columns.forEach(col => {
+                $("#tableHeaders").append(`<th>${col.title}</th>`);
+            });
+
+            // Initialize DataTable (but use new /data endpoint for rows)
+            var table = $('#dataTable').DataTable({
+                processing: true,
+                serverSide: true,
+                ajax: {
+                    url: `/table/{{ model_name }}/data`, // 🔹 Only fetching rows now
+                    type: "POST",
+                    contentType: "application/json",
+                    data: function (d) {
+                        let filters = {};
+                        $(".custom-filter").each(function () {
+                            let col = $(this).attr("data-column");
+                            let val = $(this).val();
+                            if (val) {
+                                filters[col] = val;
+                            }
+                        });
+
+                        let payload = JSON.stringify({
+                            draw: d.draw,
+                            start: d.start,
+                            length: d.length,
+                            search_value: $("#customSearchInput").val(),  // ✅ Include search query
+                            order_column_index: d.order?.[0]?.column ?? 0,
+                            order_dir: d.order?.[0]?.dir ?? "asc",
+                            filters: filters
+                        });
+
+                        console.log("🚀 Sending AJAX Payload:", payload);
+                        return payload;
+                    },
+                    dataSrc: function (json) {
+                        console.log("✅ Received Data:", json);
+                        return json.data;
+                    },
+                    error: function (xhr, error, code) {
+                        console.error("❌ AJAX Error:", error, code, xhr.responseText);
+                    }
+                },
+                columns: columns,
+                paging: true,
+                searching: true,
+                ordering: true,
+                // autoWidth: true,
+                colReorder: true,
+                fixedHeader: true,
+                scrollX: true,
+                scrollY: "650px",
+                scrollCollapse: true,
+                lengthMenu: [10, 25, 50, 100],
+                fixedColumns: {
+                    left: 1
+                },
+                dom: 'lrtip'
+            });
+
+            // ✅ Setup filters using the modular function
+            setupFilters(table, columnOptions);
+
+            // ✅ Setup column visibility using the modular function
+            setupColumnVisibility(table);
+
+            // ✅ Custom Search Input Handler
+            $("#customSearchInput").on("keyup", function () {
+                console.log("[Search] Searching:", $(this).val());
+                table.ajax.reload(); // ✅ Trigger server-side refresh
+            });
+
+            // ✅ Enable row selection on click
+            $('#dataTable tbody').on('click', 'tr', function (event) {
+                if (!$(event.target).hasClass('row-checkbox')) {
+                    var checkbox = $(this).find('.row-checkbox');
+                    checkbox.prop('checked', !checkbox.prop('checked'));
+                    $(this).toggleClass('selected-row', checkbox.prop('checked'));
+                }
+            });
+
+            // ✅ Handle clicking the checkbox directly
+            $('#dataTable tbody').on('change', '.row-checkbox', function () {
+                $(this).closest('tr').toggleClass('selected-row', this.checked);
+            });
+
+            // ✅ Bind refresh function to the refresh button
+            $("#refreshTableBtn").on("click", function () {
+                refreshTable();
+            });
+        },
+        error: function (xhr) {
+            console.error("Error fetching table metadata:", xhr);
+            $("#tableHeaders").html('<th colspan="100%" class="text-center text-danger">Failed to load columns</th>');
+        }
     });
+});
+
+/**
+ * ✅ Function to refresh the DataTable
+ */
+function refreshTable() {
+    $('#dataTable').DataTable().ajax.reload(null, false);
+}
+
 
 </script>

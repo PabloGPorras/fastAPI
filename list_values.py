@@ -1,0 +1,7 @@
+organizations_multi_list = ["FRM"]
+sub_organization_list = ["FRAP", "ATO", "Transactional"]
+line_of_business_list = ["CREDIT", "DEBIT", "DEPOSIT"]
+team_list = ["IMPL", "CPT", "CNP", "ATO","FPF"]
+decision_engine_list = ["SASFM", "DMP"]
+effort_list = ["BAU", "QUICK", "Other"]
+roles_multi_options = ["FS_Manager", "FS_Analyst", "FS_Director","IMPL_Manager", "IMPL_Specialist", "IMPL_Director","Admin"]

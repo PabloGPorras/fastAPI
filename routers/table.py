@@ -1,13 +1,12 @@
-import json
-from typing import Dict, Optional
-from fastapi import APIRouter, Depends, HTTPException, Query, Request, Response
-from pydantic import BaseModel
+from fastapi import APIRouter, Depends, HTTPException, Request, Response
 from core.get_db_session import get_db_session
 from core.templates import templates
 from services.database_service import DatabaseService
-from example_model import RmsRequest, RmsRequestStatus, User, UserPreference
+from models.user import User
+from models.request import RmsRequest
+from models.request_status import RmsRequestStatus
 from get_current_user import get_current_user
-from database import logger, SessionLocal
+from database import logger
 from fastapi import status
 from sqlalchemy.orm import Session
 

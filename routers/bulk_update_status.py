@@ -5,8 +5,10 @@ from fastapi import APIRouter, Depends, Form, HTTPException
 from core.get_db_session import get_db_session
 from core.current_timestamp import get_current_timestamp
 from get_current_user import get_current_user
+from models.request import RmsRequest
+from models.request_status import RmsRequestStatus
+from models.user import User
 from services.database_service import DatabaseService
-from example_model import RmsRequest, RmsRequestStatus, User
 from sqlalchemy.orm import Session
 
 router = APIRouter()

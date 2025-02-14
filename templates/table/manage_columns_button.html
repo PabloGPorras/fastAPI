@@ -4,7 +4,8 @@
 </button>
 
 <!-- Modal Structure for Column Visibility -->
-<div class="modal fade" id="columnVisibilityModal" tabindex="-1" aria-labelledby="columnVisibilityModalLabel" aria-hidden="true">
+<div class="modal fade" id="columnVisibilityModal" tabindex="-1" aria-labelledby="columnVisibilityModalLabel"
+    aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
@@ -20,3 +21,34 @@
         </div>
     </div>
 </div>
+
+<script>
+    function setupColumnVisibility(table) {
+        let columnVisibilityContainer = $("#columnVisibilityContainer");
+        columnVisibilityContainer.empty(); // Clear previous content
+
+        // Loop through all table columns
+        table.columns().every(function (index) {
+            var column = this;
+            var columnTitle = column.header().textContent.trim();
+
+            // Skip empty title columns (like action buttons)
+            if (columnTitle === "") return;
+
+            // Create a checkbox for toggling column visibility
+            let checkbox = $(`<div class="form-check">
+                <input class="form-check-input column-toggle" type="checkbox" checked data-column="${index}">
+                <label class="form-check-label">${columnTitle}</label>
+            </div>`);
+
+            // Add event listener for toggling column visibility
+            checkbox.find(".column-toggle").on("change", function () {
+                let columnIdx = $(this).data("column");
+                table.column(columnIdx).visible($(this).is(":checked"));
+            });
+
+            // Append the checkbox to the modal container
+            columnVisibilityContainer.append(checkbox);
+        });
+    }
+</script>

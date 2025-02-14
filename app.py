@@ -6,7 +6,7 @@ from PyQt6.QtWebEngineCore import QWebEngineDownloadRequest
 from PyQt6.QtCore import QUrl
 import threading
 import uvicorn
-from example_model import get_table_name
+from database import get_table_name
 from main import app
 
 # 2) Function to run Uvicorn in a thread

@@ -3,9 +3,10 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy import func
 from core.get_db_session import get_db_session
 from get_current_user import get_current_user
-from example_model import User, UserPreference
+from models.user import User
 from database import logger
 from sqlalchemy.orm import Session
+from models.user_preference import UserPreference
 
 router = APIRouter()
 

@@ -1,148 +1,73 @@
-from datetime import datetime
-from sqlalchemy.orm import Session, joinedload
-from sqlalchemy import func, literal
+from typing import Any, Dict, Optional
+from sqlalchemy.orm import Session
 from sqlalchemy.inspection import inspect
-from env import ENVIRONMENT
-from example_model import Base, RmsRequest, RmsRequestStatus
 from sqlalchemy.ext.declarative import DeclarativeMeta
 import logging
-from sqlalchemy.engine import Row
+from sqlalchemy import or_
+
+from database import Base
 
 
 logger = logging.getLogger(__name__)
 
 class DatabaseService:
+
     @staticmethod
     def fetch_model_rows(
         model_name: str,
         session: Session,
         model,
-        filters: dict = None,
-        sort_by: str = None,
+        filters: Dict[str, Any] = None,  # Column-specific filters
+        search_value: str = "",  # ✅ Added search_value for full-table search
+        sort_column_index: Optional[int] = None,
         sort_order: str = "asc",
+        start: int = 0,
+        length: int = 10
     ):
-        """
-        Fetch rows for a given model dynamically with optional filtering and sorting.
+        """Fetch rows for the model with filtering, full-table search, ordering, and pagination."""
 
-        Args:
-            model_name (str): Name of the model/table.
-            session (Session): SQLAlchemy session.
-            model: SQLAlchemy model class.
-            filters (dict): Dictionary of column-value pairs for filtering (optional).
-            sort_by (str): Column name to sort by (optional).
-            sort_order (str): Sorting order, "asc" or "desc" (default: "asc").
+        # Start with a base query
+        query = session.query(*model.__table__.columns)
 
-        Returns:
-            list: Rows fetched from the database as dictionaries.
-        """
-        is_request = getattr(model, "is_request", False)
+        # ✅ Apply global search (across all text-like columns)
+        if search_value:
+            search_filters = [
+                getattr(model, col.name).ilike(f"%{search_value}%")
+                for col in model.__table__.columns
+                if hasattr(model, col.name) and getattr(model, col.name).type.python_type == str
+            ]
+            if search_filters:
+                query = query.filter(or_(*search_filters))
 
-        # Get columns for the main model and related tables
-        model_columns = list(model.__table__.columns)  # Get all columns from the model's table
-        rms_request_columns = list(RmsRequest.__table__.columns)  # Columns from RmsRequest
-
-
-        # Create a subquery that ranks statuses per unique_ref by timestamp descending.
-        ranked_statuses = (
-            session.query(
-                RmsRequestStatus,
-                func.row_number().over(
-                    partition_by=RmsRequestStatus.unique_ref,
-                    order_by=RmsRequestStatus.timestamp.desc()
-                ).label("rn")
-            )
-            .subquery()
-        )
-
-        # Alias the subquery if needed (for clarity, we can keep using ranked_statuses)
-        # Now, filter to only get the latest status (row_number == 1) for each unique_ref.
-        latest_status_query = (
-            session.query(
-                ranked_statuses.c.unique_ref,
-                ranked_statuses.c.status,
-                ranked_statuses.c.timestamp
-            )
-            .filter(ranked_statuses.c.rn == 1)
-            .subquery()
-        )
-
-        query = None
-        all_columns = []
-
-        # Fetch data based on conditions
-        if model_name == RmsRequest.__tablename__:
-            # Query for RmsRequest directly
-            query = session.query(
-                latest_status_query.c.status,
-                *rms_request_columns,
-            ).join(
-                latest_status_query,
-                RmsRequest.unique_ref == latest_status_query.c.unique_ref,
-            )
-            all_columns = [latest_status_query.c.status] + rms_request_columns
-        elif is_request:
-            # Determine the join condition dynamically
-            join_condition = getattr(model, "rms_request_id", None)
-            if join_condition:
-                query = session.query(
-                    latest_status_query.c.status,
-                    *model_columns,
-                    *rms_request_columns,
-                ).join(
-                    RmsRequest, model.rms_request_id == RmsRequest.unique_ref
-                ).join(
-                    latest_status_query, RmsRequest.unique_ref == latest_status_query.c.unique_ref
-                )
-                all_columns = [latest_status_query.c.status] + model_columns + rms_request_columns
-            else:
-                # Handle models without an explicit `rms_request_id` attribute
-                query = session.query(
-                    latest_status_query.c.status,
-                    *model_columns,
-                ).join(
-                    latest_status_query, model.unique_ref == latest_status_query.c.unique_ref
-                )
-                all_columns = [latest_status_query.c.status] + model_columns
-        else:
-            # Query unrelated models
-            query = session.query(*model_columns)
-            all_columns = model_columns
-
-        # Apply filters
+        # ✅ Apply column-specific filtering
         if filters:
-            for column, value in filters.items():
-                column_attr = getattr(model, column, None)
-                if column_attr is None:
-                    logger.warning(f"Filter column '{column}' not found in model '{model_name}'.")
-                    continue
+            for col_name, filter_value in filters.items():
+                col_attr = getattr(model, col_name, None)
+                if col_attr is not None:
+                    query = query.filter(col_attr == filter_value)
 
-                # Dynamically determine the operator based on column type
-                try:
-                    column_type = str(column_attr.type)
-                    if "String" in column_type or "Text" in column_type:
-                        query = query.filter(column_attr.like(f"%{value}%"))
-                    else:
-                        query = query.filter(column_attr == value)
-                except Exception as e:
-                    logger.warning(f"Failed to apply filter on column '{column}' with value '{value}': {e}")
+        # ✅ Count the number of records after filtering and searching
+        filtered_count = query.count()
 
-        # Apply sorting
-        if sort_by:
-            sort_column = getattr(model, sort_by, None)
-            if sort_column is None:
-                logger.warning(f"Sort column '{sort_by}' not found in model '{model_name}'.")
-            else:
-                query = query.order_by(sort_column.desc() if sort_order == "desc" else sort_column.asc())
+        # ✅ Apply sorting
+        if sort_column_index is not None:
+            model_columns = list(model.__table__.columns)
+            if 0 <= sort_column_index < len(model_columns):
+                sort_column = model_columns[sort_column_index]
+                if sort_order.lower() == "desc":
+                    query = query.order_by(sort_column.desc())
+                else:
+                    query = query.order_by(sort_column.asc())
 
+        # ✅ Apply pagination
+        query = query.offset(start).limit(length)
         rows = query.all()
 
-        # Convert tuples to dictionaries
-        row_dicts = [
-            dict(zip([col.key if hasattr(col, "key") else col.name for col in all_columns], row))
-            for row in rows
-        ]
+        # ✅ Convert rows to dictionaries
+        row_dicts = [dict(zip([col.name for col in model.__table__.columns], row)) for row in rows]
+        
+        return row_dicts, filtered_count
 
-        return row_dicts
 
 
 
@@ -302,7 +227,6 @@ class DatabaseService:
 
     @staticmethod
     def get_model_by_tablename(table_name: str):
-        from example_model import Base
         logger.debug(f"Looking up model for table name: {table_name}")
         for cls in Base.__subclasses__():
             logger.debug(f"Checking model: {cls.__name__} with table name: {cls.__tablename__}")
