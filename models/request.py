@@ -2,7 +2,7 @@ import os
 from sqlalchemy import Column, String
 from sqlalchemy import Column, String, DateTime
 from sqlalchemy.orm import relationship
-from core.id_method import id_method
+from core import id_method
 from core.current_timestamp import get_current_timestamp
 from core.get_table_name import Base, get_table_name
 from list_values import effort_list
@@ -51,5 +51,4 @@ class RmsRequest(Base):
         primaryjoin="RmsRequest.unique_ref == RmsRequestStatus.unique_ref",
     )
     comments = relationship("Comment", back_populates="request", cascade="all, delete-orphan")
-    is_request = True
     request_status_config = {}

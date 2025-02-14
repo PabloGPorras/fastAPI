@@ -1,12 +1,9 @@
 <div class="btn-group">
     <!-- Primary Action Button -->
     {% if model_name != RmsRequest.__tablename__ %}
-        <button type="button" class="btn btn-success btn-sm"
-            hx-post="/get-create-new-form"
-            hx-target="#createNewModalContainer"
-            hx-trigger="click"
-            hx-swap="innerHTML"
-            hx-vals='{"model_name": "{{ model_name }}"}'>Create New</button>
+        <button type="button" id="createNewButton" class="btn btn-success btn-sm">
+            Create New
+        </button>
     {% else %}
         <!-- Button to refresh table -->
         <button type="button" class="btn btn-success btn-sm" id="refreshTableBtn">
@@ -15,32 +12,13 @@
     {% endif %}
 
     <!-- Dropdown for additional actions -->
-    <button type="button" class="btn btn-success btn-sm dropdown-toggle dropdown-toggle-split"
-        data-bs-toggle="dropdown"
-        aria-expanded="false"
-        data-next-status="{{ status }}"
-        hx-post="/status-transitions"
-        hx-trigger="click"
-        hx-include="#status-form"
-        hx-target="#status-options-container"
-        hx-vals='{
-            "next_status": "{{ status }}",
-            "user_id": "{{ user.user_id }}",
-            "user_name": "{{ user.user_name }}",
-            "organizations": "{{ user.organizations }}",
-            "sub_organizations": "{{ user.sub_organizations }}",
-            "line_of_businesses": "{{ user.line_of_businesses }}",
-            "teams": "{{ user.teams }}",
-            "decision_engines": "{{ user.decision_engines }}",
-            "roles": "{{ user.roles }}"
-        }'>
+    <button type="button" id="statusChangeButton" class="btn btn-success btn-sm dropdown-toggle dropdown-toggle-split">
         <span class="visually-hidden">Toggle Dropdown</span>
     </button>
 
     <ul class="dropdown-menu">
         {% if model_name != RmsRequest.__tablename__ %}
         <li>
-            <!-- Button to refresh table -->
             <button type="button" class="dropdown-item" id="refreshTableBtn">
                 Refresh
             </button>
@@ -56,9 +34,7 @@
         <!-- Bulk Import Upload -->
         {% if model_name != RmsRequest.__tablename__ %}
         <li>
-            <button class="dropdown-item" data-bs-toggle="modal"
-                data-bs-target="#uploadBulkModal"
-                data-model-name="{{ model_name }}">
+            <button type="button" class="dropdown-item" id="bulkImportButton" data-bs-toggle="modal" data-bs-target="#uploadBulkModal" data-model-name="{{ model_name }}">
                 Bulk Import
             </button>
         </li>
@@ -70,74 +46,108 @@
     {% set model_name = model_name %}
     {% include "table/bulk_update_button.html" with context %}
 
+    <!-- Hidden form to pass selected rows -->
+    <form id="status-form" style="display: none;">
+        <input type="hidden" name="selected_rows" id="selectedRowsInput">
+    </form>
 </div>
 
+<!-- Request status config as JSON (if needed) -->
 <script id="request-status-config" type="application/json">
     {{ request_status_config | tojson }}
 </script>
 
 <script>
-    document.body.addEventListener("htmx:afterSwap", (event) => {
-        if (event.detail.target.id === "createNewModalContainer") {
-            const modalElement = document.getElementById("createNewModal");
-            if (modalElement) {
-                const modal = new bootstrap.Modal(modalElement);
-                modal.show();
+    // Function to collect selected rows (each selectable row should have a data-id attribute)
+    function getSelectedRows() {
+        let selected = [];
+        $("#dataTable tbody tr.selected-row").each(function(){
+            let id = $(this).data("id");
+            if (id) {
+                selected.push(id);
             }
-        }
-    });
-
-    $(document).ready(async function () {
-        const $tableBody = $("#tableBody");
-        const $checkboxes = $tableBody.find(".row-checkbox");
-        const $statusChangeButtons = $(".status-change-btn");
-        const requestStatusConfig = JSON.parse($("#request-status-config").text());
-        const $selectAllCheckbox = $("#selectAll");
-
-        const modelName = "{{ model_name }}"; // Retrieve model_name directly from the template
-
-        // Fetch current user roles using fetchCurrentUser
-        await fetchCurrentUser();
-        currentUserRoles = currentUserRoles ? currentUserRoles : [];
-
-        // Event listener for status change buttons
-        $statusChangeButtons.on("click", function () {
-            const nextStatus = $(this).data("nextStatus");
-            const $selectedRows = $tableBody.find("tr.selected-row");
-            const rowIds = $selectedRows.map(function () {
-                return $(this).data("id");
-            }).get();
-
-            const currentStatuses = $selectedRows.map(function () {
-                const statusCell = $(this).find(".request_status-column");
-                return statusCell.length ? statusCell.text().trim() : null;
-            }).get();
-
-            if (!rowIds.length) {
-                alert("No rows selected.");
-                return;
-            }
-
+        });
+        return selected;
+    }
+    
+    $(document).ready(function(){
+        // Create New button: load the new form and display it in a modal.
+        $("#createNewButton").on("click", function(){
             $.ajax({
-                url: "/bulk-update-status",
-                method: "POST",
-                contentType: "application/json",
-                data: JSON.stringify({
-                    ids: rowIds,
-                    currentStatuses,
-                    nextStatus,
-                    request_status_config: requestStatusConfig,
-                }),
-                success: function () {
-                    location.reload(); // Reload to reflect changes
+                url: "/get-create-new-form",
+                type: "POST",
+                data: { model_name: "{{ model_name }}" },
+                success: function(response) {
+                    $("#createNewModalContainer").html(response);
+                    // Assuming the response contains a modal with id "createNewModal"
+                    const modalElement = document.getElementById("createNewModal");
+                    if (modalElement) {
+                        const modal = new bootstrap.Modal(modalElement);
+                        modal.show();
+                    }
                 },
-                error: function (xhr) {
-                    const errorDetail = xhr.responseJSON?.detail || "Error updating status.";
-                    alert(errorDetail);
-                },
+                error: function(xhr) {
+                    console.error("Error loading create new form:", xhr.responseText);
+                    alert("Error loading form.");
+                }
             });
         });
-
+        
+        // Status Change button: collect selected rows and send a POST to /status-transitions.
+        $("#statusChangeButton").on("click", function(){
+            // Collect selected row IDs and always send an array (even if empty).
+            const selectedRows = getSelectedRows();
+            const selectedRowsJson = JSON.stringify(selectedRows);
+            $("#selectedRowsInput").val(selectedRowsJson);
+            
+            // Build the POST data.
+            const postData = {
+                selected_rows: selectedRowsJson,
+                next_status: "{{ status }}",
+                user_id: "{{ user.user_id }}",
+                user_name: "{{ user.user_name }}",
+                organizations: "{{ user.organizations }}",
+                sub_organizations: "{{ user.sub_organizations }}",
+                line_of_businesses: "{{ user.line_of_businesses }}",
+                teams: "{{ user.teams }}",
+                decision_engines: "{{ user.decision_engines }}",
+                roles: "{{ user.roles }}"
+            };
+            
+            $.ajax({
+                url: "/status-transitions",
+                type: "POST",
+                data: postData,
+                success: function(response) {
+                    // The response is expected to be HTML (dynamic buttons for status transitions).
+                    $("#status-options-container").html(response);
+                },
+                error: function(xhr) {
+                    console.error("Error in status transition:", xhr.responseText);
+                    alert("Error: " + xhr.responseText);
+                }
+            });
+        });
+        
+        // (Optional) Bind a refresh event if needed.
+        $("#refreshTableBtn").on("click", function(){
+            // For example, if you are using DataTables, you might call table.ajax.reload();
+            // location.reload();
+        });
+        
+        // Row selection logic: toggle selected class on row click.
+        $("#dataTable tbody").on("click", "tr", function(event){
+            if (!$(event.target).hasClass("row-checkbox")) {
+                var checkbox = $(this).find(".row-checkbox");
+                checkbox.prop("checked", !checkbox.prop("checked"));
+                $(this).toggleClass("selected-row", checkbox.prop("checked"));
+            }
+        });
+        
+        $("#dataTable tbody").on("change", ".row-checkbox", function(){
+            $(this).closest("tr").toggleClass("selected-row", this.checked);
+        });
+        
+        // (Optional) Additional event handlers, e.g. for bulk updates.
     });
-
 </script>

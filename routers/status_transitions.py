@@ -1,5 +1,4 @@
 import json
-from typing import List
 from fastapi import APIRouter, Form, HTTPException
 from fastapi.responses import HTMLResponse
 from services.database_service import DatabaseService
@@ -9,7 +8,7 @@ router = APIRouter()
 
 @router.post("/status-transitions", response_class=HTMLResponse)
 def get_status_transitions(
-    selected_rows: List[str] = Form(...),  # List of JSON strings
+    selected_rows: str = Form(...),  # JSON string of selected row IDs (always an array)
     next_status: str = Form(...),
     user_id: str = Form(...),
     user_name: str = Form(...),
@@ -22,86 +21,76 @@ def get_status_transitions(
 ):
     try:
         logger.info(f"User '{user_name}' initiated a status transition.")
-        logger.debug(f"Received selected rows: {selected_rows}")
+        logger.debug(f"Received selected row IDs (JSON): {selected_rows}")
         logger.debug(f"Next status: {next_status}")
 
-        # Step 1: Parse selected rows into Python dictionaries
-        def sanitize_row(row):
-            try:
-                row = row.replace("datetime.datetime", "")
-                row = row.replace("(", "[").replace(")", "]")  # Convert datetime args to list
-                row = row.replace("'", '"')  # Convert single quotes to double quotes
-                row = row.replace("None", "null")  # Replace Python `None` with JSON `null`
-                parsed_row = json.loads(row)
-                return parsed_row
-            except Exception as e:
-                logger.error(f"Failed to sanitize row: {e}")
-                raise HTTPException(
-                    status_code=400,
-                    detail=f"Invalid format in selected rows. Error: {e}",
-                )
+        # Parse the JSON string into a list of unique IDs.
+        try:
+            selected_row_ids = json.loads(selected_rows)
+        except json.JSONDecodeError as e:
+            logger.error(f"Error decoding selected_rows JSON: {e}")
+            raise HTTPException(status_code=400, detail="Invalid JSON for selected rows.")
 
-        parsed_rows = [sanitize_row(row) for row in selected_rows]
-        logger.debug(f"Parsed rows: {parsed_rows}")
+        logger.debug(f"Parsed selected row IDs: {selected_row_ids}")
 
-        # Step 2: Ensure all statuses and request types are the same
+        # Fetch rows from the database based on the unique IDs.
+        parsed_rows = []
+        for unique_ref in selected_row_ids:
+            row = DatabaseService.get_row_by_id(unique_ref)
+            if not row:
+                raise HTTPException(status_code=404, detail=f"Row with ID {unique_ref} not found.")
+            parsed_rows.append(row)
+        logger.debug(f"Fetched rows: {parsed_rows}")
+
+        # Ensure all rows have the same status and request type.
         statuses = {row.get("status") for row in parsed_rows}
         request_types = {row.get("request_type") for row in parsed_rows}
 
         if len(statuses) != 1:
-            raise HTTPException(
-                status_code=400,
-                detail="Selected rows must have the same status.",
-            )
+            raise HTTPException(status_code=400, detail="Selected rows must have the same status.")
         if len(request_types) != 1:
-            raise HTTPException(
-                status_code=400,
-                detail="Selected rows must have the same request type.",
-            )
+            raise HTTPException(status_code=400, detail="Selected rows must have the same request type.")
 
         current_status = statuses.pop()
         current_request_type = request_types.pop()
         logger.info(f"Current status for all rows: {current_status}")
         logger.info(f"Current request type for all rows: {current_request_type}")
 
-        # Step 3: Access validation
+        # Validate access for each row.
         for row in parsed_rows:
             denied_criteria = []
             if row.get("organization") not in organizations.split(","):
-                denied_criteria.append(f"organization ({row['organization']})")
+                denied_criteria.append(f"organization ({row.get('organization')})")
             if row.get("sub_organization") not in sub_organizations.split(","):
-                denied_criteria.append(f"sub_organization ({row['sub_organization']})")
+                denied_criteria.append(f"sub_organization ({row.get('sub_organization')})")
             if row.get("line_of_business") not in line_of_businesses.split(","):
-                denied_criteria.append(f"line_of_business ({row['line_of_business']})")
+                denied_criteria.append(f"line_of_business ({row.get('line_of_business')})")
             if row.get("team") not in teams.split(","):
-                denied_criteria.append(f"team ({row['team']})")
+                denied_criteria.append(f"team ({row.get('team')})")
             if row.get("decision_engine") not in decision_engines.split(","):
-                denied_criteria.append(f"decision_engine ({row['decision_engine']})")
+                denied_criteria.append(f"decision_engine ({row.get('decision_engine')})")
             if denied_criteria:
                 logger.warning(
-                    f"Access denied for user '{user_name}' on request '{row['unique_ref']}'. "
+                    f"Access denied for user '{user_name}' on request '{row.get('unique_ref')}'. "
                     f"Failed criteria: {', '.join(denied_criteria)}."
                 )
                 raise HTTPException(
                     status_code=403,
                     detail=(f"User {user_id} does not have access to the following criteria for request "
-                            f"'{row['unique_ref']}': {', '.join(denied_criteria)}."),
+                            f"'{row.get('unique_ref')}': {', '.join(denied_criteria)}.")
                 )
 
-        # Step 4: Validate roles and generate buttons
+        # Validate roles and generate transition buttons.
         model = DatabaseService.get_model_by_tablename(current_request_type.lower())
         if not model or not hasattr(model, "request_status_config"):
             raise HTTPException(
                 status_code=404,
-                detail=f"Model '{current_request_type}' not found or has no status config.",
+                detail=f"Model '{current_request_type}' not found or has no status config."
             )
 
         request_status_config = model.request_status_config
         if current_status not in request_status_config:
-            raise HTTPException(
-                status_code=400,
-                detail=f"Invalid status: {current_status}.",
-            )
+            raise HTTPException(status_code=400, detail=f"Invalid status: {current_status}.")
 
         allowed_roles = request_status_config[current_status]["Roles"]
         user_roles = roles.split(",")
@@ -109,24 +98,24 @@ def get_status_transitions(
             raise HTTPException(
                 status_code=403,
                 detail=(f"User does not have the required roles for status '{current_status}'. "
-                        f"Required roles: {allowed_roles}. User roles: {user_roles}"),
+                        f"Required roles: {allowed_roles}. User roles: {user_roles}")
             )
 
         valid_transitions = request_status_config.get(current_status, {}).get("Next", [])
         logger.debug(f"Valid transitions for status '{current_status}': {valid_transitions}")
 
         buttons = []
-        for next_status in valid_transitions:
+        for transition in valid_transitions:
             button_html = (
                 f'<button class="dropdown-item" '
                 f'  hx-post="/bulk-update-status" '
                 f'  hx-vals=\'{{'
-                f'    "ids": {json.dumps([row["unique_ref"] for row in parsed_rows])}, '
-                f'    "next_status": "{next_status}", '
+                f'    "ids": {json.dumps([row.get("unique_ref") for row in parsed_rows])}, '
+                f'    "next_status": "{transition}", '
                 f'    "request_type": "{current_request_type}"'
                 f'  }}\' '
-                f'  hx-trigger="click"> '
-                f'Change to {next_status} '
+                f'  hx-trigger="click">'
+                f'Change to {transition}'
                 f'</button>'
             )
             buttons.append(button_html)
@@ -137,7 +126,4 @@ def get_status_transitions(
 
     except Exception as e:
         logger.error(f"Error in status-transitions endpoint: {e}", exc_info=True)
-        raise HTTPException(
-            status_code=500,
-            detail=f"Internal server error: {str(e)}",
-        )
+        raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
