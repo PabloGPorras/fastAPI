@@ -18,58 +18,113 @@
 
 
 <script>
-function setupFilters(table, columnOptions, allColumns) {
-    let filterContainer = $("#filterContainer");
-    filterContainer.empty(); // Clear previous filters
+    function saveUserFilters() {
+        let filters = {};
+        $(".custom-filter, .custom-filter-input").each(function () {
+            let col = $(this).attr("data-column");
+            let val = $(this).val();
+            if (val) {
+                filters[col] = val;
+            }
+        });
 
-    // Iterate over all columns (skip any column you don't want filtered, e.g., "actions")
-    allColumns.forEach((colName) => {
-        if (colName === "actions") return;
+        // Prepare a payload using a unique key for the table filters
+        let payload = {};
+        payload[`datatable_filters_{{ model_name }}`] = filters;
 
-        if (columnOptions[colName] && columnOptions[colName].length > 0) {
-            // Use the dropdown template for columns with predefined options
-            let template = document.getElementById("filter-template");
-            let clone = template.content.cloneNode(true);
+        $.ajax({
+            url: '/api/save-user-preferences',
+            type: 'POST',
+            data: JSON.stringify(payload),
+            contentType: "application/json",
+            success: function (response) {
+                console.log("Filters saved successfully");
+            },
+            error: function (err) {
+                console.error("Error saving filters", err);
+            }
+        });
+    }
 
-            let label = clone.querySelector(".filter-label");
-            label.textContent = colName.toUpperCase();
 
-            let select = clone.querySelector("select");
-            select.setAttribute("data-column", colName);
 
-            columnOptions[colName].forEach((option) => {
-                let optionElement = document.createElement("option");
-                optionElement.value = option;
-                optionElement.textContent = option;
-                select.appendChild(optionElement);
-            });
+    function loadUserFilters(callback) {
+        $.ajax({
+            url: '/api/get-user-preferences',
+            type: 'GET',
+            success: function (response) {
+                const filterKey = `datatable_filters_{{ model_name }}`;
+                let filters = response[filterKey] || {};
+                for (let col in filters) {
+                    $(`[data-column="${col}"]`).val(filters[col]).trigger("change");
+                }
+                if (callback) callback();
+            },
+            error: function (err) {
+                console.error("Error loading saved filters", err);
+                if (callback) callback();
+            }
+        });
+    }
 
-            // Reload DataTable when filter changes
-            select.addEventListener("change", function () {
-                table.ajax.reload();
-            });
-
-            filterContainer.append(clone);
-        } else {
-            // Use the single free-text input for columns without predefined options
-            let template = document.getElementById("free-text-filter-template");
-            let clone = template.content.cloneNode(true);
-
-            let label = clone.querySelector(".filter-label");
-            label.textContent = colName.toUpperCase();
-
-            let input = clone.querySelector("input");
-            input.setAttribute("data-column", colName);
-
-            // Reload DataTable when free text changes (you could also use keyup for instant updates)
-            input.addEventListener("change", function () {
-                table.ajax.reload();
-            });
-
-            filterContainer.append(clone);
-        }
+    // When a dropdown or free-text input changes, reload the DataTable and save filters
+    $("#filterContainer").on("change", ".custom-filter, .custom-filter-input", function () {
+        dataTableInstance.ajax.reload();
+        saveUserFilters();
     });
-}
+
+    function setupFilters(table, columnOptions, allColumns) {
+        let filterContainer = $("#filterContainer");
+        filterContainer.empty(); // Clear previous filters
+
+        // Iterate over all columns (skip any column you don't want filtered, e.g., "actions")
+        allColumns.forEach((colName) => {
+            if (colName === "actions") return;
+
+            if (columnOptions[colName] && columnOptions[colName].length > 0) {
+                // Use the dropdown template for columns with predefined options
+                let template = document.getElementById("filter-template");
+                let clone = template.content.cloneNode(true);
+
+                let label = clone.querySelector(".filter-label");
+                label.textContent = colName.toUpperCase();
+
+                let select = clone.querySelector("select");
+                select.setAttribute("data-column", colName);
+
+                columnOptions[colName].forEach((option) => {
+                    let optionElement = document.createElement("option");
+                    optionElement.value = option;
+                    optionElement.textContent = option;
+                    select.appendChild(optionElement);
+                });
+
+                // Reload DataTable when filter changes
+                select.addEventListener("change", function () {
+                    table.ajax.reload();
+                });
+
+                filterContainer.append(clone);
+            } else {
+                // Use the single free-text input for columns without predefined options
+                let template = document.getElementById("free-text-filter-template");
+                let clone = template.content.cloneNode(true);
+
+                let label = clone.querySelector(".filter-label");
+                label.textContent = colName.toUpperCase();
+
+                let input = clone.querySelector("input");
+                input.setAttribute("data-column", colName);
+
+                // Reload DataTable when free text changes (you could also use keyup for instant updates)
+                input.addEventListener("change", function () {
+                    table.ajax.reload();
+                });
+
+                filterContainer.append(clone);
+            }
+        });
+    }
 
 
 </script>

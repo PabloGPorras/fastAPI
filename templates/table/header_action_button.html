@@ -173,6 +173,23 @@
             $(this).closest("tr").toggleClass("selected-row", this.checked);
         });
         
-        // (Optional) Additional event handlers, e.g. for bulk updates.
+        $.ajax({
+        url: "/bulk-update-status",
+        method: "POST",
+        contentType: "application/json",
+        data: JSON.stringify({
+            ids: rowIds,
+            currentStatuses,
+            nextStatus,
+            request_status_config: requestStatusConfig,
+        }),
+        success: function () {
+            location.reload(); // Reload to reflect changes
+        },
+        error: function (xhr) {
+            const errorDetail = xhr.responseJSON?.detail || "Error updating status.";
+            alert(errorDetail);
+        },
+    });
     });
 </script>

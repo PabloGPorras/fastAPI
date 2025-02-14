@@ -6,7 +6,7 @@ import re
 
 from core import templates
 from core.get_db_session import get_db_session
-from get_current_user import get_current_user  # For log parsing
+from core.get_current_user import get_current_user  # For log parsing
 from database import logger
 from models.user import User
 

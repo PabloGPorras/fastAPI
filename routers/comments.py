@@ -3,7 +3,7 @@ from fastapi.responses import HTMLResponse
 from core.get_db_session import get_db_session
 from core.current_timestamp import get_current_timestamp
 from core.templates import templates
-from get_current_user import get_current_user
+from core.get_current_user import get_current_user
 from database import logger
 from sqlalchemy.orm import Session
 from models.comment import Comment

@@ -6,7 +6,7 @@ from core.templates import templates
 from models.request import RmsRequest
 from models.user import User
 from services.database_service import DatabaseService
-from get_current_user import get_current_user
+from core.get_current_user import get_current_user
 from database import logger, SessionLocal
 from sqlalchemy.orm import Session
 

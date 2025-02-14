@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, Form, HTTPException, Request
 from fastapi.responses import HTMLResponse
 from sqlalchemy import inspect
 from core.get_db_session import get_db_session
-from get_current_user import get_current_user
+from core.get_current_user import get_current_user
 from models.user import User
 from models.request import RmsRequest
 from models.comment import Comment

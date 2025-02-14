@@ -8,7 +8,7 @@ from core.current_timestamp import get_current_timestamp
 from models.request import RmsRequest
 from models.user import User
 from services.database_service import DatabaseService
-from get_current_user import get_current_user
+from core.get_current_user import get_current_user
 from database import logger
 from sqlalchemy.orm import Session
 from models.request_status import RmsRequestStatus

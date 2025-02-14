@@ -90,155 +90,337 @@
 
 
 <script>
-// Store the DataTable instance globally
-let dataTableInstance;
+    // Store the DataTable instance globally
+    let dataTableInstance;
 
-$(document).ready(function () {
-    $.ajax({
-        url: `/table/{{ model_name }}/metadata`,
-        type: "POST",
-        success: function (response) {
-            const columnOptions = response.column_options || {};
-            const columns = response.columns.map((col) => ({
-                title: col.toUpperCase(),
-                data: col
-            }));
+    $(document).ready(function () {
+        $.ajax({
+            url: `/table/{{ model_name }}/metadata`,
+            type: "POST",
+            success: function (response) {
+                const columnOptions = response.column_options || {};
+                const columns = response.columns.map((col) => ({
+                    title: col.toUpperCase(),
+                    data: col
+                }));
+                // Prepend the actions column if needed
+                columns.unshift(getActionsColumn());
 
-            columns.unshift(getActionsColumn());
-
-            if ($.fn.DataTable.isDataTable("#dataTable")) {
-                $('#dataTable').DataTable().destroy();
+                // Clear and build table headers
                 $("#tableHeaders").empty();
-                $("#columnFilters").empty();
+                columns.forEach(col => {
+                    $("#tableHeaders").append(`<th>${col.title}</th>`);
+                });
+
+                // Build the filters UI (using your existing setupFilters)
+                // We pass null for the table instance since it’s not yet initialized.
+                setupFilters(null, columnOptions, response.columns);
+
+                // Now that the metadata and filter UI are built, fetch user preferences.
+                fetchAndApplyPreferences(columns);
+            },
+            error: function (xhr) {
+                console.error("Error fetching table metadata:", xhr);
+                $("#tableHeaders").html('<th colspan="100%" class="text-center text-danger">Failed to load columns</th>');
             }
-
-            columns.forEach(col => {
-                $("#tableHeaders").append(`<th>${col.title}</th>`);
-            });
-
-            // Initialize DataTable and store globally
-            dataTableInstance = $('#dataTable').DataTable({
-                processing: true,
-                serverSide: true,
-                ajax: {
-                    url: `/table/{{ model_name }}/data`,
-                    type: "POST",
-                    contentType: "application/json",
-                    data: function (d) {
-                        let filters = {};
-                        $(".custom-filter, .custom-filter-input").each(function () {
-                            let col = $(this).attr("data-column");
-                            let val = $(this).val();
-                            if (val) {
-                                filters[col] = val;
-                            }
-                        });
-
-                        return JSON.stringify({
-                            draw: d.draw,
-                            start: d.start,
-                            length: d.length,
-                            search_value: $("#customSearchInput").val(),
-                            order_column_index: d.order?.[0]?.column ?? 0,
-                            order_dir: d.order?.[0]?.dir ?? "asc",
-                            filters: filters
-                        });
-                    },
-                    dataSrc: function (json) {
-                        return json.data;
-                    },
-                    error: function (xhr, error, code) {
-                        console.error("❌ AJAX Error:", error, code, xhr.responseText);
-                    }
-                },
-                columns: columns,
-                paging: true,
-                searching: true,
-                ordering: true,
-                colReorder: true,
-                fixedHeader: true,
-                scrollX: true,
-                scrollY: "650px",
-                scrollCollapse: true,
-                lengthMenu: [10, 25, 50, 100],
-                fixedColumns: { left: 1 },
-                dom: 'lrtip',
-                createdRow: function (row, data, dataIndex) {
-                    $(row).attr('data-id', data.unique_ref);
-                }
-            });
-
-            setupFilters(dataTableInstance, columnOptions, response.columns);
-            setupColumnVisibility(dataTableInstance);
-
-            $("#customSearchInput").on("keyup", debounce(function () {
-                dataTableInstance.ajax.reload();
-            }, 500));
-
-            $("#dataTable tbody").on("click", "tr", function (event) {
-                if (!$(event.target).hasClass('row-checkbox')) {
-                    var checkbox = $(this).find('.row-checkbox');
-                    checkbox.prop('checked', !checkbox.prop('checked'));
-                    $(this).toggleClass('selected-row', checkbox.prop('checked'));
-                }
-            });
-
-            // Enable row selection on click
-            $('#dataTable tbody').on('click', 'tr', function (event) {
-                if (!$(event.target).hasClass('row-checkbox')) {
-                    var checkbox = $(this).find('.row-checkbox');
-                    checkbox.prop('checked', !checkbox.prop('checked'));
-                    $(this).toggleClass('selected-row', checkbox.prop('checked'));
-                }
-            });
-
-            // Handle clicking the checkbox directly
-            $('#dataTable tbody').on('change', '.row-checkbox', function () {
-                $(this).closest('tr').toggleClass('selected-row', this.checked);
-            });
-
-            $("#dataTable tbody").on("change", ".row-checkbox", function () {
-                $(this).closest("tr").toggleClass("selected-row", this.checked);
-            });
-
-            $("#refreshTableBtn").on("click", function () {
-                refreshTable();
-            });
-        },
-        error: function (xhr) {
-            console.error("Error fetching table metadata:", xhr);
-            $("#tableHeaders").html('<th colspan="100%" class="text-center text-danger">Failed to load columns</th>');
-        }
+        });
     });
-});
 
-// Debounce function to limit how often a function is called
-function debounce(func, delay) {
-    let timeout;
-    return function (...args) {
-        clearTimeout(timeout);
-        timeout = setTimeout(() => func.apply(this, args), delay);
-    };
-}
 
-/**
- * ✅ Function to refresh the DataTable
- */
-function refreshTable() {
-    if (dataTableInstance) {
-        dataTableInstance.ajax.reload(null, false);
+    function fetchAndApplyPreferences(columns) {
+        $.ajax({
+            url: '/api/get-user-preferences',
+            type: 'GET',
+            success: function (preferences) {
+                // Apply filter preferences to the UI
+                const filterKey = `datatable_filters_{{ model_name }}`;
+                let filterPrefs = preferences[filterKey] || {};
+                for (let col in filterPrefs) {
+                    $(`[data-column="${col}"]`).val(filterPrefs[col]);
+                }
+                // Get the hidden columns (an array of column names)
+                const columnKey = `datatable_columns_{{ model_name }}`;
+                let hiddenColumns = preferences[columnKey] || [];
+
+                // Now initialize the DataTable with the UI already set.
+                initializeDataTable(columns, hiddenColumns);
+            },
+            error: function (err) {
+                console.error("Error loading preferences", err);
+                // Even if preferences fail, initialize the table without them.
+                initializeDataTable(columns, []);
+            }
+        });
     }
-}
 
-/**
- * ✅ Function to get selected row data
- */
-function getSelectedRowsData() {
-    if (!dataTableInstance) {
-        console.error("DataTable instance is not initialized.");
-        return [];
+    function initializeDataTable(columns, hiddenColumns) {
+        // Initialize DataTable now that filters are applied.
+        dataTableInstance = $('#dataTable').DataTable({
+            processing: true,
+            serverSide: true,
+            ajax: {
+                url: `/table/{{ model_name }}/data`,
+                type: "POST",
+                contentType: "application/json",
+                data: function (d) {
+                    let filters = {};
+                    $(".custom-filter, .custom-filter-input").each(function () {
+                        let col = $(this).attr("data-column");
+                        let val = $(this).val();
+                        if (val) {
+                            filters[col] = val;
+                        }
+                    });
+                    return JSON.stringify({
+                        draw: d.draw,
+                        start: d.start,
+                        length: d.length,
+                        search_value: $("#customSearchInput").val(),
+                        order_column_index: d.order?.[0]?.column ?? 0,
+                        order_dir: d.order?.[0]?.dir ?? "asc",
+                        filters: filters
+                    });
+                },
+                dataSrc: function (json) {
+                    return json.data;
+                },
+                error: function (xhr, error, code) {
+                    console.error("❌ AJAX Error:", error, code, xhr.responseText);
+                }
+            },
+            columns: columns,
+            paging: true,
+            searching: true,
+            ordering: true,
+            colReorder: true,
+            fixedHeader: true,
+            scrollX: true,
+            scrollY: "650px",
+            scrollCollapse: true,
+            lengthMenu: [10, 25, 50, 100],
+            fixedColumns: { left: 1 },
+            dom: 'lrtip',
+            createdRow: function (row, data, dataIndex) {
+                $(row).attr('data-id', data.unique_ref);
+            },
+            initComplete: function (settings, json) {
+                // Now that DataTable is initialized, set up the column visibility UI.
+                setupColumnVisibility(dataTableInstance);
+                // Apply the saved column visibility preferences.
+                $(".column-toggle").each(function () {
+                    let colName = $(this).data("column-name");
+                    let isVisible = hiddenColumns.indexOf(colName) === -1; // visible if not hidden
+                    $(this).prop("checked", isVisible);
+                    let colIndex = $(this).data("column-index");
+                    dataTableInstance.column(colIndex).visible(isVisible);
+                });
+                // Finally, reveal the table (and hide any loading overlay if used)
+                $("#loadingOverlay").fadeOut(300, function () {
+                    $("#tableContainer").fadeIn(300);
+                });
+            }
+        });
+
+        // Attach search input event
+        $("#customSearchInput").on("keyup", debounce(function () {
+            dataTableInstance.ajax.reload();
+        }, 500));
+
+        $("#dataTable tbody").on("click", "tr", function (event) {
+            if (!$(event.target).hasClass('row-checkbox')) {
+                var checkbox = $(this).find('.row-checkbox');
+                checkbox.prop('checked', !checkbox.prop('checked'));
+                $(this).toggleClass('selected-row', checkbox.prop('checked'));
+            }
+        });
+
+        // Enable row selection on click
+        $('#dataTable tbody').on('click', 'tr', function (event) {
+            if (!$(event.target).hasClass('row-checkbox')) {
+                var checkbox = $(this).find('.row-checkbox');
+                checkbox.prop('checked', !checkbox.prop('checked'));
+                $(this).toggleClass('selected-row', checkbox.prop('checked'));
+            }
+        });
+
+        // Handle clicking the checkbox directly
+        $('#dataTable tbody').on('change', '.row-checkbox', function () {
+            $(this).closest('tr').toggleClass('selected-row', this.checked);
+        });
+
+        $("#dataTable tbody").on("change", ".row-checkbox", function () {
+            $(this).closest("tr").toggleClass("selected-row", this.checked);
+        });
+
+        $("#refreshTableBtn").on("click", function () {
+            refreshTable();
+        });
     }
-    return dataTableInstance.rows('.selected-row').data().toArray();
-}
+
+
+    // $(document).ready(function () {
+    //     $.ajax({
+    //         url: `/table/{{ model_name }}/metadata`,
+    //         type: "POST",
+    //         success: function (response) {
+    //             const columnOptions = response.column_options || {};
+    //             const columns = response.columns.map((col) => ({
+    //                 title: col.toUpperCase(),
+    //                 data: col
+    //             }));
+
+    //             columns.unshift(getActionsColumn());
+
+    //             if ($.fn.DataTable.isDataTable("#dataTable")) {
+    //                 $('#dataTable').DataTable().destroy();
+    //                 $("#tableHeaders").empty();
+    //                 $("#columnFilters").empty();
+    //             }
+
+    //             columns.forEach(col => {
+    //                 $("#tableHeaders").append(`<th>${col.title}</th>`);
+    //             });
+
+    //             // Initialize DataTable and store globally
+    //             dataTableInstance = $('#dataTable').DataTable({
+    //                 processing: true,
+    //                 serverSide: true,
+    //                 ajax: {
+    //                     url: `/table/{{ model_name }}/data`,
+    //                     type: "POST",
+    //                     contentType: "application/json",
+    //                     data: function (d) {
+    //                         let filters = {};
+    //                         $(".custom-filter, .custom-filter-input").each(function () {
+    //                             let col = $(this).attr("data-column");
+    //                             let val = $(this).val();
+    //                             if (val) {
+    //                                 filters[col] = val;
+    //                             }
+    //                         });
+
+    //                         return JSON.stringify({
+    //                             draw: d.draw,
+    //                             start: d.start,
+    //                             length: d.length,
+    //                             search_value: $("#customSearchInput").val(),
+    //                             order_column_index: d.order?.[0]?.column ?? 0,
+    //                             order_dir: d.order?.[0]?.dir ?? "asc",
+    //                             filters: filters
+    //                         });
+    //                     },
+    //                     dataSrc: function (json) {
+    //                         return json.data;
+    //                     },
+    //                     error: function (xhr, error, code) {
+    //                         console.error("❌ AJAX Error:", error, code, xhr.responseText);
+    //                     }
+    //                 },
+    //                 columns: columns,
+    //                 paging: true,
+    //                 searching: true,
+    //                 ordering: true,
+    //                 colReorder: true,
+    //                 fixedHeader: true,
+    //                 scrollX: true,
+    //                 scrollY: "650px",
+    //                 scrollCollapse: true,
+    //                 lengthMenu: [10, 25, 50, 100],
+    //                 fixedColumns: { left: 1 },
+    //                 dom: 'lrtip',
+    //                 createdRow: function (row, data, dataIndex) {
+    //                     $(row).attr('data-id', data.unique_ref);
+    //                 },
+    //                 // Optionally, enable deferred rendering to speed up initial load
+    //                 deferRender: true
+    //             });
+
+    //             // Set up filters and column visibility UI
+    //             setupFilters(dataTableInstance, columnOptions, response.columns);
+    //             setupColumnVisibility(dataTableInstance);
+
+    //             // Load saved column visibility first
+    //             loadColumnVisibility(function () {
+    //                 // Then load saved filters
+    //                 loadUserFilters(function () {
+    //                     // Finally, reveal the table container once all preferences are applied.
+    //                     $("#tableContainer").css("visibility", "visible");
+
+    //                     // Optionally, reload the table to reflect applied filters
+    //                     dataTableInstance.ajax.reload();
+    //                 });
+    //             });
+
+    //             $("#customSearchInput").on("keyup", debounce(function () {
+    //                 dataTableInstance.ajax.reload();
+    //             }, 500));
+
+    //             $("#dataTable tbody").on("click", "tr", function (event) {
+    //                 if (!$(event.target).hasClass('row-checkbox')) {
+    //                     var checkbox = $(this).find('.row-checkbox');
+    //                     checkbox.prop('checked', !checkbox.prop('checked'));
+    //                     $(this).toggleClass('selected-row', checkbox.prop('checked'));
+    //                 }
+    //             });
+
+    //             // Enable row selection on click
+    //             $('#dataTable tbody').on('click', 'tr', function (event) {
+    //                 if (!$(event.target).hasClass('row-checkbox')) {
+    //                     var checkbox = $(this).find('.row-checkbox');
+    //                     checkbox.prop('checked', !checkbox.prop('checked'));
+    //                     $(this).toggleClass('selected-row', checkbox.prop('checked'));
+    //                 }
+    //             });
+
+    //             // Handle clicking the checkbox directly
+    //             $('#dataTable tbody').on('change', '.row-checkbox', function () {
+    //                 $(this).closest('tr').toggleClass('selected-row', this.checked);
+    //             });
+
+    //             $("#dataTable tbody").on("change", ".row-checkbox", function () {
+    //                 $(this).closest("tr").toggleClass("selected-row", this.checked);
+    //             });
+
+    //             $("#refreshTableBtn").on("click", function () {
+    //                 refreshTable();
+    //             });
+    //         },
+    //         error: function (xhr) {
+    //             console.error("Error fetching table metadata:", xhr);
+    //             $("#tableHeaders").html('<th colspan="100%" class="text-center text-danger">Failed to load columns</th>');
+    //         }
+    //     });
+    // });
+
+
+
+    // Debounce function to limit how often a function is called
+    function debounce(func, delay) {
+        let timeout;
+        return function (...args) {
+            clearTimeout(timeout);
+            timeout = setTimeout(() => func.apply(this, args), delay);
+        };
+    }
+
+    /**
+     * ✅ Function to refresh the DataTable
+     */
+    function refreshTable() {
+        if (dataTableInstance) {
+            dataTableInstance.ajax.reload(null, false);
+        }
+    }
+
+    /**
+     * ✅ Function to get selected row data
+     */
+    function getSelectedRowsData() {
+        if (!dataTableInstance) {
+            console.error("DataTable instance is not initialized.");
+            return [];
+        }
+        return dataTableInstance.rows('.selected-row').data().toArray();
+    }
 
 </script>

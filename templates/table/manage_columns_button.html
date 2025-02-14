@@ -23,6 +23,34 @@
 </div>
 
 <script>
+    function loadColumnVisibility(callback) {
+        $.ajax({
+            url: '/api/get-user-preferences',
+            type: 'GET',
+            success: function (response) {
+                const key = `datatable_columns_{{ model_name }}`;
+                let hiddenColumns = response[key] || [];
+                console.log("Loaded hidden columns:", hiddenColumns);
+
+                $(".column-toggle").each(function () {
+                    let colName = $(this).data("column-name");
+                    let isVisible = hiddenColumns.indexOf(colName) === -1;
+                    $(this).prop("checked", isVisible);
+                    let colIndex = $(this).data("column-index");
+                    dataTableInstance.column(colIndex).visible(isVisible);
+                });
+                if (callback) callback();
+            },
+            error: function (err) {
+                console.error("Error loading column visibility", err);
+                if (callback) callback();
+            }
+        });
+    }
+
+
+
+
     function setupColumnVisibility(table) {
         let columnVisibilityContainer = $("#columnVisibilityContainer");
         columnVisibilityContainer.empty(); // Clear previous content
@@ -30,25 +58,63 @@
         // Loop through all table columns
         table.columns().every(function (index) {
             var column = this;
-            var columnTitle = column.header().textContent.trim();
+            // Get the underlying column name using the data source of the column
+            var colName = column.dataSrc();
+            if (!colName) return; // Skip if not set (e.g. for action columns)
 
-            // Skip empty title columns (like action buttons)
-            if (columnTitle === "") return;
-
-            // Create a checkbox for toggling column visibility
-            let checkbox = $(`<div class="form-check">
-                <input class="form-check-input column-toggle" type="checkbox" checked data-column="${index}">
-                <label class="form-check-label">${columnTitle}</label>
-            </div>`);
+            // Create a checkbox with data attributes for both index and column name
+            let checkbox = $(`
+            <div class="form-check">
+                <input class="form-check-input column-toggle" type="checkbox" checked data-column-index="${index}" data-column-name="${colName}">
+                <label class="form-check-label">${colName.toUpperCase()}</label>
+            </div>
+        `);
 
             // Add event listener for toggling column visibility
             checkbox.find(".column-toggle").on("change", function () {
-                let columnIdx = $(this).data("column");
-                table.column(columnIdx).visible($(this).is(":checked"));
+                let columnIdx = $(this).data("column-index");
+                let newVisibility = $(this).is(":checked");
+                table.column(columnIdx).visible(newVisibility);
+                // Save the new column visibility preferences (only hidden columns)
+                saveColumnVisibility();
             });
 
             // Append the checkbox to the modal container
             columnVisibilityContainer.append(checkbox);
         });
     }
+
+
+
+    function saveColumnVisibility() {
+        let hiddenColumns = [];
+        $(".column-toggle").each(function () {
+            let isVisible = $(this).is(":checked");
+            let colName = $(this).data("column-name");
+            if (!isVisible && colName) {
+                hiddenColumns.push(colName);
+            }
+        });
+
+        // Prepare a payload using the unique key and only the hidden columns array.
+        let payload = {};
+        payload[`datatable_columns_{{ model_name }}`] = hiddenColumns;
+
+        console.log("Saving hidden columns:", payload);
+
+        $.ajax({
+            url: '/api/save-user-preferences',
+            type: 'POST',
+            data: JSON.stringify(payload),
+            contentType: "application/json",
+            success: function (response) {
+                console.log("Column visibility saved successfully", response);
+            },
+            error: function (err) {
+                console.error("Error saving column visibility", err);
+            }
+        });
+    }
+
+
 </script>

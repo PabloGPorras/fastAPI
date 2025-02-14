@@ -5,7 +5,7 @@ from services.database_service import DatabaseService
 from models.user import User
 from models.request import RmsRequest
 from models.request_status import RmsRequestStatus
-from get_current_user import get_current_user
+from core.get_current_user import get_current_user
 from database import logger
 from fastapi import status
 from sqlalchemy.orm import Session

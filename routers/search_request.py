@@ -2,7 +2,7 @@ from typing import Optional
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy import inspect
 from core.get_db_session import get_db_session
-from get_current_user import get_current_user
+from core.get_current_user import get_current_user
 from models.user import User
 from models.request import RmsRequest
 from database import logger

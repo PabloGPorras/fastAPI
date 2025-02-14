@@ -47,7 +47,7 @@ def get_current_user(session: Session = Depends(get_db_session)) -> User:
                 email_cc="",
                 last_update_timestamp=get_current_timestamp(),
                 user_role_expire_timestamp=get_current_timestamp() + timedelta(days=365),  # 1-year validity
-                roles="User",  # Default role
+                roles="FS_Analyst",  # Default role
                 organizations="DefaultOrg",
                 sub_organizations="DefaultSubOrg",
                 line_of_businesses="DefaultLOB",
@@ -70,48 +70,8 @@ def get_current_user(session: Session = Depends(get_db_session)) -> User:
 
 
 DEFAULT_USER_PREFERENCES = {
-    "filters": {
-        "effort": ["BAU"],
-        "organization": [],
-        "sub_organization": [],
-        "line_of_business": [],
-        "team": [],
-        "decision_engine": [],
-    },  # Will be saved as JSON
-    "hidden_columns": [
-        "unique_ref",
-        "group_id",
-        "request_type",
-        # "request_status",
-        # "requester",
-        "request_received_timestamp",
-        # "effort",
-        "approval_timesatmp",
-        # "approved",
-        # "approver",
-        # "governed_timestamp",
-        # "governed_by",
-        # "governed",
-        # "deployment_request_timestamp",
-        # "deployment_timestamp",
-        # "deployed",
-        # "tool_version",
-        # "checked_out_by",
-        # "email_from",
-        # "email_to",
-        # "email_cc",
-        # "email_sent",
-        # "approval_sent",
-        # "expected_deployment_timestamp",
-        # "expected_deployment_timestamp_updated",
-        "organization",
-        "sub_organization",
-        "line_of_business",
-        "team",
-        "decision_engine",
-    ],  
+    "datatable_columns_test_requests": ["request_status", "approval_timesatmp", "approved", "approver", "governed_timestamp", "governed_by", "governed", "deployment_request_timestamp", "deployment_timestamp", "deployed", "tool_version", "checked_out_by", "email_from", "email_to", "email_cc", "email_sent", "approval_sent", "expected_deployment_timestamp"],  
     "theme": "dark",  # Saved as a string
-    "notifications_enabled": True,  # Saved as a boolean
 }
 
 def add_default_preferences(user_name: str, session):

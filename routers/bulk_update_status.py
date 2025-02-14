@@ -4,7 +4,7 @@ from typing import List
 from fastapi import APIRouter, Depends, HTTPException, Body
 from core.get_db_session import get_db_session
 from core.current_timestamp import get_current_timestamp
-from get_current_user import get_current_user
+from core.get_current_user import get_current_user
 from models.request import RmsRequest
 from models.request_status import RmsRequestStatus
 from models.user import User
