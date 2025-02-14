@@ -1,14 +1,14 @@
 import json
 from fastapi import APIRouter, Form, HTTPException
 from fastapi.responses import HTMLResponse
-from services.database_service import DatabaseService
 from database import logger
+from services.database_service import DatabaseService
 
 router = APIRouter()
 
 @router.post("/status-transitions", response_class=HTMLResponse)
 def get_status_transitions(
-    selected_rows: str = Form(...),  # JSON string of selected row IDs (always an array)
+    selected_rows: str = Form(...),  # JSON string containing an array of row objects
     next_status: str = Form(...),
     user_id: str = Form(...),
     user_name: str = Form(...),
@@ -21,26 +21,20 @@ def get_status_transitions(
 ):
     try:
         logger.info(f"User '{user_name}' initiated a status transition.")
-        logger.debug(f"Received selected row IDs (JSON): {selected_rows}")
+        logger.debug(f"Received selected row data (JSON): {selected_rows}")
         logger.debug(f"Next status: {next_status}")
 
-        # Parse the JSON string into a list of unique IDs.
+        # Parse the JSON string into a list of row dictionaries.
         try:
-            selected_row_ids = json.loads(selected_rows)
+            parsed_rows = json.loads(selected_rows)
         except json.JSONDecodeError as e:
             logger.error(f"Error decoding selected_rows JSON: {e}")
             raise HTTPException(status_code=400, detail="Invalid JSON for selected rows.")
 
-        logger.debug(f"Parsed selected row IDs: {selected_row_ids}")
+        if not parsed_rows:
+            raise HTTPException(status_code=400, detail="No rows selected for transition.")
 
-        # Fetch rows from the database based on the unique IDs.
-        parsed_rows = []
-        for unique_ref in selected_row_ids:
-            row = DatabaseService.get_row_by_id(unique_ref)
-            if not row:
-                raise HTTPException(status_code=404, detail=f"Row with ID {unique_ref} not found.")
-            parsed_rows.append(row)
-        logger.debug(f"Fetched rows: {parsed_rows}")
+        logger.debug(f"Parsed selected rows: {parsed_rows}")
 
         # Ensure all rows have the same status and request type.
         statuses = {row.get("status") for row in parsed_rows}
@@ -85,10 +79,16 @@ def get_status_transitions(
         if not model or not hasattr(model, "request_status_config"):
             raise HTTPException(
                 status_code=404,
-                detail=f"Model '{current_request_type}' not found or has no status config."
+                detail=f"Model '{current_request_type}' not found or has no status config.",
             )
 
         request_status_config = model.request_status_config
+        if current_status not in request_status_config:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Invalid status: {current_status}.",
+            )
+
         if current_status not in request_status_config:
             raise HTTPException(status_code=400, detail=f"Invalid status: {current_status}.")
 
@@ -105,18 +105,14 @@ def get_status_transitions(
         logger.debug(f"Valid transitions for status '{current_status}': {valid_transitions}")
 
         buttons = []
+        row_ids_json = json.dumps([row.get("unique_ref") for row in parsed_rows])
+
         for transition in valid_transitions:
             button_html = (
-                f'<button class="dropdown-item" '
-                f'  hx-post="/bulk-update-status" '
-                f'  hx-vals=\'{{'
-                f'    "ids": {json.dumps([row.get("unique_ref") for row in parsed_rows])}, '
-                f'    "next_status": "{transition}", '
-                f'    "request_type": "{current_request_type}"'
-                f'  }}\' '
-                f'  hx-trigger="click">'
-                f'Change to {transition}'
-                f'</button>'
+                f'<button class="dropdown-item status-transition-btn" '
+                f'  data-ids=\'{row_ids_json}\' '
+                f'  data-next-status="{transition}" '
+                f'  data-request-type="{current_request_type}"> Change to {transition} </button>'
             )
             buttons.append(button_html)
 

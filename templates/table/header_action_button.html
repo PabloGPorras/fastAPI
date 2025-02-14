@@ -1,7 +1,12 @@
 <div class="btn-group">
     <!-- Primary Action Button -->
     {% if model_name != RmsRequest.__tablename__ %}
-        <button type="button" id="createNewButton" class="btn btn-success btn-sm">
+        <button type="button" id="createNewButton" class="btn btn-success btn-sm"
+            hx-post="/get-create-new-form"
+            hx-target="#createNewModalContainer"
+            hx-trigger="click"
+            hx-swap="innerHTML"
+            hx-vals='{"model_name": "{{ model_name }}"}'>
             Create New
         </button>
     {% else %}
@@ -12,9 +17,12 @@
     {% endif %}
 
     <!-- Dropdown for additional actions -->
-    <button type="button" id="statusChangeButton" class="btn btn-success btn-sm dropdown-toggle dropdown-toggle-split">
-        <span class="visually-hidden">Toggle Dropdown</span>
-    </button>
+    <button type="button" id="statusChangeButton" class="btn btn-success btn-sm dropdown-toggle dropdown-toggle-split"
+    data-bs-toggle="dropdown"
+    aria-expanded="false">
+    <span class="visually-hidden">Toggle Dropdown</span>
+</button>
+
 
     <ul class="dropdown-menu">
         {% if model_name != RmsRequest.__tablename__ %}
@@ -34,7 +42,8 @@
         <!-- Bulk Import Upload -->
         {% if model_name != RmsRequest.__tablename__ %}
         <li>
-            <button type="button" class="dropdown-item" id="bulkImportButton" data-bs-toggle="modal" data-bs-target="#uploadBulkModal" data-model-name="{{ model_name }}">
+            <button type="button" class="dropdown-item" id="bulkImportButton" data-bs-toggle="modal"
+                data-bs-target="#uploadBulkModal" data-model-name="{{ model_name }}">
                 Bulk Import
             </button>
         </li>
@@ -58,51 +67,43 @@
 </script>
 
 <script>
-    // Function to collect selected rows (each selectable row should have a data-id attribute)
-    function getSelectedRows() {
-        let selected = [];
-        $("#dataTable tbody tr.selected-row").each(function(){
-            let id = $(this).data("id");
-            if (id) {
-                selected.push(id);
+
+    // (Optional) If using htmx for modal handling.
+    document.body.addEventListener("htmx:afterSwap", (event) => {
+        if (event.detail.target.id === "createNewModalContainer") {
+            const modalElement = document.getElementById("createNewModal");
+            if (modalElement) {
+                const modal = new bootstrap.Modal(modalElement);
+                modal.show();
             }
-        });
-        return selected;
-    }
+        }
+    });
     
     $(document).ready(function(){
-        // Create New button: load the new form and display it in a modal.
-        $("#createNewButton").on("click", function(){
-            $.ajax({
-                url: "/get-create-new-form",
-                type: "POST",
-                data: { model_name: "{{ model_name }}" },
-                success: function(response) {
-                    $("#createNewModalContainer").html(response);
-                    // Assuming the response contains a modal with id "createNewModal"
-                    const modalElement = document.getElementById("createNewModal");
-                    if (modalElement) {
-                        const modal = new bootstrap.Modal(modalElement);
-                        modal.show();
-                    }
-                },
-                error: function(xhr) {
-                    console.error("Error loading create new form:", xhr.responseText);
-                    alert("Error loading form.");
-                }
-            });
-        });
+        // (Your DataTable initialization happens elsewhere and assigns window.myTable)
         
-        // Status Change button: collect selected rows and send a POST to /status-transitions.
+        // Create New button remains unchanged (using htmx attributes for form loading).
+        
+        // Status Change button: collect full row data and send to /status-transitions.
         $("#statusChangeButton").on("click", function(){
-            // Collect selected row IDs and always send an array (even if empty).
-            const selectedRows = getSelectedRows();
-            const selectedRowsJson = JSON.stringify(selectedRows);
+            // Clear the container before making the request
+            $("#status-options-container").empty();
+
+            // Use the DataTable API to get full row data from selected rows.
+            const selectedRowsData = getSelectedRowsData();
+            console.log("Selected Rows:", selectedRowsData);
+            
+            const selectedRowsJson = JSON.stringify(selectedRowsData);
             $("#selectedRowsInput").val(selectedRowsJson);
+            console.log("Selected Rows Data:", selectedRowsJson);
+            
+            if (selectedRowsData.length === 0) {
+                return;
+            }
             
             // Build the POST data.
             const postData = {
-                selected_rows: selectedRowsJson,
+                selected_rows: selectedRowsJson, // full row objects
                 next_status: "{{ status }}",
                 user_id: "{{ user.user_id }}",
                 user_name: "{{ user.user_name }}",
@@ -124,17 +125,41 @@
                 },
                 error: function(xhr) {
                     console.error("Error in status transition:", xhr.responseText);
-                    alert("Error: " + xhr.responseText);
                 }
             });
         });
         
-        // (Optional) Bind a refresh event if needed.
-        $("#refreshTableBtn").on("click", function(){
-            // For example, if you are using DataTables, you might call table.ajax.reload();
-            // location.reload();
+        // Handle clicks on dynamically generated buttons
+        $("#status-options-container").on("click", ".status-transition-btn", function() {
+            const rowIds = $(this).data("ids");
+            const nextStatus = $(this).data("next-status");
+            const requestType = $(this).data("request-type");
+
+            console.log("Updating rows:", rowIds, "to status:", nextStatus);
+
+            $.ajax({
+                url: "/bulk-update-status",
+                type: "POST",
+                contentType: "application/json",
+                data: JSON.stringify({
+                    ids: rowIds,
+                    next_status: nextStatus,
+                    request_type: requestType
+                }),
+                success: function(response) {
+                    console.log("Status updated successfully!");
+                    
+                    // ✅ Refresh DataTable
+                    refreshTable();
+                },
+                error: function(xhr) {
+                    console.error("Error updating status:", xhr.responseText);
+                    alert("Error updating status.");
+                }
+            });
         });
-        
+
+
         // Row selection logic: toggle selected class on row click.
         $("#dataTable tbody").on("click", "tr", function(event){
             if (!$(event.target).hasClass("row-checkbox")) {

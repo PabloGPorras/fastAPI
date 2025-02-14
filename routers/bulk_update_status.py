@@ -1,7 +1,7 @@
 from datetime import datetime
 import logging
 from typing import List
-from fastapi import APIRouter, Depends, Form, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Body
 from core.get_db_session import get_db_session
 from core.current_timestamp import get_current_timestamp
 from get_current_user import get_current_user
@@ -15,9 +15,9 @@ router = APIRouter()
 
 @router.post("/bulk-update-status")
 def bulk_update_status(
-    ids: List[str] = Form(...),  # List of unique_ref IDs
-    request_type: str = Form(...),  # Request type
-    next_status: str = Form(...),  # Status to update to
+    ids: List[str] = Body(...),  # Accepts JSON list of unique_ref IDs
+    request_type: str = Body(...),  # Request type
+    next_status: str = Body(...),  # Status to update to
     user: User = Depends(get_current_user),  # Authenticated user
     session: Session = Depends(get_db_session),  # Injected session dependency
 ):
@@ -123,30 +123,25 @@ def bulk_update_status(
                 request.approved = "N"
                 request.approver = user.user_name
                 request.request_status = 'REJECTED'
-                logger.debug(f"Request ID {unique_ref}: Approval details updated.")
             if "APPROVAL" in status_type:
                 request.approval_timestamp = get_current_timestamp()
                 request.approved = "Y"
                 request.approver = user.user_name
                 request.request_status = 'PENDING GOVERNANCE'
-                logger.debug(f"Request ID {unique_ref}: Approval details updated.")
             if "GOVERNANCE REJECTED" in status_type:
                 request.governed_timestamp = get_current_timestamp()
                 request.governed = "N"
                 request.governed_by = user.user_name
                 request.request_status = 'REJECTED'
-                logger.debug(f"Request ID {unique_ref}: Governance details updated.")
             if "GOVERNANCE" in status_type:
                 request.governed_timestamp = get_current_timestamp()
                 request.governed = "Y"
                 request.governed_by = user.user_name
                 request.request_status = 'DEPLOYMENT READY'
-                logger.debug(f"Request ID {unique_ref}: Governance details updated.")
             if "COMPLETED" in status_type:
                 request.deployment_timestamp = get_current_timestamp()
                 request.deployed = "Y"
                 request.request_status = 'COMPLETED'
-                logger.debug(f"Request ID {unique_ref}: Governance details updated.")
 
             logger.info(f"Request ID {unique_ref} successfully updated to status {next_status}.")
             updated_count += 1
@@ -163,4 +158,3 @@ def bulk_update_status(
     except Exception as e:
         logger.error(f"Error during bulk status update: {str(e)}", exc_info=True)
         raise HTTPException(status_code=500, detail="Internal Server Error")
-

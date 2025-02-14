@@ -90,39 +90,34 @@
 
 
 <script>
-// Document ready handler
+// Store the DataTable instance globally
+let dataTableInstance;
+
 $(document).ready(function () {
-    // Fetch table metadata (columns & filters)
     $.ajax({
-        url: `/table/{{ model_name }}/metadata`, // New endpoint for metadata
+        url: `/table/{{ model_name }}/metadata`,
         type: "POST",
         success: function (response) {
-            // Extract column options (may only include keys for dropdown filters)
             const columnOptions = response.column_options || {};
-
-            // Build column structure (list of column names)
             const columns = response.columns.map((col) => ({
                 title: col.toUpperCase(),
                 data: col
             }));
 
-            // Insert the custom "Actions" column at the beginning if needed
             columns.unshift(getActionsColumn());
 
-            // Destroy any existing DataTable instance and clear headers/filters
             if ($.fn.DataTable.isDataTable("#dataTable")) {
                 $('#dataTable').DataTable().destroy();
                 $("#tableHeaders").empty();
                 $("#columnFilters").empty();
             }
 
-            // Populate table headers dynamically
             columns.forEach(col => {
                 $("#tableHeaders").append(`<th>${col.title}</th>`);
             });
 
-            // Initialize the DataTable (using new /data endpoint for rows)
-            var table = $('#dataTable').DataTable({
+            // Initialize DataTable and store globally
+            dataTableInstance = $('#dataTable').DataTable({
                 processing: true,
                 serverSide: true,
                 ajax: {
@@ -131,7 +126,6 @@ $(document).ready(function () {
                     contentType: "application/json",
                     data: function (d) {
                         let filters = {};
-                        // Gather filters from both dropdowns and free-text inputs
                         $(".custom-filter, .custom-filter-input").each(function () {
                             let col = $(this).attr("data-column");
                             let val = $(this).val();
@@ -140,7 +134,7 @@ $(document).ready(function () {
                             }
                         });
 
-                        let payload = JSON.stringify({
+                        return JSON.stringify({
                             draw: d.draw,
                             start: d.start,
                             length: d.length,
@@ -149,12 +143,8 @@ $(document).ready(function () {
                             order_dir: d.order?.[0]?.dir ?? "asc",
                             filters: filters
                         });
-
-                        console.log("🚀 Sending AJAX Payload:", payload);
-                        return payload;
                     },
                     dataSrc: function (json) {
-                        console.log("✅ Received Data:", json);
                         return json.data;
                     },
                     error: function (xhr, error, code) {
@@ -171,27 +161,21 @@ $(document).ready(function () {
                 scrollY: "650px",
                 scrollCollapse: true,
                 lengthMenu: [10, 25, 50, 100],
-                fixedColumns: {
-                    left: 1
-                },
-                dom: 'lrtip'
+                fixedColumns: { left: 1 },
+                dom: 'lrtip',
+                createdRow: function (row, data, dataIndex) {
+                    $(row).attr('data-id', data.unique_ref);
+                }
             });
 
-            // Setup filters using the updated function.
-            // Note: response.columns is used here to ensure we cover all columns.
-            setupFilters(table, columnOptions, response.columns);
+            setupFilters(dataTableInstance, columnOptions, response.columns);
+            setupColumnVisibility(dataTableInstance);
 
-            // Setup column visibility (if applicable)
-            setupColumnVisibility(table);
-
-            // Custom Search Input Handler
             $("#customSearchInput").on("keyup", debounce(function () {
-                console.log("[Search] Searching:", $(this).val());
-                table.ajax.reload();
-            }, 500)); // Adjust delay as needed (e.g., 300ms, 500ms, etc.)
+                dataTableInstance.ajax.reload();
+            }, 500));
 
-            // Enable row selection on click
-            $('#dataTable tbody').on('click', 'tr', function (event) {
+            $("#dataTable tbody").on("click", "tr", function (event) {
                 if (!$(event.target).hasClass('row-checkbox')) {
                     var checkbox = $(this).find('.row-checkbox');
                     checkbox.prop('checked', !checkbox.prop('checked'));
@@ -199,12 +183,10 @@ $(document).ready(function () {
                 }
             });
 
-            // Handle clicking the checkbox directly
-            $('#dataTable tbody').on('change', '.row-checkbox', function () {
-                $(this).closest('tr').toggleClass('selected-row', this.checked);
+            $("#dataTable tbody").on("change", ".row-checkbox", function () {
+                $(this).closest("tr").toggleClass("selected-row", this.checked);
             });
 
-            // Bind refresh function to the refresh button
             $("#refreshTableBtn").on("click", function () {
                 refreshTable();
             });
@@ -216,13 +198,6 @@ $(document).ready(function () {
     });
 });
 
-/**
- * ✅ Function to refresh the DataTable
- */
-function refreshTable() {
-    $('#dataTable').DataTable().ajax.reload(null, false);
-}
-
 // Debounce function to limit how often a function is called
 function debounce(func, delay) {
     let timeout;
@@ -230,6 +205,26 @@ function debounce(func, delay) {
         clearTimeout(timeout);
         timeout = setTimeout(() => func.apply(this, args), delay);
     };
+}
+
+/**
+ * ✅ Function to refresh the DataTable
+ */
+function refreshTable() {
+    if (dataTableInstance) {
+        dataTableInstance.ajax.reload(null, false);
+    }
+}
+
+/**
+ * ✅ Function to get selected row data
+ */
+function getSelectedRowsData() {
+    if (!dataTableInstance) {
+        console.error("DataTable instance is not initialized.");
+        return [];
+    }
+    return dataTableInstance.rows('.selected-row').data().toArray();
 }
 
 </script>
