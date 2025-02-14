@@ -52,7 +52,12 @@ async def get_view_existing_form(
         check_list = getattr(model, "check_list", {})
 
         # Build item_data
-        item_data = {col.name: getattr(item, col.name, "") for col in inspect(model).columns}
+        item_data = {}
+        for col in inspect(model).columns:
+            # Use field_name from info if it exists, otherwise fall back to the column name.
+            key = col.info.get("field_name") or col.name
+            item_data[key] = getattr(item, col.name, "")
+
         item_data.update({
             "organization": rms_request.organization,
             "sub_organization": rms_request.sub_organization,

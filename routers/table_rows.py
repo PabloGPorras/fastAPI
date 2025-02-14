@@ -7,6 +7,7 @@ import json
 
 # Import necessary database services
 from core.get_db_session import get_db_session
+from list_values import REQUEST_EXTRA_COLUMNS
 from models.request import RmsRequest
 from models.request_status import RmsRequestStatus
 from services.database_service import DatabaseService
@@ -97,17 +98,17 @@ async def get_table_metadata(
     # For models where is_request is True, add extra Request fields.
     if getattr(model, "is_request", False):
         if hasattr(model, "rms_request"):
-            extra_columns.extend(["organization", "sub_organization"])
+            extra_columns.extend(REQUEST_EXTRA_COLUMNS)
             # Get column options from the joined Request model.
             request_model = model.__mapper__.relationships["rms_request"].mapper.class_
-            for col_name in ["organization", "sub_organization"]:
+            for col_name in REQUEST_EXTRA_COLUMNS:
                 if col_name not in column_options:
                     col = request_model.__table__.columns.get(col_name)
                     if col is not None and hasattr(col, "info") and "options" in col.info:
                         column_options[col_name] = col.info["options"]
         else:
-            extra_columns.extend(["organization", "sub_organization"])
-            for col_name in ["organization", "sub_organization"]:
+            extra_columns.extend(REQUEST_EXTRA_COLUMNS)
+            for col_name in REQUEST_EXTRA_COLUMNS:
                 if col_name not in column_options:
                     col = model.__table__.columns.get(col_name)
                     if col is not None and hasattr(col, "info") and "options" in col.info:

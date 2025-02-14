@@ -6,6 +6,7 @@ import logging
 from sqlalchemy import select,func, or_
 from sqlalchemy.orm import aliased
 from database import Base
+from list_values import REQUEST_EXTRA_COLUMNS
 from models.request import RmsRequest
 from models.request_status import RmsRequestStatus
 from typing import Optional, Dict, Any, List, Tuple
@@ -41,35 +42,36 @@ class DatabaseService:
         extra_col_names = []        # names for extra columns from joins
 
         # Define extra columns to fetch.
-        request_columns = ["organization", "sub_organization"]
+        request_columns = REQUEST_EXTRA_COLUMNS
         request_status_columns = ["status"]
 
         # Initialize a dictionary for filtering on extra (joined) columns.
         extra_filters = {}
 
-        # Determine if we should join extra status (and possibly Request) data.
-        # We join status only if model.is_request is True or the model is RmsRequest.
         if getattr(model, "is_request", False) or (model.__tablename__ == RmsRequest.__tablename__):
-            # For extra Request fields: only if is_request is True.
             if getattr(model, "is_request", False):
                 if hasattr(model, "rms_request"):
                     # Get the related Request model.
                     request_model = model.__mapper__.relationships["rms_request"].mapper.class_
-                    req_cols = [getattr(request_model, col) for col in request_columns]
-                    extra_col_names.extend(request_columns)
-                    extra_filters["organization"] = getattr(request_model, "organization")
-                    extra_filters["sub_organization"] = getattr(request_model, "sub_organization")
                 else:
                     request_model = model
-                    req_cols = []
-                    extra_col_names.extend(request_columns)
-                    extra_filters["organization"] = getattr(model, "organization", None)
-                    extra_filters["sub_organization"] = getattr(model, "sub_organization", None)
-                # Add the extra request columns.
+
+                # Build a list of column attributes from the request_model.
+                req_cols = []
+                for col in request_columns:
+                    col_attr = getattr(request_model, col, None)
+                    if col_attr is not None:
+                        req_cols.append(col_attr)
+                        # Automatically add to extra_filters.
+                        extra_filters[col] = col_attr
+                        # If you need to track extra column names (for example, for later use)
+                        extra_col_names.append(col)
+
+                # Add the extra request columns to your query entities.
                 entities.extend(req_cols)
             else:
-                # If the model is RmsRequest (and is_request is False), we don't join extra Request fields.
                 request_model = model
+
 
             # --- Always join the latest status in this case ---
             latest_status = aliased(RmsRequestStatus)
