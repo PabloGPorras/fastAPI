@@ -114,30 +114,10 @@
     </script>
 
     <script>
-        // Fetch current user information
-        async function fetchCurrentUser() {
-            try {
-                const response = await fetch("/current-user");
-                if (!response.ok) {
-                    throw new Error(`Failed to fetch current user. HTTP Status: ${response.status}`);
-                }
-                const userData = await response.json();
-                currentUserId = userData.user_name; // Set current user ID
-                currentUserRoles = userData.roles; // Set current user ID
-                currentUserId2 = userData.user_id; // Set current user ID
-            } catch (error) {
-                console.error("Error fetching current user:", error);
-                alert("Unable to fetch current user. Please try again.");
-            }
-        }
-
-
         document.addEventListener("DOMContentLoaded", function () {
             const tableBtn = document.getElementById("tableBtn");
 
         });
-
-
 
     </script>
 </body>

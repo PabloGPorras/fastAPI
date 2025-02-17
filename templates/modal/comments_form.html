@@ -80,7 +80,7 @@
     <h5>Comments</h5>
     <ul id="comments-list" class="list-group">
         {% for entry in entries %}
-        <li class="comment-item {{ 'right' if entry.user_name == user.user_name else 'left' }}">
+        <li class="comment-item {{ 'right' if entry.user_name == user_name else 'left' }}">
             <div class="timestamp">{{ entry.timestamp.strftime('%Y-%m-%d %H:%M:%S') }}</div>
             <div class="user-info">{{ entry.user_name }}</div>
             <div class="entry-text">
@@ -157,8 +157,6 @@
             }
         });
 
-        // Initialize by fetching the current user
-        await fetchCurrentUser();
     });
 
 

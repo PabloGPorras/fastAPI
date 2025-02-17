@@ -15,10 +15,17 @@
                         <label for="bulkFile" class="form-label">Select CSV File</label>
                         <input type="file" class="form-control" id="bulkFile" name="file" accept=".csv" required>
                     </div>
+
+                    <!-- Message containers (optional) -->
+                    <div id="error-container" class="alert alert-danger" style="display:none;"></div>
+                    <div id="success-container" class="alert alert-success" style="display:none; margin-top:20px;">
+                    </div>
+
+
                     <div class="modal-footer">
                         <!-- Download Template Button -->
-                        <a href="/bulk-import-template?model_name={{ model_name }}" 
-                           class="btn btn-primary" id="downloadTemplateButton">
+                        <a href="/bulk-import-template?model_name={{ model_name }}" class="btn btn-primary"
+                            id="downloadTemplateButton">
                             Download Template
                         </a>
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
@@ -36,9 +43,29 @@
         const uploadBulkForm = document.getElementById("uploadBulkForm");
         const bulkModelNameInput = document.getElementById("bulkModelName");
         const downloadTemplateButton = document.getElementById("downloadTemplateButton");
+        const errorContainer = document.getElementById("error-container");
+        const successContainer = document.getElementById("success-container");
+
+        function showError(message) {
+            errorContainer.textContent = message;
+            errorContainer.style.display = "block";
+            successContainer.style.display = "none"; // Hide success message if an error occurs
+        }
+
+        function showSuccess(message) {
+            successContainer.textContent = message;
+            successContainer.style.display = "block";
+            errorContainer.style.display = "none"; // Hide error message on success
+        }
+
+        function clearMessages() {
+            errorContainer.style.display = "none";
+            successContainer.style.display = "none";
+        }
 
         // Handle modal show event to dynamically update model name
         uploadBulkModal.addEventListener("show.bs.modal", function (event) {
+            clearMessages(); // Clear messages on modal open
             const button = event.relatedTarget; // Button that triggered the modal
             const modelName = button?.getAttribute("data-model-name"); // Fetch model name from button
 
@@ -48,7 +75,7 @@
                 downloadTemplateButton.href = `/bulk-import-template?model_name=${modelName}`;
                 downloadTemplateButton.removeAttribute("disabled");
             } else {
-                alert("Model name is missing. Please ensure the model name is provided.");
+                showError("Model name is missing. Please ensure the model name is provided.");
                 downloadTemplateButton.href = "#";
                 downloadTemplateButton.setAttribute("disabled", "true");
             }
@@ -57,18 +84,19 @@
         // Handle Bulk Import Form Submission
         uploadBulkForm.addEventListener("submit", async function (event) {
             event.preventDefault();
+            clearMessages(); // Clear any previous messages
 
             const fileInput = document.getElementById("bulkFile");
             const file = fileInput.files[0];
             const modelName = bulkModelNameInput.value;
 
             if (!file) {
-                alert("Please select a CSV file to upload.");
+                showError("Please select a CSV file to upload.");
                 return;
             }
 
             if (!modelName) {
-                alert("Model name is missing. Please ensure the model name is provided.");
+                showError("Model name is missing. Please ensure the model name is provided.");
                 return;
             }
 
@@ -84,18 +112,22 @@
 
                 if (response.ok) {
                     const result = await response.json();
-                    alert(`Bulk import successful! Group ID: ${result.group_id}`);
-                    // Close modal and refresh the page
-                    const modalInstance = bootstrap.Modal.getInstance(uploadBulkModal);
-                    modalInstance.hide();
-                    location.reload();
+                    showSuccess(`Bulk import successful! Group ID: ${result.group_id}`);
+
+                    // Close modal and refresh the page after a short delay
+                    setTimeout(() => {
+                        const modalInstance = bootstrap.Modal.getInstance(uploadBulkModal);
+                        modalInstance.hide();
+                        location.reload();
+                    }, 2000);
                 } else {
-                    const errorText = await response.text();
-                    alert(`Bulk import failed: ${response.status} - ${errorText}`);
+                    const errorJson = await response.json();
+                    const errorMessage = errorJson.detail || `Bulk import failed with status: ${response.status}`;
+                    showError(errorMessage);
                 }
             } catch (error) {
                 console.error("Error uploading bulk import file:", error);
-                alert("An error occurred while uploading the file.");
+                showError("An error occurred while uploading the file.");
             }
         });
     });

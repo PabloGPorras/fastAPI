@@ -18,16 +18,20 @@ router = APIRouter()
 async def get_view_existing_form(
     request: Request,  
     session: Session = Depends(get_db_session),
-    user: User = Depends(get_current_user),
 ):
     try:
         body = await request.json()  # ✅ Parse JSON request
         unique_ref = body.get("unique_ref")  # ✅ Extract `unique_ref`
+        model_name = body.get("model_name")  # ✅ Extract `model_name`
+        user_roles = body.get("user_roles")  # ✅ Extract `user_roles`
+        user_name = body.get("user_name")  # ✅ Extract `user_roles`
 
         if not unique_ref:
             raise HTTPException(status_code=400, detail="unique_ref is required")
         
         logger.debug(f"Fetching details for unique_ref: {unique_ref}")
+        logger.debug(f"Fetching details for model_name: {model_name}")
+        logger.debug(f"Fetching details for user_roles: {user_roles}")
 
         # Fetch RmsRequest
         rms_request = session.query(RmsRequest).filter_by(unique_ref=unique_ref).one_or_none()
@@ -35,7 +39,6 @@ async def get_view_existing_form(
             raise HTTPException(status_code=404, detail=f"Request not found: {unique_ref}")
 
         # Resolve the underlying model
-        model_name = rms_request.request_type.lower()
         model = DatabaseService.get_model_by_tablename(model_name)
         if not model:
             raise HTTPException(status_code=404, detail=f"Model '{model_name}' not found")
@@ -136,11 +139,11 @@ async def get_view_existing_form(
                 "unique_ref": unique_ref,
                 "check_list": check_list,
                 "form_name": 'view-existing',
-                "user": user,
+                "user_roles": user_roles,
+                "user_name": user_name,
             },
         )
     except Exception as e:
-        session.rollback()
         logger.error(f"Error: {e}", exc_info=True)
         raise HTTPException(500, "Internal Server Error")
 

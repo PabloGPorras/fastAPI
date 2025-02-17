@@ -62,13 +62,19 @@
     $(document).ready(function () {
         $("body").on("click", ".view-btn", function () {
             let uniqueRef = $(this).attr("data-unique-ref");
-            console.log(`Fetching details for: ${uniqueRef}`);
+            let userRoles = "{{ user.roles }}";  // ✅ Injected directly from Jinja2
+            let userName = "{{ user.user_name }}";  // ✅ Injected directly from Jinja2
+            let model_name = "{{ model_name }}";  // ✅ Injected directly from Jinja2
+
+            console.log(`Fetching details for uniqueRef: ${uniqueRef}`);
+            console.log(`Fetching details for userRoles: ${userRoles}`);
+            console.log(`Fetching details for modelName: ${model_name}`);
 
             $.ajax({
                 url: "/get-view-existing-form",
                 type: "POST",
                 contentType: "application/json",
-                data: JSON.stringify({ unique_ref: uniqueRef }),
+                data: JSON.stringify({ unique_ref: uniqueRef, model_name: model_name, user_roles: userRoles, user_name: userName }),
                 success: function (response) {
                     console.log("✅ Data received:", response);
 
