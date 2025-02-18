@@ -45,13 +45,13 @@
         <option value="true" {% if item_data[display_name] == true %}selected{% endif %}>True</option>
         <option value="false" {% if item_data[display_name] == false %}selected{% endif %}>False</option>
     </select>
-    {% elif "DATE" in field.type %}
-    <input type="date" class="form-control" id="{{ display_name }}" name="{{ display_name }}" 
-        value="{{ item_data[display_name] | default('') }}" 
-        {% if is_required %}required{% endif %} 
-        {% if not is_enabled %}disabled{% endif %}>
     {% elif "DATETIME" in field.type %}
     <input type="datetime-local" class="form-control" id="{{ display_name }}" name="{{ display_name }}" 
+    value="{{ item_data[display_name] | default('') }}" 
+    {% if is_required %}required{% endif %} 
+    {% if not is_enabled %}disabled{% endif %}>
+    {% elif "DATE" in field.type %}
+    <input type="date" class="form-control" id="{{ display_name }}" name="{{ display_name }}" 
         value="{{ item_data[display_name] | default('') }}" 
         {% if is_required %}required{% endif %} 
         {% if not is_enabled %}disabled{% endif %}>

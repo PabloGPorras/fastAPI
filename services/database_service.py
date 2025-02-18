@@ -27,6 +27,11 @@ class DatabaseService:
         """
         for mapper in Base.registry.mappers:
             cls = mapper.class_
+            
+            # Skip the RmsRequest model
+            if cls.__name__ == "RmsRequest":
+                continue  
+
             if isinstance(cls, DeclarativeMeta):
                 # Check if the model has a 'request_type' column with predefined options
                 request_type_col = getattr(cls, 'request_type', None)
@@ -37,7 +42,9 @@ class DatabaseService:
                     # If request_type exists in the model's options, return its tablename
                     if request_type in options:
                         return cls.__tablename__
+
         return None  # Return None if no matching model is found
+
     
     @staticmethod
     def fetch_model_rows(

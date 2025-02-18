@@ -3,7 +3,6 @@ from sqlalchemy import Column, String, func
 from sqlalchemy import Column, String, DateTime
 from sqlalchemy.orm import relationship, validates
 from core.id_method import id_method
-from core.current_timestamp import get_current_timestamp
 from core.get_table_name import Base, get_table_name
 from list_values import REQUEST_TYPE_LIST,REQUEST_STATUS_LIST, EFFORT_LIST
 from list_values import ORGANIZATIONS_LIST
@@ -20,7 +19,7 @@ class RmsRequest(Base):
     request_type = Column(String,default="", info={"options": REQUEST_TYPE_LIST})
     request_status = Column(String, default="PENDING APPROVAL", info={"options": REQUEST_STATUS_LIST})
     requester = Column(String, default=os.getlogin().upper())
-    request_received_timestamp = Column(DateTime, server_default=func.now())
+    request_received_timestamp = Column(DateTime, server_default=func.current_timestamp())
     effort = Column(String, info={"options": EFFORT_LIST, "required": True})
     approval_timesatmp = Column(DateTime, default=None)
     approved = Column(String, default="N")

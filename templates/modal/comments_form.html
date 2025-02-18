@@ -95,20 +95,44 @@
     </ul>
     
     <!-- Add Comment Form -->
-    <form
-        hx-post="/requests/{{ unique_ref }}/comments"
-        hx-target="#comments-list"
-        hx-swap="beforeend"
-        class="d-flex gap-2 mt-3"
-    >
+    <form id="commentForm" class="d-flex gap-2 mt-3">
         <input type="text" name="comment_text" id="commentText" class="form-control" placeholder="Enter your comment" required>
-        <button type="submit" id="addCommentButton" class="btn btn-primary">Add Comment</button>
+        <button type="button" id="addCommentButton" class="btn btn-primary">Add Comment</button>
     </form>
+    
 </div>
 
-
-
 <script>
+
+    $(document).ready(function () {
+        $("#addCommentButton").on("click", function (e) {
+            e.preventDefault(); // Prevent default form submission
+
+            let commentText = $("#commentText").val();
+            if (!commentText.trim()) {
+                alert("Please enter a comment.");
+                return;
+            }
+
+            $.ajax({
+                url: "/requests/{{ unique_ref }}/comments",
+                type: "POST",
+                data: { comment_text: commentText },
+                success: function (response) {
+                    // Append the new comment to the list
+                    $("#comments-list").append(response);
+
+                    // Clear the input field
+                    $("#commentText").val("");
+                },
+                error: function (xhr, status, error) {
+                    console.error("Error adding comment:", error);
+                    alert("Failed to add comment. Please try again.");
+                }
+            });
+        });
+    });
+
     $(document).ready(async function () {
 
 

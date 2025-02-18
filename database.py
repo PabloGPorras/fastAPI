@@ -51,7 +51,6 @@ def insert_user():
             email_from="pablo@example.com",  # Replace with the user's email address
             email_to="team@example.com",  # Replace with recipients
             email_cc="manager@example.com",  # Replace with CC emails
-            last_update_timestamp=get_current_timestamp(),  # Current timestamp
             user_role_expire_timestamp=get_current_timestamp() + timedelta(days=365),  # Expire in 1 year
             
             roles="Admin",  # Replace with one or more roles from roles_mulit_options

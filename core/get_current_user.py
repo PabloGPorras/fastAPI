@@ -2,7 +2,7 @@ from datetime import timedelta
 import json
 import os
 from fastapi import Depends, HTTPException
-from sqlalchemy import and_
+from sqlalchemy import and_, func
 from core.id_method import id_method
 from core.get_db_session import get_db_session
 from core.current_timestamp import get_current_timestamp
@@ -27,7 +27,7 @@ def get_current_user(session: Session = Depends(get_db_session)) -> User:
             .filter(
                 and_(
                     User.user_name == user_name,
-                    User.user_role_expire_timestamp > get_current_timestamp()  # Check if role is not expired
+                    User.user_role_expire_timestamp > func.current_timestamp()  # Check if role is not expired
                 )
             )
             .order_by(User.last_update_timestamp.desc())  # Order by latest update timestamp
@@ -45,7 +45,6 @@ def get_current_user(session: Session = Depends(get_db_session)) -> User:
                 email_from=f"{user_name.lower()}@example.com",  # Dummy email
                 email_to=f"{user_name.lower()}@example.com",
                 email_cc="",
-                last_update_timestamp=get_current_timestamp(),
                 user_role_expire_timestamp=get_current_timestamp() + timedelta(days=365),  # 1-year validity
                 roles="FS_Analyst",  # Default role
                 organizations="DefaultOrg",

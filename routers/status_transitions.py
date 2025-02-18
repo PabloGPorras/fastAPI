@@ -52,6 +52,13 @@ def get_status_transitions(
 
         # Validate access for each row.
         for row in parsed_rows:
+            # Ensure the requester is not allowed to transition the status
+            if row.get("requester") == user_name:
+                logger.warning(f"Requester '{user_name}' is not allowed to transition their own request '{row.get('unique_ref')}'.")
+                raise HTTPException(
+                    status_code=403,
+                    detail=f"Requester '{user_name}' cannot transition their own request '{row.get('unique_ref')}'."
+                )
             denied_criteria = []
             if row.get("organization") not in organizations.split(","):
                 denied_criteria.append(f"organization ({row.get('organization')})")

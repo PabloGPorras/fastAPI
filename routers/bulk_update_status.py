@@ -2,8 +2,8 @@ from datetime import datetime
 import logging
 from typing import List
 from fastapi import APIRouter, Depends, HTTPException, Body
+from sqlalchemy import func
 from core.get_db_session import get_db_session
-from core.current_timestamp import get_current_timestamp
 from core.get_current_user import get_current_user
 from models.request import RmsRequest
 from models.request_status import RmsRequestStatus
@@ -119,27 +119,27 @@ def bulk_update_status(
             logger.debug(f"Request ID {unique_ref}, status_type: {status_type}, current_status: {current_status}")
 
             if "APPROVAL REJECTED" in status_type:
-                request.approval_timestamp = get_current_timestamp()
+                request.approval_timestamp = func.current_timestamp()
                 request.approved = "N"
                 request.approver = user.user_name
                 request.request_status = 'REJECTED'
             if "APPROVAL" in status_type:
-                request.approval_timestamp = get_current_timestamp()
+                request.approval_timestamp = func.current_timestamp()
                 request.approved = "Y"
                 request.approver = user.user_name
                 request.request_status = 'PENDING GOVERNANCE'
             if "GOVERNANCE REJECTED" in status_type:
-                request.governed_timestamp = get_current_timestamp()
+                request.governed_timestamp = func.current_timestamp()
                 request.governed = "N"
                 request.governed_by = user.user_name
                 request.request_status = 'REJECTED'
             if "GOVERNANCE" in status_type:
-                request.governed_timestamp = get_current_timestamp()
+                request.governed_timestamp = func.current_timestamp()
                 request.governed = "Y"
                 request.governed_by = user.user_name
                 request.request_status = 'DEPLOYMENT READY'
             if "COMPLETED" in status_type:
-                request.deployment_timestamp = get_current_timestamp()
+                request.deployment_timestamp = func.current_timestamp()
                 request.deployed = "Y"
                 request.request_status = 'COMPLETED'
 

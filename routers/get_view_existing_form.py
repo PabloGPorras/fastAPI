@@ -36,12 +36,12 @@ async def get_view_existing_form(
             raise HTTPException(status_code=404, detail=f"Request not found: {unique_ref}")
 
         # Resolve the underlying model
-        model_name = DatabaseService.get_model_by_request_type(request_type)
-        print(f"Model name: {model_name}")
+        model_name2 = DatabaseService.get_model_by_request_type(request_type)
+        print(f"Model name: {model_name2}")
         print(f"request_type name: {request_type}")
-        model = DatabaseService.get_model_by_tablename(model_name)
+        model = DatabaseService.get_model_by_tablename(model_name2)
         if not model:
-            raise HTTPException(status_code=404, detail=f"Model '{model_name}' not found")
+            raise HTTPException(status_code=404, detail=f"Model '{model_name2}' not found")
 
         # Fetch the item
         item = session.query(model).filter_by(unique_ref=unique_ref).one_or_none()
@@ -134,7 +134,7 @@ async def get_view_existing_form(
                 "is_request": metadata["is_request"],
                 "item_data": item_data,
                 "entries": combined_entries,
-                "model_name": model_name,
+                "model_name": model_name2,
                 "RmsRequest": RmsRequest,
                 "unique_ref": unique_ref,
                 "check_list": check_list,

@@ -9,4 +9,4 @@ class UserPreference(Base):
     user_name = Column(String)
     preference_key = Column(String(100))
     preference_value = Column(Text)
-    last_updated = Column(DateTime, server_default=func.now(), onupdate=func.now())
+    last_updated = Column(DateTime, server_default=func.current_timestamp(), onupdate=func.current_timestamp)
