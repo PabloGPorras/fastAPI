@@ -138,6 +138,10 @@
                 for (let col in filterPrefs) {
                     $(`[data-column="${col}"]`).val(filterPrefs[col]);
                 }
+
+                // Update the filter indicator AFTER filters are applied
+                updateFilterIndicator();
+
                 // Get the hidden columns (an array of column names)
                 const columnKey = `datatable_columns_{{ model_name }}`;
                 let hiddenColumns = preferences[columnKey] || [];

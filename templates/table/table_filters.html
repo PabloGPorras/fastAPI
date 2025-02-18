@@ -71,6 +71,7 @@
     $("#filterContainer").on("change", ".custom-filter, .custom-filter-input", function () {
         dataTableInstance.ajax.reload();
         saveUserFilters();
+        updateFilterIndicator();
     });
 
     function setupFilters(table, columnOptions, allColumns) {
@@ -126,5 +127,43 @@
         });
     }
 
+    function clearAllFilters() {
+        // Reset all filter fields in the UI
+        $(".custom-filter, .custom-filter-input").val("").trigger("change");
 
+        // Call saveUserFilters() to save the cleared state
+        saveUserFilters();
+    }
+
+    // Bind the clear function to the button click event
+    $("#clearFiltersButton").on("click", function () {
+        clearAllFilters();
+        setTimeout(updateFilterIndicator, 100); // Slight delay to ensure UI updates
+    });
+
+    // Update badge when modal opens
+    $('#searchPaneModal').on('shown.bs.modal', function () {
+        updateFilterIndicator();
+    });
+
+    function updateFilterIndicator() {        
+        let activeFilters = 0;
+
+        // Loop through existing filter fields and count non-empty ones
+        $(".custom-filter, .custom-filter-input").each(function () {
+            if ($(this).val().trim() !== "") {
+                activeFilters++;
+            }
+        });
+
+        let indicator = $("#filterIndicator");
+
+        if (activeFilters > 0) {
+            indicator.text(activeFilters).show(); // Show badge with count
+        } else {
+            indicator.hide(); // Hide if no filters are active
+        }
+
+        console.log("Active Filters:", activeFilters);
+    }   
 </script>

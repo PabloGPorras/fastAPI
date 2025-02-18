@@ -1,5 +1,10 @@
 <!-- Button to open modal -->
-<button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#searchPaneModal">Filter 🔍</button>
+<button type="button" class="btn btn-primary position-relative" id="filterButton" data-bs-toggle="modal" data-bs-target="#searchPaneModal">
+    Filter 🔍
+    <span id="filterIndicator" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="display: none;">
+        0
+    </span>
+</button>
 
 <!-- Modal Structure -->
 <div class="modal fade" id="searchPaneModal" tabindex="-1" aria-labelledby="searchPaneModalLabel" aria-hidden="true">
@@ -10,6 +15,10 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
+                <!-- Clear Filters Button -->
+                <div class="mb-3">
+                    <button type="button" class="btn btn-outline-danger btn-sm" id="clearFiltersButton">Clear Filters</button>
+                </div>
                 <!-- Container for SearchPanes -->
                 <div id="filterContainer" class="d-flex flex-wrap gap-3 mb-3">
                     <!-- Custom filters will be dynamically inserted here -->
