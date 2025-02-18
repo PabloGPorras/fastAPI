@@ -49,7 +49,7 @@ async def create_new(
             data["unique_ref"] = new_request.unique_ref
             objects_to_add.extend([new_request, new_status])
 
-        main_object = create_main_object(model, data, column_mappings)
+        main_object = create_main_object(model, data)
         objects_to_add.append(main_object)
 
         related_objects = handle_relationships(main_object, relationships_data, model)
