@@ -9,7 +9,7 @@ class Person(Base):
     __tablename__ = get_table_name("persons")
     frontend_table_name = "Person"
     request_id = Column(String, primary_key=True, default=id_method)
-    request_type = Column(String, default="PERSON_REQUEST")
+    request_type = Column(String, default="PERSON_REQUEST", info={"options": ["PERSON_REQUEST"], "forms": {"create-new": {"enabled": True}, "view-existing": {"enabled": False}}})
     name = Column(String, info={"field_name": "First and Last Name", "search": True, "required": True, "forms": {"create-new": {"enabled": True}, "view-existing": {"enabled": False}}})
     age = Column(Integer, info={"required": True, "forms": {"create-new": {"enabled": True}, "view-existing": {"enabled": False}}})
     gender = Column(String, info={"options": ["Male", "Female", "Other"], "multi_select": True, "required": True, "forms": {"create-new": {"enabled": True}, "view-existing": {"enabled": False}}})

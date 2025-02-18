@@ -19,10 +19,6 @@
                 </li>
                 <li>
                     {% include "table/perf_metrics_button.html" %}
-                    {% include "table/view_request_button.html" %}
-                </li>
-                <li>
-                    {% include "table/perf_metrics_button.html" %}
                 </li>
             </ul>
         </div>
@@ -55,6 +51,7 @@
                 let viewBtn = clone.querySelector(".view-btn");
                 let perfMetricsBtn = clone.querySelector(".perf-metrics-btn");
                 viewBtn.setAttribute("data-unique-ref", row.unique_ref); // Store unique_ref in button
+                viewBtn.setAttribute("data-request-type", row.request_type); // Store unique_ref in button
                 perfMetricsBtn.setAttribute("data-group-id", row.group_id); // Store unique_ref in button
 
                 return clone.firstElementChild.outerHTML;
@@ -66,6 +63,7 @@
     $(document).ready(function () {
         $("body").on("click", ".view-btn", function () {
             let uniqueRef = $(this).attr("data-unique-ref");
+            let requestType = $(this).attr("data-request-type");
             let userRoles = "{{ user.roles }}";  // ✅ Injected directly from Jinja2
             let userName = "{{ user.user_name }}";  // ✅ Injected directly from Jinja2
             let model_name = "{{ model_name }}";  // ✅ Injected directly from Jinja2
@@ -78,7 +76,7 @@
                 url: "/get-view-existing-form",
                 type: "POST",
                 contentType: "application/json",
-                data: JSON.stringify({ unique_ref: uniqueRef, model_name: model_name, user_roles: userRoles, user_name: userName }),
+                data: JSON.stringify({ unique_ref: uniqueRef, model_name: model_name, user_roles: userRoles, user_name: userName, request_type: requestType }),
                 success: function (response) {
                     console.log("✅ Data received:", response);
 

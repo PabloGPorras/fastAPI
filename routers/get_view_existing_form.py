@@ -22,16 +22,13 @@ async def get_view_existing_form(
     try:
         body = await request.json()  # ✅ Parse JSON request
         unique_ref = body.get("unique_ref")  # ✅ Extract `unique_ref`
-        model_name = body.get("model_name")  # ✅ Extract `model_name`
+        request_type = body.get("request_type")  # ✅ Extract `unique_ref`
+        # model_name = body.get("model_name")  # ✅ Extract `model_name`
         user_roles = body.get("user_roles")  # ✅ Extract `user_roles`
         user_name = body.get("user_name")  # ✅ Extract `user_roles`
 
         if not unique_ref:
             raise HTTPException(status_code=400, detail="unique_ref is required")
-        
-        logger.debug(f"Fetching details for unique_ref: {unique_ref}")
-        logger.debug(f"Fetching details for model_name: {model_name}")
-        logger.debug(f"Fetching details for user_roles: {user_roles}")
 
         # Fetch RmsRequest
         rms_request = session.query(RmsRequest).filter_by(unique_ref=unique_ref).one_or_none()
@@ -39,6 +36,9 @@ async def get_view_existing_form(
             raise HTTPException(status_code=404, detail=f"Request not found: {unique_ref}")
 
         # Resolve the underlying model
+        model_name = DatabaseService.get_model_by_request_type(request_type)
+        print(f"Model name: {model_name}")
+        print(f"request_type name: {request_type}")
         model = DatabaseService.get_model_by_tablename(model_name)
         if not model:
             raise HTTPException(status_code=404, detail=f"Model '{model_name}' not found")
