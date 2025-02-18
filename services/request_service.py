@@ -97,7 +97,7 @@ def create_rms_request(model, data, group_id, user):
     return new_request, new_status
 
 
-def create_main_object(model, data, column_mappings):
+def create_main_object(model, data):
     """
     Creates an instance of the model, ensuring form field names are mapped to their database column names.
     """
