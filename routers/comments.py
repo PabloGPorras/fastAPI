@@ -1,7 +1,6 @@
 from fastapi import APIRouter, Depends, Form, HTTPException
 from fastapi.responses import HTMLResponse
 from core.get_db_session import get_db_session
-from core.current_timestamp import get_current_timestamp
 from core.templates import templates
 from core.get_current_user import get_current_user
 from database import logger
@@ -67,7 +66,6 @@ async def add_comment(
             unique_ref=unique_ref,
             comment=comment_text,
             user_name=user.user_name,
-            comment_timestamp=get_current_timestamp(),
         )
         session.add(new_comment)
         session.commit()

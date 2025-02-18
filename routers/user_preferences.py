@@ -38,7 +38,7 @@ def save_user_preferences(
                 # Update the value if the key exists
                 existing_pref = existing_preferences_dict[key]
                 existing_pref.preference_value = value
-                existing_pref.last_updated = func.now()
+                existing_pref.last_updated = func.current_timestamp()
                 logger.debug(f"Updated preference: {key}")
             else:
                 # Create a new preference if the key doesn't exist

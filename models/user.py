@@ -1,7 +1,6 @@
 from sqlalchemy import Column, String, func
 from sqlalchemy import Column, String, DateTime
 from core.id_method import id_method
-from core.current_timestamp import get_current_timestamp
 from core.get_table_name import Base, get_table_name
 from list_values import ORGANIZATIONS_LIST
 from list_values import SUB_ORGANIZATION_LIST
@@ -22,8 +21,8 @@ class User(Base):
     email_from = Column(String, nullable=False, info={"forms":{"create-new": {"enabled":True},"view-existing":{"enabled":False}}})
     email_to = Column(String, nullable=False, info={"forms":{"create-new": {"enabled":True},"view-existing":{"enabled":False}}})
     email_cc = Column(String, nullable=False, info={"forms":{"create-new": {"enabled":True},"view-existing":{"enabled":False}}})
-    last_update_timestamp = Column(DateTime, server_default=func.now())
-    user_role_expire_timestamp = Column(DateTime, default=get_current_timestamp(), info={"forms":{"create-new": {"enabled":True},"view-existing":{"enabled":False}}})
+    last_update_timestamp = Column(DateTime, server_default=func.current_timestamp())
+    user_role_expire_timestamp = Column(DateTime, server_default=func.current_timestamp(), info={"forms":{"create-new": {"enabled":True},"view-existing":{"enabled":False}}})
 
     roles = Column(String, nullable=False, info={"options": ROLES_OPTIONS, "multi_select": True,"forms":{"create-new": {"enabled":True},"view-existing":{"enabled":False}}})
     organizations = Column(String, nullable=False, info={"options": ORGANIZATIONS_LIST, "multi_select": True,"forms":{"create-new": {"enabled":True},"view-existing":{"enabled":False}}})

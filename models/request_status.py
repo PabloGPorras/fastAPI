@@ -15,5 +15,5 @@ class RmsRequestStatus(Base):
     )
     status = Column(String, nullable=False)
     user_name = Column(String(50), default=os.getlogin().upper())
-    timestamp = Column(DateTime, server_default=func.now(), nullable=False)
+    timestamp = Column(DateTime, server_default=func.current_timestamp(), nullable=False)
     request = relationship("RmsRequest", back_populates="status")

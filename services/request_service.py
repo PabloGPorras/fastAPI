@@ -1,7 +1,6 @@
 import json
 from fastapi import HTTPException
 from sqlalchemy import inspect
-from core.current_timestamp import get_current_timestamp
 from core.id_method import id_method
 from models.request import RmsRequest
 from models.request_status import RmsRequestStatus

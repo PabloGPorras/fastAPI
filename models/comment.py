@@ -2,7 +2,6 @@ from sqlalchemy import Column,String,ForeignKey, func
 from sqlalchemy import Column,String, ForeignKey, Text, DateTime
 from sqlalchemy.orm import relationship
 from core.id_method import id_method
-from core.current_timestamp import get_current_timestamp
 from core.get_table_name import Base, get_table_name
 
 class Comment(Base):
@@ -15,6 +14,6 @@ class Comment(Base):
     )
     comment = Column(Text, nullable=False)
     user_name = Column(String(50), nullable=False)
-    comment_timestamp = Column(DateTime, server_default=func.now(), nullable=False)
+    comment_timestamp = Column(DateTime, server_default=func.current_timestamp(), nullable=False)
     request = relationship("RmsRequest", back_populates="comments")
     
