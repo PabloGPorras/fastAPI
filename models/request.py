@@ -51,6 +51,14 @@ class RmsRequest(Base):
         primaryjoin="RmsRequest.unique_ref == RmsRequestStatus.unique_ref",
     )
     comments = relationship("Comment", back_populates="request", cascade="all, delete-orphan")
+    # One PerformanceMetric per group, but multiple requests can be in the group
+    performance_metrics = relationship(
+        "PerformanceMetric",
+        back_populates="requests",
+        foreign_keys="PerformanceMetric.group_id",
+        primaryjoin="RmsRequest.group_id == PerformanceMetric.group_id",
+        uselist=False,  # One PerformanceMetric per group
+    )
 
     @validates("effort")
     def validate_effort(self, key, value):

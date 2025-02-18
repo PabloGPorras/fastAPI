@@ -1,0 +1,121 @@
+<!-- Performance Metrics Modal -->
+<div class="modal fade" id="performanceMetricsModal" tabindex="-1" aria-labelledby="performanceMetricsModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-xl">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="performanceMetricsModalLabel">Performance Metrics: {{ group_id }}</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <!-- Performance Metrics Table -->
+        {% if performance_metrics %}
+        <div id="performanceMetricsContainer">
+          <table id="performanceMetricsTable" class="table table-striped table-bordered" style="width:100%">
+            <thead>
+              <tr>
+                {% for key in performance_metrics[0].keys() %}
+                <th>{{ key }}</th>
+                {% endfor %}
+              </tr>
+            </thead>
+            <tbody>
+              {% for row in performance_metrics %}
+              <tr>
+                {% for value in row.values() %}
+                <td>{{ value }}</td>
+                {% endfor %}
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+        {% else %}
+        <div class="alert alert-warning">No performance metrics found for this group.</div>
+        {% endif %}
+
+        <hr>
+
+        <!-- File Upload Form for Performance Metrics -->
+        <form id="uploadPerformanceForm">
+          <input type="hidden" id="performanceGroupId" value="{{ group_id }}">
+          <div class="mb-3">
+            <label for="performanceFile" class="form-label">Upload CSV File</label>
+            <input type="file" class="form-control" id="performanceFile" name="file" accept=".csv" required>
+          </div>
+          <div id="uploadSuccessContainer" class="alert alert-success" style="display:none;"></div>
+          <div id="uploadErrorContainer" class="alert alert-danger" style="display:none;"></div>
+
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            <button type="submit" class="btn btn-primary">Upload</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+
+<!-- Modal Internal Script -->
+<script>
+  $(document).ready(function () {
+    // Initialize DataTable when the modal is shown
+    $("#performanceMetricsModal").on("shown.bs.modal", function () {
+      if ($.fn.DataTable.isDataTable("#performanceMetricsTable")) {
+        $("#performanceMetricsTable").DataTable().destroy();
+      }
+      let dt = $("#performanceMetricsTable").DataTable({
+        paging: true,
+        searching: true,
+        scrollY: "500px",      // Vertical scrolling (300px height)
+        scrollX: true,         // Horizontal scrolling enabled
+        scrollCollapse: true
+      });
+    });
+
+    // Destroy DataTable when the modal is hidden
+    $("#performanceMetricsModal").on("hidden.bs.modal", function () {
+      if ($.fn.DataTable.isDataTable("#performanceMetricsTable")) {
+        $("#performanceMetricsTable").DataTable().destroy();
+      }
+    });
+
+    // Handle performance metrics file upload
+    $("#uploadPerformanceForm").on("submit", function (event) {
+      event.preventDefault();
+      let groupId = $("#performanceGroupId").val();
+      let fileInput = $("#performanceFile")[0].files[0];
+
+      if (!fileInput) {
+        $("#uploadErrorContainer").text("Please select a CSV file.").show();
+        return;
+      }
+
+      let formData = new FormData();
+      formData.append("file", fileInput);
+
+      $.ajax({
+        url: `/performance-metrics/upload/${groupId}`,
+        type: "POST",
+        data: formData,
+        contentType: false,
+        processData: false,
+        success: function (response) {
+          $("#uploadSuccessContainer").text(response.message).show();
+
+          // Close the modal after a brief delay
+          setTimeout(function () {
+            let modal = bootstrap.Modal.getInstance(document.getElementById("performanceMetricsModal"));
+            if (modal) {
+              modal.hide();
+            }
+          }, 1000); // Close modal after 1 second
+        },
+        error: function (xhr) {
+          $("#uploadErrorContainer").text(xhr.responseJSON?.detail || "Failed to upload.").show();
+        }
+      });
+    });
+  });
+</script>

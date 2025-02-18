@@ -84,7 +84,7 @@ def create_rms_request(model, data, group_id, user):
         "group_id": group_id
     }
 
-    unique_ref = f"{user.user_name.upper()}-{id_method()}"
+    unique_ref = id_method()
     rms_request_data["unique_ref"] = unique_ref
     initial_status = list(model.request_status_config.keys())[0]
 
