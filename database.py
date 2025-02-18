@@ -17,6 +17,7 @@ from models.request_status import RmsRequestStatus
 from models.requests.person import Person
 from models.requests.rule_config_request import RuleConfigRequest
 from models.requests.rule_request import RuleRequest
+from models.performance_metric import PerformanceMetric
 
 
 

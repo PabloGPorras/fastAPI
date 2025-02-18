@@ -1,0 +1,32 @@
+<!-- Button to trigger the modal -->
+<button type="button" class="btn btn-primary perf-metrics-btn" data-group-id="{{ group_id }}">
+    View & Upload Performance Metrics
+</button>
+
+<script>
+  $(document).ready(function () {
+    // Unbind any existing click handlers to prevent duplicate bindings
+    $(".perf-metrics-btn").off("click").on("click", function () {
+      let groupId = $(this).data("group-id");
+
+      $.ajax({
+        url: "/get-performance-metrics-modal",
+        type: "POST",
+        contentType: "application/json",
+        data: JSON.stringify({ group_id: groupId }),
+        success: function (response) {
+          // Remove any existing modal with the same ID
+          $("#performanceMetricsModal").remove();
+          $("body").append(response);
+
+          // Show the modal
+          let modal = new bootstrap.Modal(document.getElementById("performanceMetricsModal"));
+          modal.show();
+        },
+        error: function () {
+          alert("Failed to load performance metrics modal.");
+        }
+      });
+    });
+  });
+</script>
