@@ -10,10 +10,10 @@
     <div>
         <!-- Custom Search Input -->
         <input type="text" id="customSearchInput" class="form-control" placeholder="Search table..." style="width: 250px; display: inline-block; margin-left: 10px;">
-        {% include "table/manage_columns_button.html" %}
-        {% include "table/filter_button.html" %}
         {% set model_name = model_name %}
         {% include "table/header_action_button.html" with context %}
+        {% include "table/manage_columns_button.html" %}
+        {% include "table/filter_button.html" %}
     </div>
 
     <!-- Table -->
