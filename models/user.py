@@ -1,4 +1,4 @@
-from sqlalchemy import Column, String
+from sqlalchemy import Column, String, func
 from sqlalchemy import Column, String, DateTime
 from core.id_method import id_method
 from core.current_timestamp import get_current_timestamp
@@ -22,7 +22,7 @@ class User(Base):
     email_from = Column(String, nullable=False, info={"forms":{"create-new": {"enabled":True},"view-existing":{"enabled":False}}})
     email_to = Column(String, nullable=False, info={"forms":{"create-new": {"enabled":True},"view-existing":{"enabled":False}}})
     email_cc = Column(String, nullable=False, info={"forms":{"create-new": {"enabled":True},"view-existing":{"enabled":False}}})
-    last_update_timestamp = Column(DateTime, default=get_current_timestamp())
+    last_update_timestamp = Column(DateTime, server_default=func.now())
     user_role_expire_timestamp = Column(DateTime, default=get_current_timestamp(), info={"forms":{"create-new": {"enabled":True},"view-existing":{"enabled":False}}})
 
     roles = Column(String, nullable=False, info={"options": ROLES_OPTIONS, "multi_select": True,"forms":{"create-new": {"enabled":True},"view-existing":{"enabled":False}}})

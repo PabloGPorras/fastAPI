@@ -1,9 +1,8 @@
 import os
-from sqlalchemy import Column, String,ForeignKey
+from sqlalchemy import Column, String,ForeignKey, func
 from sqlalchemy import Column, String, ForeignKey, DateTime
 from sqlalchemy.orm import relationship
 from core.id_method import id_method
-from core.current_timestamp import get_current_timestamp
 from core.get_table_name import Base, get_table_name
 
 class RmsRequestStatus(Base):
@@ -16,5 +15,5 @@ class RmsRequestStatus(Base):
     )
     status = Column(String, nullable=False)
     user_name = Column(String(50), default=os.getlogin().upper())
-    timestamp = Column(DateTime, default=get_current_timestamp(), nullable=False)
+    timestamp = Column(DateTime, server_default=func.now(), nullable=False)
     request = relationship("RmsRequest", back_populates="status")

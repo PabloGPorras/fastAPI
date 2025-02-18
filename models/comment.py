@@ -1,4 +1,4 @@
-from sqlalchemy import Column,String,ForeignKey
+from sqlalchemy import Column,String,ForeignKey, func
 from sqlalchemy import Column,String, ForeignKey, Text, DateTime
 from sqlalchemy.orm import relationship
 from core.id_method import id_method
@@ -15,6 +15,6 @@ class Comment(Base):
     )
     comment = Column(Text, nullable=False)
     user_name = Column(String(50), nullable=False)
-    comment_timestamp = Column(DateTime, default=get_current_timestamp(), nullable=False)
+    comment_timestamp = Column(DateTime, server_default=func.now(), nullable=False)
     request = relationship("RmsRequest", back_populates="comments")
     
