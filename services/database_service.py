@@ -14,7 +14,31 @@ from typing import Optional, Dict, Any, List, Tuple
 logger = logging.getLogger(__name__)
 
 class DatabaseService:
+    @staticmethod
+    def get_model_by_request_type(request_type: str):
+        """
+        Returns the model's __tablename__ for a given request_type.
+        
+        Args:
+            request_type (str): The request type to look up.
+        
+        Returns:
+            str: The __tablename__ of the matching model, or None if not found.
+        """
+        for mapper in Base.registry.mappers:
+            cls = mapper.class_
+            if isinstance(cls, DeclarativeMeta):
+                # Check if the model has a 'request_type' column with predefined options
+                request_type_col = getattr(cls, 'request_type', None)
+                if request_type_col is not None:
+                    column_info = request_type_col.info if hasattr(request_type_col, 'info') else {}
+                    options = column_info.get("options", [])
 
+                    # If request_type exists in the model's options, return its tablename
+                    if request_type in options:
+                        return cls.__tablename__
+        return None  # Return None if no matching model is found
+    
     @staticmethod
     def fetch_model_rows(
         model_name: str,
