@@ -188,7 +188,29 @@
                     console.error("❌ AJAX Error:", error, code, xhr.responseText);
                 }
             },
-            columns: columns,
+            columns: columns.map(col => {
+                if (col.data && (col.data.includes("date") || col.data.includes("time"))) {
+                    return {
+                        ...col,
+                        type: "date",
+                        render: function (data, type, row) {
+                            if (!data) return "";
+                            let dateObj = new Date(data);
+                            return dateObj.toLocaleString("en-US", {
+                                year: "numeric",
+                                month: "2-digit",
+                                day: "2-digit",
+                                hour: "2-digit",
+                                minute: "2-digit",
+                                second: "2-digit",
+                                hour12: false
+                            });
+                        }
+                    };
+                }
+                return col;
+            }),
+
             paging: true,
             searching: true,
             ordering: true,

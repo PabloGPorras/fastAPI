@@ -15,9 +15,9 @@ from services.database_service import DatabaseService
 router = APIRouter()
 
 def serialize_row(row: dict) -> Dict[str, Any]:
-    """Convert datetime fields to ISO strings for JSON compatibility."""
+    """Convert datetime fields to formatted strings for JSON compatibility."""
     return {
-        key: (value.isoformat() if isinstance(value, datetime) else value)
+        key: (value.strftime('%Y-%m-%d %H:%M:%S') if isinstance(value, datetime) else value)
         for key, value in row.items()
     }
 
@@ -37,7 +37,7 @@ async def get_table_data(
         length = body.get("length", 10)
         search_value = body.get("search_value", "")  # Global search input
         order_column_index = body.get("order_column_index", 0)
-        order_dir = body.get("order_dir", "asc")
+        order_dir = body.get("order_dir", "desc")
         filters = body.get("filters", {})
 
     except json.JSONDecodeError:
