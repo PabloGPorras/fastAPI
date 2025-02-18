@@ -98,9 +98,19 @@ def create_rms_request(model, data, group_id, user):
 
 
 def create_main_object(model, data, column_mappings):
-    """ Create the main model object with provided data. """
-    normalized_data = {column_mappings.get(k, k): v for k, v in data.items()}
+    """
+    Creates an instance of the model, ensuring form field names are mapped to their database column names.
+    """
+    normalized_data = {}
+
+    # Map form fields to their actual column names
+    for column in model.__table__.columns:
+        form_field_name = column.info.get("field_name", column.name)  # Use form name if available
+        if form_field_name in data:
+            normalized_data[column.name] = data[form_field_name]
+
     return model(**normalized_data)
+
 
 
 def handle_relationships(main_object, relationships_data, model):
