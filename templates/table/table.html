@@ -177,7 +177,7 @@
                         length: d.length,
                         search_value: $("#customSearchInput").val(),
                         order_column_index: d.order?.[0]?.column ?? 0,
-                        order_dir: d.order?.[0]?.dir ?? "asc",
+                        order_dir: d.order?.[0]?.dir ?? "desc",
                         filters: filters
                     });
                 },
@@ -258,142 +258,6 @@
     }
 
 
-    // $(document).ready(function () {
-    //     $.ajax({
-    //         url: `/table/{{ model_name }}/metadata`,
-    //         type: "POST",
-    //         success: function (response) {
-    //             const columnOptions = response.column_options || {};
-    //             const columns = response.columns.map((col) => ({
-    //                 title: col.toUpperCase(),
-    //                 data: col
-    //             }));
-
-    //             columns.unshift(getActionsColumn());
-
-    //             if ($.fn.DataTable.isDataTable("#dataTable")) {
-    //                 $('#dataTable').DataTable().destroy();
-    //                 $("#tableHeaders").empty();
-    //                 $("#columnFilters").empty();
-    //             }
-
-    //             columns.forEach(col => {
-    //                 $("#tableHeaders").append(`<th>${col.title}</th>`);
-    //             });
-
-    //             // Initialize DataTable and store globally
-    //             dataTableInstance = $('#dataTable').DataTable({
-    //                 processing: true,
-    //                 serverSide: true,
-    //                 ajax: {
-    //                     url: `/table/{{ model_name }}/data`,
-    //                     type: "POST",
-    //                     contentType: "application/json",
-    //                     data: function (d) {
-    //                         let filters = {};
-    //                         $(".custom-filter, .custom-filter-input").each(function () {
-    //                             let col = $(this).attr("data-column");
-    //                             let val = $(this).val();
-    //                             if (val) {
-    //                                 filters[col] = val;
-    //                             }
-    //                         });
-
-    //                         return JSON.stringify({
-    //                             draw: d.draw,
-    //                             start: d.start,
-    //                             length: d.length,
-    //                             search_value: $("#customSearchInput").val(),
-    //                             order_column_index: d.order?.[0]?.column ?? 0,
-    //                             order_dir: d.order?.[0]?.dir ?? "asc",
-    //                             filters: filters
-    //                         });
-    //                     },
-    //                     dataSrc: function (json) {
-    //                         return json.data;
-    //                     },
-    //                     error: function (xhr, error, code) {
-    //                         console.error("❌ AJAX Error:", error, code, xhr.responseText);
-    //                     }
-    //                 },
-    //                 columns: columns,
-    //                 paging: true,
-    //                 searching: true,
-    //                 ordering: true,
-    //                 colReorder: true,
-    //                 fixedHeader: true,
-    //                 scrollX: true,
-    //                 scrollY: "650px",
-    //                 scrollCollapse: true,
-    //                 lengthMenu: [10, 25, 50, 100],
-    //                 fixedColumns: { left: 1 },
-    //                 dom: 'lrtip',
-    //                 createdRow: function (row, data, dataIndex) {
-    //                     $(row).attr('data-id', data.unique_ref);
-    //                 },
-    //                 // Optionally, enable deferred rendering to speed up initial load
-    //                 deferRender: true
-    //             });
-
-    //             // Set up filters and column visibility UI
-    //             setupFilters(dataTableInstance, columnOptions, response.columns);
-    //             setupColumnVisibility(dataTableInstance);
-
-    //             // Load saved column visibility first
-    //             loadColumnVisibility(function () {
-    //                 // Then load saved filters
-    //                 loadUserFilters(function () {
-    //                     // Finally, reveal the table container once all preferences are applied.
-    //                     $("#tableContainer").css("visibility", "visible");
-
-    //                     // Optionally, reload the table to reflect applied filters
-    //                     dataTableInstance.ajax.reload();
-    //                 });
-    //             });
-
-    //             $("#customSearchInput").on("keyup", debounce(function () {
-    //                 dataTableInstance.ajax.reload();
-    //             }, 500));
-
-    //             $("#dataTable tbody").on("click", "tr", function (event) {
-    //                 if (!$(event.target).hasClass('row-checkbox')) {
-    //                     var checkbox = $(this).find('.row-checkbox');
-    //                     checkbox.prop('checked', !checkbox.prop('checked'));
-    //                     $(this).toggleClass('selected-row', checkbox.prop('checked'));
-    //                 }
-    //             });
-
-    //             // Enable row selection on click
-    //             $('#dataTable tbody').on('click', 'tr', function (event) {
-    //                 if (!$(event.target).hasClass('row-checkbox')) {
-    //                     var checkbox = $(this).find('.row-checkbox');
-    //                     checkbox.prop('checked', !checkbox.prop('checked'));
-    //                     $(this).toggleClass('selected-row', checkbox.prop('checked'));
-    //                 }
-    //             });
-
-    //             // Handle clicking the checkbox directly
-    //             $('#dataTable tbody').on('change', '.row-checkbox', function () {
-    //                 $(this).closest('tr').toggleClass('selected-row', this.checked);
-    //             });
-
-    //             $("#dataTable tbody").on("change", ".row-checkbox", function () {
-    //                 $(this).closest("tr").toggleClass("selected-row", this.checked);
-    //             });
-
-    //             $("#refreshTableBtn").on("click", function () {
-    //                 refreshTable();
-    //             });
-    //         },
-    //         error: function (xhr) {
-    //             console.error("Error fetching table metadata:", xhr);
-    //             $("#tableHeaders").html('<th colspan="100%" class="text-center text-danger">Failed to load columns</th>');
-    //         }
-    //     });
-    // });
-
-
-
     // Debounce function to limit how often a function is called
     function debounce(func, delay) {
         let timeout;
@@ -422,5 +286,46 @@
         }
         return dataTableInstance.rows('.selected-row').data().toArray();
     }
+
+    $(document).ready(function () {
+        $(document).keydown(function (event) {
+            // Check if CTRL+SHIFT+A is pressed (Select all visible rows)
+            if (event.ctrlKey && event.shiftKey && event.code === "KeyA") {
+                event.preventDefault(); // Prevent default browser behavior
+                selectAllVisibleRows();
+            }
+
+            // Check if CTRL+SHIFT+D is pressed (Deselect all visible rows)
+            if (event.ctrlKey && event.shiftKey && event.code === "KeyD") {
+                event.preventDefault(); // Prevent default browser behavior
+                deselectAllVisibleRows();
+            }
+        });
+    });
+
+    /**
+     * ✅ Select all visible rows in the DataTable
+     */
+    function selectAllVisibleRows() {
+        $('#dataTable tbody tr').each(function () {
+            let checkbox = $(this).find('.row-checkbox');
+            checkbox.prop('checked', true);
+            $(this).addClass('selected-row');
+        });
+        console.log("✅ All visible rows selected.");
+    }
+
+    /**
+     * ❌ Deselect all visible rows in the DataTable
+     */
+    function deselectAllVisibleRows() {
+        $('#dataTable tbody tr').each(function () {
+            let checkbox = $(this).find('.row-checkbox');
+            checkbox.prop('checked', false);
+            $(this).removeClass('selected-row');
+        });
+        console.log("❌ All visible rows deselected.");
+    }
+
 
 </script>
