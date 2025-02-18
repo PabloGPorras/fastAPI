@@ -1,120 +1,97 @@
 import csv
 import io
 from fastapi import APIRouter, Depends, Form, HTTPException, UploadFile
-from sqlalchemy import inspect
-from core.id_method import id_method
-from core.get_db_session import get_db_session
-from core.get_current_user import get_current_user
-from models.request import RmsRequest
-from models.request_status import RmsRequestStatus
-from models.user import User
-from services.database_service import DatabaseService
-from database import logger
 from sqlalchemy.orm import Session
 
+from core.get_db_session import get_db_session
+from core.get_current_user import get_current_user
+from database import logger
+from models.user import User
+from services.database_service import DatabaseService
+from services.request_service import assign_group_id, create_rms_request, filter_and_clean_data, get_column_mappings, get_model
+
 router = APIRouter()
+
 
 @router.post("/bulk-import")
 async def bulk_import(
     file: UploadFile,
     model_name: str = Form(...),
     user: User = Depends(get_current_user),
-    session: Session = Depends(get_db_session),  # Injected session dependency
-
+    session: Session = Depends(get_db_session),
 ):
-    logger.info(f"Received bulk import request for model: {model_name}. File name: {file.filename}")
+    """
+    Bulk imports data from a CSV file into the specified model.
+    """
+    logger.info(f"Received bulk import request for model: {model_name}. File: {file.filename}")
 
     if not file.filename:
         raise HTTPException(status_code=400, detail="No file uploaded")
-    
-    # Validate model name
-    model = DatabaseService.get_model_by_tablename(model_name)
-    if not model:
-        logger.warning(f"Model '{model_name}' not found.")
-        raise HTTPException(status_code=404, detail=f"Model '{model_name}' not found.")
 
-    # Validate file type
     if not file.filename.endswith(".csv"):
-        logger.warning(f"Invalid file type uploaded: {file.filename}")
         raise HTTPException(status_code=400, detail="Only CSV files are supported.")
 
-    # Parse the CSV file
-    content = await file.read()
     try:
-        csv_reader = csv.DictReader(io.StringIO(content.decode("utf-8")))
-    except Exception as e:
-        logger.error(f"Error decoding file content: {e}")
-        raise HTTPException(status_code=400, detail="Invalid CSV file format.")
+        model = get_model(model_name)  # ✅ Reuses get_model()
 
-    # Get expected headers for validation
-    try:
-        metadata = DatabaseService.gather_model_metadata(
-            model, session=session, form_name="create-new"
-        )
+        # Read CSV content
+        content = await file.read()
+        csv_reader = csv.DictReader(io.StringIO(content.decode("utf-8")))
+
+        # Get expected headers from model metadata
+        metadata = DatabaseService.gather_model_metadata(model, session=session, form_name="create-new")
         expected_headers = [col["name"] for col in metadata["columns"]]
+
         if metadata["is_request"]:
             expected_headers.extend([
-                "rms_request.organization",
-                "rms_request.sub_organization",
-                "rms_request.line_of_business",
-                "rms_request.team",
-                "rms_request.decision_engine",
+                "organization",
+                "sub_organization",
+                "line_of_business",
+                "team",
+                "decision_engine",
+                "effort"    
+
             ])
 
-        # Validate file headers
+        # Validate CSV headers
         file_headers = csv_reader.fieldnames
         if not file_headers or any(header not in expected_headers for header in file_headers):
-            logger.warning(f"Invalid headers: {file_headers}. Expected: {expected_headers}")
             raise HTTPException(
                 status_code=400,
                 detail=f"Invalid CSV headers. Expected headers: {', '.join(expected_headers)}",
             )
 
+        logger.debug(f"CSV headers found in uploaded file: {file_headers}")
+
+
         # Process rows
+        objects_to_add = []
+        group_id = assign_group_id({})  # ✅ Generates group_id
         row_count = 0
-        group_id = id_method()  # Generate a unique group ID
 
         for row in csv_reader:
             row_count += 1
             logger.debug(f"Processing row {row_count}: {row}")
 
-            # Extract and validate RmsRequest fields
-            rms_request_data = {
-                "organization": row.get("rms_request.organization"),
-                "sub_organization": row.get("rms_request.sub_organization"),
-                "line_of_business": row.get("rms_request.line_of_business"),
-                "team": row.get("rms_request.team"),
-                "decision_engine": row.get("rms_request.decision_engine"),
-                "group_id": group_id,
-                "requester": user.user_name,
-                "request_type": model_name.upper(),
-                "effort": "BAU",
-            }
+            # ✅ Create RmsRequest if the model is a request type
+            if metadata["is_request"]:
+                new_request, new_status = create_rms_request(model, row, group_id, user)
+                objects_to_add.extend([new_request, new_status])
 
-            # Create a new RmsRequest
-            rms_request = RmsRequest(**rms_request_data)
-            session.add(rms_request)
-            session.flush()  # Generate ID for rms_request
+            # ✅ Process model-specific data
+            column_mappings, allowed_keys, required_columns = get_column_mappings(model)
+            logger.debug(f"Column mappings: {column_mappings}, Allowed keys: {allowed_keys}, Required columns: {required_columns}")
+            row_data = filter_and_clean_data(row, allowed_keys, required_columns, column_mappings, model)
+            row_data["unique_ref"] = new_request.unique_ref if metadata["is_request"] else None
 
-            # Insert the initial status for the RmsRequest
-            initial_status = list(model.request_status_config.keys())[0]  # Get the first status
-            rms_status = RmsRequestStatus(
-                unique_ref=rms_request.unique_ref,  # Use the correct field name
-                status=initial_status,
-                user_name=user.user_name,  # Replace with the actual user performing the import
-            )
-            session.add(rms_status)
+            # ✅ Create the main object
+            instance = model(**row_data)
+            objects_to_add.append(instance)
 
-            # Extract and validate model-specific fields
-            model_fields = {col["name"] for col in metadata["columns"]}
-            data = {field: row[field] for field in model_fields if field in row}
-            data["rms_request_id"] = rms_request.unique_ref  # Associate with the RmsRequest
-
-            # Create a new instance of the model
-            instance = model(**data)
-            session.add(instance)
-
+        # ✅ Add all objects in bulk
+        session.add_all(objects_to_add)
         session.commit()
+
         logger.info(f"Bulk import completed successfully. Total rows processed: {row_count}")
         return {"message": "Bulk import completed successfully!", "group_id": group_id}
 

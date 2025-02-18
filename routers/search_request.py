@@ -45,7 +45,7 @@ async def search_field(
         # Build the query
         query = (
             session.query(model)
-            .join(RmsRequest, model.rms_request_id == RmsRequest.unique_ref)
+            .join(RmsRequest, model.unique_ref == RmsRequest.unique_ref)
             .filter(field_column == search_value)
         )
 

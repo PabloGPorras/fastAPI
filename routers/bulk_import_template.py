@@ -43,7 +43,8 @@ async def download_template(
             "rms_request.sub_organization",
             "rms_request.line_of_business",
             "rms_request.team",
-            "rms_request.decision_engine"
+            "rms_request.decision_engine",
+            "rms_request.effort"
         ])
 
     logger.info(f"Generated headers for template: {headers}")
