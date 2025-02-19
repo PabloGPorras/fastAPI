@@ -4,8 +4,23 @@ from sqlalchemy.orm import relationship
 from core.id_method import id_method
 from core.get_table_name import Base, get_table_name
 from sqlalchemy.orm import validates
+from sqlalchemy import event
 
 from core.workflows import RULE_WORKFLOW
+from models.request import RmsRequest
+
+
+@event.listens_for(RmsRequest, "before_insert")
+@event.listens_for(RmsRequest, "before_update")
+def validate_required_fields(mapper, connection, target):
+    # Iterate over each column in the table
+    for column in target.__table__.columns:
+        if column.info.get("required"):
+            value = getattr(target, column.name)
+            # If the value is None or (if it's a string) empty/whitespace, raise an error
+            if value is None or (isinstance(value, str) and not value.strip()):
+                raise ValueError(f"{column.name} is required and cannot be empty.")
+            
 
 class RuleRequest(Base):
     __tablename__ = get_table_name("rule_request")
