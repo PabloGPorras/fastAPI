@@ -65,8 +65,6 @@
         background-color: var(--table-header-bg, #007bff);
         border-color: var(--table-header-bg, #007bff);
     }
-   
-   
 </style>
 
 
@@ -262,7 +260,13 @@
         });
 
         // Enable row selection on click
-        $('#dataTable tbody').on('click', 'tr', function (event) {
+        $("#dataTable tbody").on("click", "tr", function (event) {
+            // Ignore clicks on dropdowns and buttons
+            if ($(event.target).closest(".dropdown-toggle, .view-btn, .perf-metrics-btn").length > 0) {
+                event.stopPropagation();
+                return; // Prevent row selection from toggling
+            }
+
             if (!$(event.target).hasClass('row-checkbox')) {
                 var checkbox = $(this).find('.row-checkbox');
                 checkbox.prop('checked', !checkbox.prop('checked'));
