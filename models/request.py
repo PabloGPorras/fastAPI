@@ -21,7 +21,7 @@ class RmsRequest(Base):
     requester = Column(String, default=os.getlogin().upper())
     request_received_timestamp = Column(DateTime, server_default=func.current_timestamp())
     effort = Column(String, info={"options": EFFORT_LIST, "required": True})
-    approval_timesatmp = Column(DateTime, default=None)
+    approval_timestamp = Column(DateTime, default=None)
     approved = Column(String, default="N")
     approver = Column(String,default="")
     governed_timestamp = Column(DateTime, default=None)

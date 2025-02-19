@@ -69,5 +69,27 @@ def insert_user():
     finally:
         session.close()
 
+
+
+def update_all_requesters(new_requester):
+    """
+    Updates the requester field for all records in the RmsRequest table.
+
+    :param session: SQLAlchemy session object
+    :param new_requester: The new requester name (string)
+    """
+    session: Session = SessionLocal()
+    if not isinstance(new_requester, str) or not new_requester.strip():
+        raise ValueError("Requester must be a non-empty string")
+
+    # Update all records in the RmsRequest table
+    session.query(RmsRequest).update({"requester": new_requester.upper()})
+
+    # Commit the transaction
+    session.commit()
+
+    print(f"Requester updated successfully for all requests to '{new_requester.upper()}'")
+
+
 if __name__ == "__main__":
-    insert_user()
+    update_all_requesters("Ana")

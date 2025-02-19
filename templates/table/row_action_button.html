@@ -6,7 +6,7 @@
             style="height: 100%; width: 40px; display: flex; align-items: center; justify-content: center;">
 
         <!-- Button Group -->
-        <div class="btn-group" style="height: 100%; width: 40px;">
+        <div class="btn-group dropend" style="height: 100%; width: 40px;">
             <!-- Primary Button with Bolt Icon -->
             <button type="button" class="btn btn-primary btn-sm dropdown-toggle" data-bs-toggle="dropdown"
                 aria-expanded="false" style="height: 100%; width: 100%;">
@@ -17,7 +17,7 @@
                 <li>
                     {% include "table/view_request_button.html" %}
                 </li>
-                <li>
+                <li style="display: none;">
                     {% include "table/perf_metrics_button.html" %}
                 </li>
             </ul>

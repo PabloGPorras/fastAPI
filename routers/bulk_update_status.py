@@ -116,30 +116,31 @@ def bulk_update_status(
             session.add(new_status)
 
             # Update RmsRequest based on Status_Type of the current status
-            status_type = request_status_config.get(current_status, {}).get("Status_Type", [])
-            logger.debug(f"Request ID {unique_ref}, status_type: {status_type}, current_status: {current_status}")
-
-            if "APPROVAL REJECTED" in status_type:
-                request.approval_timestamp = func.current_timestamp()
-                request.approved = "N"
-                request.approver = user.user_name
-                request.request_status = 'REJECTED'
-            if "APPROVAL" in status_type:
+            current_status_type = request_status_config.get(current_status, {}).get("Status_Type", [])
+            next_status_type = request_status_config.get(next_status, {}).get("Status_Type", [])
+            logger.debug(f"Request ID {unique_ref}, status_type: {current_status_type}, current_status: {current_status}")
+            
+            if "APPROVAL" in current_status_type:
                 request.approval_timestamp = func.current_timestamp()
                 request.approved = "Y"
                 request.approver = user.user_name
                 request.request_status = 'PENDING GOVERNANCE'
-            if "GOVERNANCE REJECTED" in status_type:
-                request.governed_timestamp = func.current_timestamp()
-                request.governed = "N"
-                request.governed_by = user.user_name
+            if "APPROVAL REJECTED" in next_status_type:
+                request.approval_timestamp = func.current_timestamp()
+                request.approved = "R"
+                request.approver = user.user_name
                 request.request_status = 'REJECTED'
-            if "GOVERNANCE" in status_type:
+            if "GOVERNANCE" in current_status_type:
                 request.governed_timestamp = func.current_timestamp()
                 request.governed = "Y"
                 request.governed_by = user.user_name
                 request.request_status = 'DEPLOYMENT READY'
-            if "COMPLETED" in status_type:
+            if "GOVERNANCE REJECTED" in next_status_type:
+                request.governed_timestamp = func.current_timestamp()
+                request.governed = "R"
+                request.governed_by = user.user_name
+                request.request_status = 'REJECTED'
+            if "COMPLETED" in next_status_type:
                 request.deployment_timestamp = func.current_timestamp()
                 request.deployed = "Y"
                 request.request_status = 'COMPLETED'
