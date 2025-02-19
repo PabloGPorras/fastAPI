@@ -82,7 +82,8 @@ def get_status_transitions(
                 )
 
         # Validate roles and generate transition buttons.
-        model = DatabaseService.get_model_by_tablename(current_request_type.lower())
+        model_name = DatabaseService.get_model_by_request_type(current_request_type)
+        model = DatabaseService.get_model_by_tablename(model_name)
         if not model or not hasattr(model, "request_status_config"):
             raise HTTPException(
                 status_code=404,

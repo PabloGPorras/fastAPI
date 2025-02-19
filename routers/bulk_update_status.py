@@ -33,7 +33,8 @@ def bulk_update_status(
             raise HTTPException(status_code=400, detail="Invalid request data.")
 
         # Step 1: Fetch the configuration for the request type
-        model = DatabaseService.get_model_by_tablename(request_type.lower())
+        model_name = DatabaseService.get_model_by_request_type(request_type)
+        model = DatabaseService.get_model_by_tablename(model_name)
         if not model or not hasattr(model, "request_status_config"):
             logger.error(f"Model '{request_type}' not found or has no status configuration.")
             raise HTTPException(

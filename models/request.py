@@ -106,10 +106,3 @@ class RmsRequest(Base):
         if value is None or not isinstance(value, str):
             raise ValueError(f"{key} must be a non-empty string")
         return value
-
-    @validates("request_received_timestamp", "approval_timestamp", "governed_timestamp", 
-               "deployment_request_timestamp", "deployment_timestamp", "expected_deployment_timestamp")
-    def validate_timestamps(self, key, value):
-        if value is not None and not isinstance(value, (str, DateTime)):
-            raise ValueError(f"{key} must be a valid DateTime")
-        return value
