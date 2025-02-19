@@ -69,7 +69,7 @@ def get_current_user(session: Session = Depends(get_db_session)) -> User:
 
 
 DEFAULT_USER_PREFERENCES = {
-    "datatable_columns_test_requests": ["request_status", "approval_timesatmp", "approved", "approver", "governed_timestamp", "governed_by", "governed", "deployment_request_timestamp", "deployment_timestamp", "deployed", "tool_version", "checked_out_by", "email_from", "email_to", "email_cc", "email_sent", "approval_sent", "expected_deployment_timestamp"],  
+    "datatable_columns_test_requests": ["request_status", "approval_timestamp", "approved", "approver", "governed_timestamp", "governed_by", "governed", "deployment_request_timestamp", "deployment_timestamp", "deployed", "tool_version", "checked_out_by", "email_from", "email_to", "email_cc", "email_sent", "approval_sent", "expected_deployment_timestamp"],  
     "theme": "dark",  # Saved as a string
 }
 

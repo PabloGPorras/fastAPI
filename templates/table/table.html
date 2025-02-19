@@ -22,7 +22,6 @@
         width: 100%;
         background-color: var(--table-bg, #ffffff);
         border-radius: 8px;
-        overflow: hidden;
     }
 
     /* Table Header Styling */
@@ -261,7 +260,13 @@
         });
 
         // Enable row selection on click
-        $('#dataTable tbody').on('click', 'tr', function (event) {
+        $("#dataTable tbody").on("click", "tr", function (event) {
+            // Ignore clicks on dropdowns and buttons
+            if ($(event.target).closest(".dropdown-toggle, .view-btn, .perf-metrics-btn").length > 0) {
+                event.stopPropagation();
+                return; // Prevent row selection from toggling
+            }
+
             if (!$(event.target).hasClass('row-checkbox')) {
                 var checkbox = $(this).find('.row-checkbox');
                 checkbox.prop('checked', !checkbox.prop('checked'));
@@ -297,9 +302,35 @@
      * ✅ Function to refresh the DataTable
      */
     function refreshTable() {
-        if (dataTableInstance) {
-            dataTableInstance.ajax.reload(null, false);
-        }
+        if (!dataTableInstance) return;
+
+        let selectedRowIds = getSelectedRowIds(); // Store selected rows
+
+        dataTableInstance.ajax.reload(() => {
+            restoreSelectedRows(selectedRowIds); // Restore selection after reload
+        }, false);
+    }
+
+    function getSelectedRowIds() {
+        let selectedIds = [];
+        $('#dataTable tbody tr.selected-row').each(function () {
+            let rowId = $(this).attr('data-id'); // Ensure your rows have a `data-id` attribute
+            if (rowId) {
+                selectedIds.push(rowId);
+            }
+        });
+        return selectedIds;
+    }
+
+    function restoreSelectedRows(selectedIds) {
+        $('#dataTable tbody tr').each(function () {
+            let rowId = $(this).attr('data-id');
+            if (selectedIds.includes(rowId)) {
+                let checkbox = $(this).find('.row-checkbox');
+                checkbox.prop('checked', true);
+                $(this).addClass('selected-row');
+            }
+        });
     }
 
     /**

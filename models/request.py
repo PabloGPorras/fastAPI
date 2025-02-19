@@ -21,7 +21,7 @@ class RmsRequest(Base):
     requester = Column(String, default=os.getlogin().upper())
     request_received_timestamp = Column(DateTime, server_default=func.current_timestamp())
     effort = Column(String, info={"options": EFFORT_LIST, "required": True})
-    approval_timesatmp = Column(DateTime, default=None)
+    approval_timestamp = Column(DateTime, default=None)
     approved = Column(String, default="N")
     approver = Column(String,default="")
     governed_timestamp = Column(DateTime, default=None)
@@ -105,11 +105,4 @@ class RmsRequest(Base):
     def validate_non_empty_strings(self, key, value):
         if value is None or not isinstance(value, str):
             raise ValueError(f"{key} must be a non-empty string")
-        return value
-
-    @validates("request_received_timestamp", "approval_timestamp", "governed_timestamp", 
-               "deployment_request_timestamp", "deployment_timestamp", "expected_deployment_timestamp")
-    def validate_timestamps(self, key, value):
-        if value is not None and not isinstance(value, (str, DateTime)):
-            raise ValueError(f"{key} must be a valid DateTime")
         return value

@@ -11,7 +11,7 @@ class RuleRequest(Base):
     __tablename__ = get_table_name("rule_request")
     frontend_table_name = "Rule Requests"
     request_id = Column(String, primary_key=True, default=id_method)
-    request_type = Column(String, info={"options": ["RULE_DEPLOYMENT","RULE_DEACTIVATION"],"required":True,"forms":{"create-new": {"enabled":True},"view-existing":{"enabled":False}}})
+    request_type = Column(String, info={"options": ["RULE_DEPLOYMENT","RULE_DEACTIVATION"],"required":True,"forms":{"create-new": {"enabled":False},"view-existing":{"enabled":False}}})
     rule_name = Column(String,info={"length": 5, "search":True,"required":True,"forms":{"create-new": {"enabled":True},"view-existing":{"enabled":False}}})
     rule_id = Column(String,info={"required":True,"forms":{"create-new": {"enabled":True},"view-existing":{"enabled":False}}})
     estimation_id = Column(String, info={"required":True,"forms":{"check-list": {"enabled":True}}})
