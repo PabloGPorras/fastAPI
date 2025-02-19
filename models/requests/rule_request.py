@@ -10,17 +10,43 @@ from core.workflows import RULE_WORKFLOW
 from models.request import RmsRequest
 
 
-@event.listens_for(RmsRequest, "before_insert")
-@event.listens_for(RmsRequest, "before_update")
-def validate_required_fields(mapper, connection, target):
-    # Iterate over each column in the table
-    for column in target.__table__.columns:
+from sqlalchemy.orm import validates, mapper
+from sqlalchemy import event
+
+def make_validator(col_name):
+    """
+    Factory function to create a validator for a specific column.
+    """
+    def validate_field(self, key, value):
+        if value is None or (isinstance(value, str) and not value.strip()):
+            raise ValueError(f"{col_name} is required and cannot be empty.")
+        return value
+    return validate_field
+
+@event.listens_for(mapper, 'mapper_configured')
+def add_validators(mapper, class_):
+    """
+    Once the mapper is configured (i.e. after __table__ is available),
+    dynamically add a validator for each column with info["required"] == True.
+    """
+    # Ensure the class has a __table__
+    if not hasattr(class_, '__table__'):
+        return
+
+    for column in class_.__table__.columns:
+        # Check if this column is marked as required
         if column.info.get("required"):
-            value = getattr(target, column.name)
-            # If the value is None or (if it's a string) empty/whitespace, raise an error
-            if value is None or (isinstance(value, str) and not value.strip()):
-                raise ValueError(f"{column.name} is required and cannot be empty.")
-            
+            validator_name = f"validate_{column.name}"
+            # Skip if a validator for this column already exists
+            if hasattr(class_, validator_name):
+                continue
+            # Create a validator function using the factory
+            validator = make_validator(column.name)
+            # Wrap it with SQLAlchemy's validates decorator for that column
+            decorated = validates(column.name)(validator)
+            # Attach the decorated validator method to the class
+            setattr(class_, validator_name, decorated)
+ 
 
 class RuleRequest(Base):
     __tablename__ = get_table_name("rule_request")
@@ -60,13 +86,13 @@ class RuleRequest(Base):
             raise ValueError("Rule name cannot exceed 255 characters.")
         return value
 
-    @validates("rule_id")
-    def validate_rule_id(self, key, value):
-        if not value or not value.strip():
-            raise ValueError("Rule ID cannot be empty.")
-        if len(value) > 100:
-            raise ValueError("Rule ID cannot exceed 100 characters.")
-        return value
+    # @validates("rule_id")
+    # def validate_rule_id(self, key, value):
+    #     if not value or not value.strip():
+    #         raise ValueError("Rule ID cannot be empty.")
+    #     if len(value) > 100:
+    #         raise ValueError("Rule ID cannot exceed 100 characters.")
+    #     return value
 
     @validates("rule_version")
     def validate_rule_version(self, key, value):
