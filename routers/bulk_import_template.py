@@ -39,12 +39,12 @@ async def download_template(
     # Add related fields if `is_request` is true
     if metadata.get("is_request"):
         headers.extend([
-            "rms_request.organization",
-            "rms_request.sub_organization",
-            "rms_request.line_of_business",
-            "rms_request.team",
-            "rms_request.decision_engine",
-            "rms_request.effort"
+            "organization",
+            "sub_organization",
+            "line_of_business",
+            "team",
+            "decision_engine",
+            "effort"
         ])
 
     logger.info(f"Generated headers for template: {headers}")
