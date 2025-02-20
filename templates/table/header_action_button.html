@@ -159,20 +159,6 @@
             });
         });
 
-
-        // Row selection logic: toggle selected class on row click.
-        $("#dataTable tbody").on("click", "tr", function(event){
-            if (!$(event.target).hasClass("row-checkbox")) {
-                var checkbox = $(this).find(".row-checkbox");
-                checkbox.prop("checked", !checkbox.prop("checked"));
-                $(this).toggleClass("selected-row", checkbox.prop("checked"));
-            }
-        });
-        
-        $("#dataTable tbody").on("change", ".row-checkbox", function(){
-            $(this).closest("tr").toggleClass("selected-row", this.checked);
-        });
-        
         $.ajax({
         url: "/bulk-update-status",
         method: "POST",

@@ -253,30 +253,24 @@
             dataTableInstance.ajax.reload();
         }, 500));
 
-        $("#dataTable tbody").on("click", "tr", function (event) {
-            if (!$(event.target).hasClass('row-checkbox')) {
-                var checkbox = $(this).find('.row-checkbox');
-                checkbox.prop('checked', !checkbox.prop('checked'));
-                $(this).toggleClass('selected-row', checkbox.prop('checked'));
-            }
-        });
-
         // Enable row selection on click
         $('#dataTable tbody').on('click', 'tr', function (event) {
-            if (!$(event.target).hasClass('row-checkbox')) {
-                var checkbox = $(this).find('.row-checkbox');
-                checkbox.prop('checked', !checkbox.prop('checked'));
-                $(this).toggleClass('selected-row', checkbox.prop('checked'));
+
+            // Prevent row selection if clicking on an element inside a checkbox or a button group
+            if ($(event.target).closest('.row-checkbox, .btn-group, .dropdown-menu, .btn, .dropdown-toggle').length) {
+                return;
             }
+            var checkbox = $(this).find('.row-checkbox');
+            // Toggle the checkbox state
+            checkbox.prop('checked', !checkbox.prop('checked'));
+            // Toggle row selection styling
+            $(this).toggleClass('selected-row', checkbox.prop('checked'));
         });
+
 
         // Handle clicking the checkbox directly
         $('#dataTable tbody').on('change', '.row-checkbox', function () {
             $(this).closest('tr').toggleClass('selected-row', this.checked);
-        });
-
-        $("#dataTable tbody").on("change", ".row-checkbox", function () {
-            $(this).closest("tr").toggleClass("selected-row", this.checked);
         });
 
         $("#refreshTableBtn").on("click", function () {
