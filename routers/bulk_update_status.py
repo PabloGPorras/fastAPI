@@ -1,154 +1,64 @@
 from datetime import datetime
 import logging
-from typing import List
+from typing import List, Dict
 from fastapi import APIRouter, Depends, HTTPException, Body
-from sqlalchemy import func
+from sqlalchemy.orm import Session
 from core.get_db_session import get_db_session
 from core.get_current_user import get_current_user
-from models.request import RmsRequest
-from models.request_status import RmsRequestStatus
 from models.user import User
-from services.database_service import DatabaseService
-from sqlalchemy.orm import Session
+from services.workflow_service import WorkflowService
 
 router = APIRouter()
 
 @router.post("/bulk-update-status")
 def bulk_update_status(
-    ids: List[str] = Body(...),  # Accepts JSON list of unique_ref IDs
-    request_type: str = Body(...),  # Request type
-    next_status: str = Body(...),  # Status to update to
-    user: User = Depends(get_current_user),  # Authenticated user
-    session: Session = Depends(get_db_session),  # Injected session dependency
+    selected_rows: List[Dict] = Body(...),  # ✅ Ensure this is a list of dictionaries
+    request_type: str = Body(...),
+    next_status: str = Body(...),
+    user: User = Depends(get_current_user),
+    session: Session = Depends(get_db_session),
 ):
     logger = logging.getLogger("bulk_update_status")
     try:
         logger.info("Bulk status update request received.")
-        logger.debug(f"Request IDs: {ids}")
-        logger.debug(f"Request Type: {request_type}")
-        logger.debug(f"Next Status: {next_status}")
+        logger.debug(f"Selected Rows: {selected_rows}, Request Type: {request_type}, Next Status: {next_status}")
 
-        if not ids or not request_type or not next_status:
+        if not selected_rows or not request_type or not next_status:
             logger.error("Invalid input data.")
             raise HTTPException(status_code=400, detail="Invalid request data.")
 
-        # Step 1: Fetch the configuration for the request type
-        model_name = DatabaseService.get_model_by_request_type(request_type)
-        model = DatabaseService.get_model_by_tablename(model_name)
-        if not model or not hasattr(model, "request_status_config"):
-            logger.error(f"Model '{request_type}' not found or has no status configuration.")
-            raise HTTPException(
-                status_code=404, detail=f"Model '{request_type}' not found or has no status config."
-            )
-
-        request_status_config = model.request_status_config
+        # Get status configuration for the request type.
+        request_status_config = WorkflowService.get_request_status_config(request_type)
         logger.debug(f"Request status configuration: {request_status_config}")
 
-        # Step 2: Validate current status for all IDs and log each status
-        current_statuses = {}
-        for unique_ref in ids:
-            current_status_row = (
-                session.query(RmsRequestStatus.status)
-                .filter(RmsRequestStatus.unique_ref == unique_ref)
-                .order_by(RmsRequestStatus.timestamp.desc())
-                .first()
-            )
-            if current_status_row:
-                current_status = current_status_row[0]
-                current_statuses[unique_ref] = current_status
-                logger.debug(f"Request {unique_ref} current status: {current_status}")
-            else:
-                logger.warning(f"No status found for request {unique_ref}")
+        # Extract unique IDs and current statuses from selected rows
+        ids = [row.get("unique_ref") for row in selected_rows]
+        current_statuses = {row.get("unique_ref"): row.get("status") for row in selected_rows}  # ✅ Use `STATUS` column
 
-        # Ensure all requests share the same current status
-        unique_statuses = set(current_statuses.values())
-        if len(unique_statuses) > 1:
-            logger.error("Not all requests share the same current status.")
-            logger.debug(f"Mixed statuses detected: {current_statuses}")
-            raise HTTPException(
-                status_code=400,
-                detail="All requests must share the same current status. "
-                       f"Statuses: {unique_statuses}.",
-            )
+        logger.debug(f"Extracted IDs: {ids}")
+        logger.debug(f"Extracted Current Statuses: {current_statuses}")
 
-        current_status = unique_statuses.pop()
-        logger.debug(f"Validated single current status: {current_status}")
+        if not ids:
+            raise HTTPException(status_code=400, detail="No valid requests provided.")
 
-        # Step 3: Validate user roles
-        valid_roles = request_status_config.get(current_status, {}).get("Roles", [])
-        user_roles = set(user.roles.split(","))
+        # Determine if the user is the requester for all selected requests
+        is_requester = all(row.get("requester") == user.user_name for row in selected_rows)
+        logger.debug(f"Is requester: {is_requester}")
 
-        if not user_roles.intersection(valid_roles):
-            logger.warning(f"User '{user.user_name}' does not have required roles for {current_status}")
-            raise HTTPException(
-                status_code=403,
-                detail=(
-                    f"User does not have the required roles for status '{current_status}'. "
-                    f"Required roles: {valid_roles}."
-                ),
-            )
+        # Validate user roles for each request based on `STATUS`
+        for unique_ref, current_status in current_statuses.items():
+            if current_status is None:
+                logger.error(f"Missing STATUS for request {unique_ref}")
+                raise HTTPException(status_code=400, detail=f"Missing STATUS for request {unique_ref}")
 
-        # Step 4: Validate next status
-        valid_transitions = request_status_config.get(current_status, {}).get("Next", [])
-        if next_status not in valid_transitions:
-            logger.error(f"Invalid transition from {current_status} to {next_status}.")
-            raise HTTPException(
-                status_code=400,
-                detail=(
-                    f"Invalid transition from {current_status} to {next_status}. "
-                    f"Valid transitions: {valid_transitions}."
-                ),
-            )
+            WorkflowService.validate_user_roles(current_status, user.roles.split(","), request_status_config, is_requester)
 
-        # Step 5: Perform the update and log each update
-        updated_count = 0
-        for unique_ref, status in current_statuses.items():
-            request = session.query(RmsRequest).filter(RmsRequest.unique_ref == unique_ref).first()
+        # Validate that `next_status` is a valid transition for each request
+        for unique_ref, current_status in current_statuses.items():
+            WorkflowService.validate_next_status(current_status, next_status, request_status_config)
 
-            if not request:
-                logger.warning(f"Request with unique_ref {unique_ref} not found.")
-                continue
-
-            # Update RmsRequestStatus
-            new_status = RmsRequestStatus(
-                unique_ref=unique_ref, status=next_status, user_name=user.user_name
-            )
-            session.add(new_status)
-
-            # Update RmsRequest based on Status_Type of the current status
-            current_status_type = request_status_config.get(current_status, {}).get("Status_Type", [])
-            next_status_type = request_status_config.get(next_status, {}).get("Status_Type", [])
-            logger.debug(f"Request ID {unique_ref}, status_type: {current_status_type}, current_status: {current_status}")
-            
-            if "APPROVAL" in current_status_type:
-                request.approval_timestamp = func.current_timestamp()
-                request.approved = "Y"
-                request.approver = user.user_name
-                request.request_status = 'PENDING GOVERNANCE'
-            if "APPROVAL REJECTED" in next_status_type:
-                request.approval_timestamp = func.current_timestamp()
-                request.approved = "R"
-                request.approver = user.user_name
-                request.request_status = 'REJECTED'
-            if "GOVERNANCE" in current_status_type:
-                request.governed_timestamp = func.current_timestamp()
-                request.governed = "Y"
-                request.governed_by = user.user_name
-                request.request_status = 'DEPLOYMENT READY'
-            if "GOVERNANCE REJECTED" in next_status_type:
-                request.governed_timestamp = func.current_timestamp()
-                request.governed = "R"
-                request.governed_by = user.user_name
-                request.request_status = 'REJECTED'
-            if "COMPLETED" in next_status_type:
-                request.deployment_timestamp = func.current_timestamp()
-                request.deployed = "Y"
-                request.request_status = 'COMPLETED'
-
-            logger.info(f"Request ID {unique_ref} successfully updated to status {next_status}.")
-            updated_count += 1
-
-        session.commit()
+        # Perform the update
+        updated_count = WorkflowService.update_request_status(ids, current_status, next_status, user, session, request_status_config)
         logger.info(f"Bulk update completed. {updated_count} rows updated successfully.")
 
         return {

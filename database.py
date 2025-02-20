@@ -22,8 +22,6 @@ from env import DATABASE_NAME
 encoded_password = urllib.parse.quote_plus(DATABASE_PASSWORD)
 
 # Construct the database URL
-DATABASE_URL = f"postgresql://{DATABASE_USER}:{encoded_password}@{DATABASE_HOST}:{DATABASE_PORT}/{DATABASE_NAME}"
-DATABASE_URL = f"postgresql://postgres:[{DATABASE_PASSWORD}]@db.xwsenjbbbfqegmftnorm.supabase.co:5432/postgres"
 DATABASE_URL = f"postgresql://postgres.xwsenjbbbfqegmftnorm:{DATABASE_PASSWORD}@aws-0-us-west-1.pooler.supabase.com:5432/postgres"
 # Database setup
 # engine = create_engine("sqlite:///example.db")
@@ -115,3 +113,4 @@ def update_all_requesters(new_requester):
 
 if __name__ == "__main__":
     update_all_requesters("Ana")
+    # insert_user()

@@ -99,12 +99,18 @@ class RmsRequest(Base):
             raise ValueError(f"{key} must be one of {DECISION_ENGINE_LIST}")
         return value
 
-    @validates("approved", "governed", "deployed", "email_sent", "approval_sent")
+    @validates("approved", "governed")
+    def validate_yes_no_fields(self, key, value):
+        if value not in ["Y", "N","R"]:
+            raise ValueError(f"{key} must be 'Y' or 'N'")
+        return value
+
+    @validates("deployed", "email_sent", "approval_sent")
     def validate_yes_no_fields(self, key, value):
         if value not in ["Y", "N"]:
             raise ValueError(f"{key} must be 'Y' or 'N'")
         return value
-
+    
     @validates("request_status", "approver", "governed_by", "checked_out_by", "email_from", "email_to", "email_cc")
     def validate_non_empty_strings(self, key, value):
         if value is None or not isinstance(value, str):
