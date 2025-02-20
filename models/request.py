@@ -1,5 +1,5 @@
 import os
-from sqlalchemy import Column, String, func
+from sqlalchemy import Column, ForeignKey, String, func
 from sqlalchemy import Column, String, DateTime
 from sqlalchemy.orm import relationship, validates
 from core.id_method import id_method
@@ -11,11 +11,21 @@ from list_values import LINE_OF_BUSINESS_LIST
 from list_values import TEAM_LIST
 from list_values import DECISION_ENGINE_LIST
 
+
+class Group(Base):
+    __tablename__ = get_table_name("groups")
+    
+    group_id = Column(String, primary_key=True, default=id_method)  # ✅ Unique group IDs
+    performance_metric = relationship("PerformanceMetric", back_populates="group", uselist=False)  # One-to-One
+    requests = relationship("RmsRequest", back_populates="group")  # One-to-Many
+
+
+
 class RmsRequest(Base):
     __tablename__ = get_table_name("requests")
     frontend_table_name = "Requests"
     unique_ref = Column(String, primary_key=True, default=id_method)
-    group_id = Column(String, default=id_method)
+    group_id = Column(String, ForeignKey(f"{get_table_name('groups')}.group_id"), nullable=False)  # ✅ Correct Foreign Key
     request_type = Column(String,default="", info={"options": REQUEST_TYPE_LIST})
     request_status = Column(String, default="PENDING APPROVAL", info={"options": REQUEST_STATUS_LIST})
     requester = Column(String, default=os.getlogin().upper())
@@ -50,14 +60,8 @@ class RmsRequest(Base):
         primaryjoin="RmsRequest.unique_ref == RmsRequestStatus.unique_ref",
     )
     comments = relationship("Comment", back_populates="request", cascade="all, delete-orphan")
-    # One PerformanceMetric per group, but multiple requests can be in the group
-    performance_metrics = relationship(
-        "PerformanceMetric",
-        back_populates="requests",
-        foreign_keys="PerformanceMetric.group_id",
-        primaryjoin="RmsRequest.group_id == PerformanceMetric.group_id",
-        uselist=False,  # One PerformanceMetric per group
-    )
+    group = relationship("Group", back_populates="requests")
+
 
     @validates("effort")
     def validate_effort(self, key, value):

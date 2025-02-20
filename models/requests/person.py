@@ -13,7 +13,7 @@ class Person(Base):
     name = Column(String, info={"field_name": "First and Last Name", "search": True, "required": True, "forms": {"create-new": {"enabled": True}, "view-existing": {"enabled": False}}})
     age = Column(Integer, info={"required": True, "forms": {"create-new": {"enabled": True}, "view-existing": {"enabled": False}}})
     gender = Column(String, info={"options": ["Male", "Female", "Other"], "multi_select": True, "required": True, "forms": {"create-new": {"enabled": True}, "view-existing": {"enabled": False}}})
-    unique_ref = Column(String, ForeignKey(f"{get_table_name('requests')}.unique_ref"), nullable=False)
+    unique_ref = Column(String, ForeignKey(f"{get_table_name('requests')}.unique_ref"), nullable=False, unique=True)
     rms_request = relationship("RmsRequest", backref="persons")
     relatives = relationship("Relative", back_populates="person", cascade="all, delete-orphan", info={"predefined_options": False})
     is_request = True

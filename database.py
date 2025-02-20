@@ -3,19 +3,38 @@ import logging
 import sys
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
+import urllib
 from core.id_method import id_method
 from core.get_table_name import Base
 from core.current_timestamp import get_current_timestamp
 from sqlalchemy.orm import Session
 from env import ENVIRONMENT
 
+
+from env import ENVIRONMENT
+from env import DATABASE_USER
+from env import DATABASE_PASSWORD
+from env import DATABASE_HOST
+from env import DATABASE_PORT
+from env import DATABASE_NAME
+
+# URL Encode the password to prevent special character issues
+encoded_password = urllib.parse.quote_plus(DATABASE_PASSWORD)
+
+# Construct the database URL
+DATABASE_URL = f"postgresql://{DATABASE_USER}:{encoded_password}@{DATABASE_HOST}:{DATABASE_PORT}/{DATABASE_NAME}"
+DATABASE_URL = f"postgresql://postgres:[{DATABASE_PASSWORD}]@db.xwsenjbbbfqegmftnorm.supabase.co:5432/postgres"
+DATABASE_URL = f"postgresql://postgres.xwsenjbbbfqegmftnorm:{DATABASE_PASSWORD}@aws-0-us-west-1.pooler.supabase.com:5432/postgres"
 # Database setup
-engine = create_engine("sqlite:///example.db")
-SessionLocal = sessionmaker(autocommit=False, autoflush=True, bind=engine)
+# engine = create_engine("sqlite:///example.db")
+engine = create_engine(DATABASE_URL, pool_size=10, max_overflow=20)
+
+SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 
 
 
+import env
 from models.user import User
 from models.user_preference import UserPreference
 from models.comment import Comment
