@@ -9,6 +9,13 @@ from core.current_timestamp import get_current_timestamp
 from sqlalchemy.orm import Session
 from env import ENVIRONMENT
 
+# Database setup
+engine = create_engine("sqlite:///example.db")
+SessionLocal = sessionmaker(autocommit=False, autoflush=True, bind=engine)
+
+
+
+
 from models.user import User
 from models.user_preference import UserPreference
 from models.comment import Comment
@@ -22,9 +29,7 @@ from models.performance_metric import PerformanceMetric
 
 
 
-# Database setup
-engine = create_engine("sqlite:///example.db")
-SessionLocal = sessionmaker(autocommit=False, autoflush=True, bind=engine)
+
 Base.metadata.create_all(engine)
 
 # Configure logging
@@ -38,8 +43,6 @@ logging.basicConfig(
 )
 
 logger = logging.getLogger(__name__)
-
-
 
 # Create a new user
 def insert_user():

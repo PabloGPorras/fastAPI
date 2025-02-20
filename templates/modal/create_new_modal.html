@@ -26,7 +26,7 @@
 
             <!-- Message containers (optional) -->
             <div id="error-container" class="alert alert-danger" style="display:none;"></div>
-            <div id="success-container" class="alert alert-success" style="display:none; margin-top:20px;"></div>
+            {% include "table/success_message.html" %}
 
             <div class="modal-footer">
               <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
@@ -71,11 +71,7 @@
                 console.log("[Fetch] Request successful. Refreshing DataTable...");
 
                 // Show success message
-                const successContainer = document.getElementById("success-container");
-                if (successContainer) {
-                    successContainer.textContent = "Request created successfully.";
-                    successContainer.style.display = "block";
-                }
+                showSuccessMessage("Request created successfully!", 5);
 
                 // ✅ Refresh DataTable instead of manually fetching data
                 refreshTable();

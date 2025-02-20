@@ -1,0 +1,28 @@
+<div id="success-container" class="alert alert-success" style="display:none; margin-top:20px;"></div>
+<script>
+    function showSuccessMessage(message, duration = 3) {
+        let successContainer = document.getElementById("success-container");
+
+        if (!successContainer) {
+            // If the success container doesn't exist, create it dynamically
+            successContainer = document.createElement("div");
+            successContainer.id = "success-container";
+            successContainer.className = "alert alert-success";
+            successContainer.style.display = "none";
+            successContainer.style.marginTop = "20px";
+            document.body.appendChild(successContainer); // Append to the correct place
+        }
+
+        // Set the message and show the container
+        successContainer.textContent = message;
+        successContainer.style.display = "block";
+
+        // Hide the message after `duration` seconds
+        if (duration > 0) {
+            setTimeout(() => {
+                successContainer.style.display = "none";
+            }, duration * 1000);
+        }
+    }
+
+</script>
