@@ -40,26 +40,33 @@ async def bulk_import(
 
         # Get expected headers from model metadata
         metadata = DatabaseService.gather_model_metadata(model, session=session, form_name="create-new")
-        expected_headers = [col["name"] for col in metadata["columns"]]
 
-        if metadata["is_request"]:
+        # Prepare expected headers
+        expected_headers = []
+
+        # Include visible fields from the model
+        for column in metadata["form_fields"]:
+            expected_headers.append(column["name"])
+
+        # Add related fields if `is_request` is true
+        if metadata.get("is_request"):
             expected_headers.extend([
                 "organization",
                 "sub_organization",
                 "line_of_business",
                 "team",
                 "decision_engine",
-                "effort"    
-
+                "effort"
             ])
+
 
         # Validate CSV headers
         file_headers = csv_reader.fieldnames
-        if not file_headers or any(header not in expected_headers for header in file_headers):
+        if not file_headers or not all(header in file_headers for header in expected_headers):
             raise HTTPException(
                 status_code=400,
-                detail=f"Invalid CSV headers. Expected headers: {', '.join(expected_headers)}",
-            )
+                detail=f"Invalid CSV headers. Expected headers: {', '.join(expected_headers)}, but received: {', '.join(file_headers)}",
+        )
 
         logger.debug(f"CSV headers found in uploaded file: {file_headers}")
 
