@@ -4,7 +4,6 @@ from sqlalchemy.orm import Session
 from core.get_db_session import get_db_session
 from core.get_current_user import get_current_user
 
-from models.user import User
 from database import logger
 from services.request_service import assign_group_id, create_main_object, create_rms_request, extract_form_object, extract_relationships, filter_and_clean_data, get_column_mappings, get_model, handle_relationships, process_form_data
 
@@ -15,7 +14,7 @@ router = APIRouter()
 async def create_new(
         model_name: str,
         request: Request,
-        user: User = Depends(get_current_user),
+        user = Depends(get_current_user),
         session: Session = Depends(get_db_session),
     ):
     """

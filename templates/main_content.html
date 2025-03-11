@@ -11,16 +11,16 @@
         <!-- Custom Search Input -->
         <input type="text" id="customSearchInput" class="form-control" placeholder="Search table..." style="width: 250px; display: inline-block; margin-left: 10px;">
         {% set model_name = model_name %}
-        {% include "table/header_action_button.html" with context %}
-        {% include "table/manage_columns_button.html" %}
-        {% include "table/filter_button.html" %}
+        {% include "header_action_button.html" with context %}
+        {% include "manage_columns_button.html" %}
+        {% include "filter_button.html" %}
 
 
 
     </div>
 
     <!-- Table -->
-    {% include "table/table.html" %}
+    {% include "table.html" %}
 
 
 <div id="viewExistingModalContainer"></div>

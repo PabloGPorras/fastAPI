@@ -42,7 +42,7 @@
                         aria-labelledby="details-tab">
                         <form id="detailsForm">
                             <!-- Predefined Fields for "is_request" Models -->
-                            {% include "modal/form_fields.html" %}
+                            {% include "form_fields.html" %}
 
                             <div class="modal-footer">
                                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
@@ -51,10 +51,10 @@
                     </div>
 
                     <!-- Comments Tab -->
-                    {% include "modal/comments_form.html" %}
+                    {% include "comments_form.html" %}
 
                     <!-- Checklist Tab -->
-                    {% include "modal/check_list_form.html" %}
+                    {% include "check_list_form.html" %}
 
                 </div>
             </div>

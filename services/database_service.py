@@ -8,7 +8,7 @@ from sqlalchemy.orm import aliased
 from database import Base
 from list_values import REQUEST_EXTRA_COLUMNS
 from models.request import RmsRequest
-from models.request_status import RmsRequestStatus
+from features.status.models.request_status import RmsRequestStatus
 from typing import Optional, Dict, Any, List, Tuple
 
 logger = logging.getLogger(__name__)

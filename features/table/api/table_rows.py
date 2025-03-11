@@ -9,7 +9,7 @@ import json
 from core.get_db_session import get_db_session
 from list_values import REQUEST_EXTRA_COLUMNS
 from models.request import RmsRequest
-from models.request_status import RmsRequestStatus
+from features.status.models.request_status import RmsRequestStatus
 from services.database_service import DatabaseService
 
 router = APIRouter()

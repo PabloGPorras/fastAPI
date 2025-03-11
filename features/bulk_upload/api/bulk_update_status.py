@@ -5,7 +5,6 @@ from fastapi import APIRouter, Depends, HTTPException, Body
 from sqlalchemy.orm import Session
 from core.get_db_session import get_db_session
 from core.get_current_user import get_current_user
-from models.user import User
 from services.workflow_service import WorkflowService
 
 router = APIRouter()
@@ -15,7 +14,7 @@ def bulk_update_status(
     selected_rows: List[Dict] = Body(...),  # ✅ Ensure this is a list of dictionaries
     request_type: str = Body(...),
     next_status: str = Body(...),
-    user: User = Depends(get_current_user),
+    user = Depends(get_current_user),
     session: Session = Depends(get_db_session),
 ):
     logger = logging.getLogger("bulk_update_status")

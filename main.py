@@ -1,23 +1,23 @@
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 # Import routers
-from routers.bulk_import import router as bulk_import_router
-from routers.bulk_import_template import router as bulk_import_template
-from routers.bulk_update_status import router as bulk_update_status_router
-from routers.comments import router as comments_router
-from routers.create_new import router as create_new_router
-from routers.current_user import router as current_user_router
-from routers.get_view_existing_form import router as get_details_router
-from routers.get_create_new_form import router as get_create_new_form_router
-from routers.status_transitions import router as status_transitions_router
-from routers.table import router as table_router
+from features.bulk_upload.api.bulk_import import router as bulk_import_router
+from features.bulk_upload.api.bulk_import_template import router as bulk_import_template
+from features.bulk_upload.api.bulk_update_status import router as bulk_update_status_router
+from features.comments.api.comments import router as comments_router
+from features.request_form.api.create_new import router as create_new_router
+from features.users.api.current_user import router as current_user_router
+from features.request_form.api.get_view_existing_form import router as get_details_router
+from features.request_form.api.get_create_new_form import router as get_create_new_form_router
+from features.status.api.status_transitions import router as status_transitions_router
+from features.table.api.table import router as table_router
 from routers.update_row import router as update_row_router
 from routers.update_checklist import router as update_checklist_router
-from routers.user_preferences import router as user_preferences_router
+from features.users.api.user_preferences import router as user_preferences_router
 from routers.search_request import router as search_request_router
 from routers.check_estimation_log import router as check_estimation_log_router
-from routers.table_rows import router as table_rows_router
-from routers.performance_metric import router as performance_metric_router
+from features.table.api.table_rows import router as table_rows_router
+from features.performance_metrics.api.performance_metric import router as performance_metric_router
 
 app = FastAPI()
 app.add_middleware(

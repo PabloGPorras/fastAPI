@@ -1,7 +1,6 @@
 from datetime import datetime
-from zoneinfo import ZoneInfo
-
-USER_TIMEZONE = ZoneInfo("America/Chicago")
+import pytz
 
 def get_current_timestamp():
-    return datetime.now(USER_TIMEZONE)
+    tz = pytz.timezone("US/Central")
+    return datetime.now(tz)

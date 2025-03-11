@@ -1,13 +1,12 @@
 from fastapi import APIRouter, Depends, HTTPException
 from core.get_current_user import get_current_user
 from database import logger
-from models.user import User
 
 router = APIRouter()
 
 
 @router.get("/current-user", response_model=dict)
-async def get_current_user_info(user: User = Depends(get_current_user)):
+async def get_current_user_info(user = Depends(get_current_user)):
     """
     Fetch the currently logged-in user's information with parsed CSV fields.
     """

@@ -65,9 +65,9 @@
 {% endif %}
 
 <!-- Auto Search Fields -->
-{% include "modal/field_search.html" %}
+{% include "field_search.html" %}
 <!-- Auto Generate Model Fields -->
-{% from 'modal/fields.html' import render_fields %}
+{% from 'fields.html' import render_fields %}
 {{ render_fields(form_fields, item_data, form_name,metadata,relationship_data) }}
 
 <script>

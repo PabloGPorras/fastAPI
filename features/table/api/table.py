@@ -2,9 +2,8 @@ from fastapi import APIRouter, Depends, HTTPException, Request, Response
 from core.get_db_session import get_db_session
 from core.templates import templates
 from services.database_service import DatabaseService
-from models.user import User
 from models.request import RmsRequest
-from models.request_status import RmsRequestStatus
+from features.status.models.request_status import RmsRequestStatus
 from core.get_current_user import get_current_user
 from database import logger
 from fastapi import status
@@ -16,7 +15,7 @@ router = APIRouter()
 async def get_table(
     model_name: str,
     request: Request,
-    user: User = Depends(get_current_user),
+    user = Depends(get_current_user),
     session: Session = Depends(get_db_session),
 ):
     # Restrict access for certain models

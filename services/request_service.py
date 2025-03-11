@@ -3,7 +3,7 @@ from fastapi import HTTPException
 from sqlalchemy import inspect
 from core.id_method import id_method
 from models.request import RmsRequest
-from models.request_status import RmsRequestStatus
+from features.status.models.request_status import RmsRequestStatus
 from services.database_service import DatabaseService
 
 # --------------- Helper Methods ---------------

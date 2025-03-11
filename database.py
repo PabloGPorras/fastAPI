@@ -30,21 +30,16 @@ engine = create_engine(DATABASE_URL, pool_size=10, max_overflow=20)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 
-
-
 import env
-from models.user import User
-from models.user_preference import UserPreference
-from models.comment import Comment
+from features.users.models.user import User
+from features.users.models.user_preference import UserPreference
+from features.comments.model.comment import Comment
 from models.request import RmsRequest
-from models.request_status import RmsRequestStatus
+from features.status.models.request_status import RmsRequestStatus
 from models.requests.person import Person
 from models.requests.rule_config_request import RuleConfigRequest
 from models.requests.rule_request import RuleRequest
-from models.performance_metric import PerformanceMetric
-
-
-
+from features.performance_metrics.models.performance_metric import PerformanceMetric
 
 
 Base.metadata.create_all(engine)

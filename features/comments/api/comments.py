@@ -5,9 +5,8 @@ from core.templates import templates
 from core.get_current_user import get_current_user
 from database import logger
 from sqlalchemy.orm import Session
-from models.comment import Comment
+from features.comments.model.comment import Comment
 from models.request import RmsRequest
-from models.user import User
 
 router = APIRouter()
 
@@ -44,7 +43,7 @@ async def add_comment(
     request: Request,  # Add Request as a parameter
     unique_ref: str,
     comment_text: str = Form(...),
-    user: User = Depends(get_current_user),
+    user = Depends(get_current_user),
     session: Session = Depends(get_db_session),  # Injected session dependency
 ):
     logger.debug(f"Starting add_comment endpoint for unique_ref: {unique_ref}")

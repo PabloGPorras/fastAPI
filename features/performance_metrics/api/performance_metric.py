@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, Request
 from fastapi.responses import HTMLResponse
 from core.templates import templates
 from core.get_db_session import get_db_session
-from models.performance_metric import PerformanceMetric
+from ..models.performance_metric import PerformanceMetric
 from sqlalchemy.orm import Session
 import csv
 import io

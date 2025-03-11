@@ -20,13 +20,13 @@
           <!-- Note: Remove hx- attributes -->
           <form id="detailsForm2" action="/create-new/{{ model_name }}" method="POST">
             <!-- Predefined form fields (insert your fields here or via your include) -->
-            {% include "modal/form_fields.html" %}
+            {% include "form_fields.html" %}
             <!-- Hidden field for relationships data -->
             <input type="hidden" id="relationshipsInput" name="relationships" value="{}" />
 
             <!-- Message containers (optional) -->
             <div id="error-container" class="alert alert-danger" style="display:none;"></div>
-            {% include "table/success_message.html" %}
+            {% include "success_message.html" %}
 
             <div class="modal-footer">
               <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>

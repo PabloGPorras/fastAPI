@@ -2,11 +2,9 @@ from fastapi import APIRouter, Depends, Form, HTTPException, Request
 from fastapi.responses import HTMLResponse
 from sqlalchemy import inspect
 from core.get_db_session import get_db_session
-from core.get_current_user import get_current_user
-from models.user import User
 from models.request import RmsRequest
-from models.comment import Comment
-from models.request_status import RmsRequestStatus
+from features.comments.model.comment import Comment
+from features.status.models.request_status import RmsRequestStatus
 from services.database_service import DatabaseService
 from core.templates import templates
 from database import logger

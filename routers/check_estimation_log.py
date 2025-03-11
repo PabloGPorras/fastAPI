@@ -8,7 +8,6 @@ from core import templates
 from core.get_db_session import get_db_session
 from core.get_current_user import get_current_user  # For log parsing
 from database import logger
-from models.user import User
 
 router = APIRouter()
 
@@ -52,7 +51,7 @@ async def automate_checks(
     request: Request,
     automation_data: str = Form(...),
     session: Session = Depends(get_db_session),
-    user: User = Depends(get_current_user)
+    user = Depends(get_current_user)
 ):
     """
     This endpoint automates checklist updates based on the provided automation data.

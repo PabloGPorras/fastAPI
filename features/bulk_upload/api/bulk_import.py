@@ -6,7 +6,6 @@ from sqlalchemy.orm import Session
 from core.get_db_session import get_db_session
 from core.get_current_user import get_current_user
 from database import logger
-from models.user import User
 from services.database_service import DatabaseService
 from services.request_service import assign_group_id, create_rms_request, filter_and_clean_data, get_column_mappings, get_model
 
@@ -17,7 +16,7 @@ router = APIRouter()
 async def bulk_import(
     file: UploadFile,
     model_name: str = Form(...),
-    user: User = Depends(get_current_user),
+    user = Depends(get_current_user),
     session: Session = Depends(get_db_session),
 ):
     """

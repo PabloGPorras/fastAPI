@@ -4,7 +4,6 @@ from sqlalchemy import inspect
 from core.get_db_session import get_db_session
 from core.templates import templates
 from models.request import RmsRequest
-from models.user import User
 from services.database_service import DatabaseService
 from core.get_current_user import get_current_user
 from database import logger, SessionLocal
@@ -16,7 +15,7 @@ router = APIRouter()
 async def get_details(
     request: Request,
     model_name: str = Form(...),  # The name of the model to fetch details for
-    user: User = Depends(get_current_user),  # Injected current user
+    user = Depends(get_current_user),  # Injected current user
     session: Session = Depends(get_db_session),  # Injected session dependency
 ):
     try:

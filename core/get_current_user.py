@@ -9,8 +9,8 @@ from core.current_timestamp import get_current_timestamp
 from database import logger
 from sqlalchemy.orm import Session
 
-from models.user import User
-from models.user_preference import UserPreference
+from features.users.models.user import User
+from features.users.models.user_preference import UserPreference
 
 
 def get_current_user(session: Session = Depends(get_db_session)) -> User:
