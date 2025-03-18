@@ -6,14 +6,31 @@
     {% if has_search %}
     <br>
     <div class="d-flex align-items-center gap-2">
-        <input type="text" class="form-control search-box" id="{{ field.name }}-search"
+        <!-- <input type="text" class="form-control search-box" id="{{ field.name }}-search"
             list="{{ field.name }}-suggestions" placeholder="Search {{ field.name|capitalize }}..."
-            data-field-id="{{ field.name }}" data-model-name="{{ model_name }}">
-        <datalist id="{{ field.name }}-suggestions"></datalist>
+            data-field-id="{{ field.name }}" data-model-name="{{ model_name }}"> -->
+            <input type="text"  
+            class="form-control search-box" placeholder="Search {{ field.name|capitalize }}..."
+            id="{{ field.name }}-search"
+            name="query"
+            hx-get="/suggestions/{{ model_name }}/{{ field.name }}" 
+            hx-trigger="input changed delay:200ms" 
+            hx-target="#{{ field.name }}-suggestions"
+            hx-indicator=".htmx-indicator"
+            list="{{ field.name }}-suggestions">
+
+
+
         <button type="button" class="btn btn-primary search-btn" data-field-id="{{ field.name }}"
             data-model-name="{{ model_name }}">
             Search
         </button>
+
+
+        <datalist id="{{ field.name }}-suggestions"></datalist>
+        <!-- Optional loading indicator -->
+        <div class="htmx-indicator">Loading...</div>
+        
         <div class="form-check d-flex align-items-center m-0">
             <input type="checkbox" class="form-check-input me-1" id="{{ field.name }}-toggle"
                 data-field-id="{{ field.name }}">
@@ -89,35 +106,4 @@
     });
 
 
-    document.querySelectorAll(".search-box").forEach((searchBox) => {
-        searchBox.addEventListener("input", async function () {
-            const fieldId = this.dataset.fieldId;
-            const modelName = this.dataset.modelName;
-            const query = this.value;
-
-            if (query.length < 1) return; // Skip empty input
-
-            try {
-                const url = `/suggestions/${modelName}/${fieldId}?query=${encodeURIComponent(query)}`;
-                const response = await fetch(url);
-                if (!response.ok) throw new Error("Error fetching suggestions");
-
-                const data = await response.json();
-
-                // Populate datalist with suggestions
-                const datalist = document.getElementById(`${fieldId}-suggestions`);
-                datalist.innerHTML = ""; // Clear previous suggestions
-
-                if (data.suggestions) {
-                    data.suggestions.forEach((suggestion) => {
-                        const option = document.createElement("option");
-                        option.value = suggestion;
-                        datalist.appendChild(option);
-                    });
-                }
-            } catch (error) {
-                console.error("Error fetching suggestions:", error);
-            }
-        });
-    });
 </script>

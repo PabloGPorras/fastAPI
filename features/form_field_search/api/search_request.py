@@ -1,5 +1,6 @@
 from typing import Optional
 from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi.responses import HTMLResponse
 from sqlalchemy import inspect
 from core.get_db_session import get_db_session
 from core.get_current_user import get_current_user
@@ -87,14 +88,13 @@ async def search_field(
         raise HTTPException(status_code=500, detail="An internal server error occurred.")
 
 
-@router.get("/suggestions/{model_name}/{field_name}", response_model=dict)
+@router.get("/suggestions/{model_name}/{field_name}", response_class=HTMLResponse)
 async def get_suggestions(
     model_name: str,
     field_name: str,
     query: str = Query(..., min_length=1),
-    limit: int = Query(10),  # Limit the number of suggestions returned
-    session: Session = Depends(get_db_session),  # Injected session dependency
-
+    limit: int = Query(10),
+    session: Session = Depends(get_db_session),
 ):
     """
     Provide autocomplete suggestions for a given field and model.
@@ -102,32 +102,30 @@ async def get_suggestions(
     try:
         logger.info(f"Fetching suggestions for model '{model_name}', field '{field_name}', query '{query}'")
 
-        # Resolve the underlying model
         model = DatabaseService.get_model_by_tablename(model_name)
         if not model:
             raise HTTPException(status_code=404, detail=f"Model '{model_name}' not found")
 
-        # Validate the field exists in the model
         if not hasattr(model, field_name):
             raise HTTPException(status_code=400, detail=f"Field '{field_name}' not found in model '{model_name}'.")
 
-        # Get the column object for the field
         field_column = getattr(model, field_name)
 
-        # Query distinct values that match the query
         suggestions = (
             session.query(field_column)
             .distinct()
-            .filter(field_column.ilike(f"%{query}%"))  # Case-insensitive match
+            .filter(field_column.ilike(f"%{query}%"))
             .limit(limit)
             .all()
         )
 
-        # Extract suggestions into a flat list
         suggestions_list = [value[0] for value in suggestions]
         logger.info(f"Suggestions found: {suggestions_list}")
 
-        return {"suggestions": suggestions_list}
+        # Generate HTML response for HTMX
+        suggestions_html = "".join(f'<option value="{s}"></option>' for s in suggestions_list)
+
+        return HTMLResponse(suggestions_html)
 
     except Exception as e:
         logger.exception("Error fetching suggestions:")

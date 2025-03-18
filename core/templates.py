@@ -7,8 +7,13 @@ template_dirs = [
     str(Path(__file__).parent / "../features/bulk_upload/components"),
     str(Path(__file__).parent / "../features/darkmode/components"),
     str(Path(__file__).parent / "../features/performance_metrics/components"),
-    str(Path(__file__).parent / "../features/request_form/components"),
+    str(Path(__file__).parent / "../features/form/components"),
+    str(Path(__file__).parent / "../features/form_comments/components"),
+    str(Path(__file__).parent / "../features/form_field_search/components"),
+    str(Path(__file__).parent / "../features/form_checklist/components"),
     str(Path(__file__).parent / "../features/table/components"),
+    str(Path(__file__).parent / "../features/table_filters/components"),
+    str(Path(__file__).parent / "../features/table_manage_columns/components"),
 ]
 
 # Initialize Jinja2Templates with multiple directories

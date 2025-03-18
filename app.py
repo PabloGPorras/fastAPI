@@ -7,6 +7,7 @@ from PyQt6.QtWebEngineCore import QWebEngineDownloadRequest
 from PyQt6.QtCore import QUrl
 import uvicorn
 from core.get_table_name import get_table_name
+from env import APP_PORT
 from main import app
 
 # 1) Custom QThread to run Uvicorn in a non-blocking way
@@ -17,7 +18,7 @@ class UvicornThread(QThread):
         """
         Start the FastAPI server asynchronously.
         """
-        config = uvicorn.Config(app, host="127.0.0.1", port=8000, log_level="info")
+        config = uvicorn.Config(app, host="127.0.0.1", port=APP_PORT, log_level="info")
         self.server = uvicorn.Server(config)
         self.server.run()
 
@@ -42,7 +43,7 @@ class MainWindow(QMainWindow):
         self.web_view = QWebEngineView()
 
         # Load the local FastAPI page
-        self.web_view.load(QUrl(f"http://127.0.0.1:8000/table/{get_table_name('requests')}"))
+        self.web_view.load(QUrl(f"http://127.0.0.1:{APP_PORT}/table/{get_table_name('requests')}"))
 
         # Connect the downloadRequested signal
         profile = self.web_view.page().profile()

@@ -33,7 +33,7 @@ SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 import env
 from features.users.models.user import User
 from features.users.models.user_preference import UserPreference
-from features.comments.model.comment import Comment
+from features.form_comments.model.comment import Comment
 from models.request import RmsRequest
 from features.status.models.request_status import RmsRequestStatus
 from models.requests.person import Person

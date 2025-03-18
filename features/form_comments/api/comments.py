@@ -5,7 +5,7 @@ from core.templates import templates
 from core.get_current_user import get_current_user
 from database import logger
 from sqlalchemy.orm import Session
-from features.comments.model.comment import Comment
+from features.form_comments.model.comment import Comment
 from models.request import RmsRequest
 
 router = APIRouter()

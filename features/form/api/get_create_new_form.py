@@ -81,7 +81,7 @@ async def get_details(
 
         }
 
-        return templates.TemplateResponse("modal/create_new_modal.html", context)
+        return templates.TemplateResponse("create_new_modal.html", context)
 
     except HTTPException as e:
         # Handle HTTPExceptions specifically

@@ -354,7 +354,7 @@ class DatabaseService:
 
 
     @staticmethod
-    def get_model_by_tablename(table_name: str):
+    def  get_model_by_tablename(table_name: str):
         for cls in Base.__subclasses__():
             if cls.__tablename__ == table_name.lower():
                 logger.info(f"Model found: {cls.__name__}")

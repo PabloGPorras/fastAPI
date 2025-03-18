@@ -3,7 +3,7 @@ from fastapi.responses import HTMLResponse
 from sqlalchemy import inspect
 from core.get_db_session import get_db_session
 from models.request import RmsRequest
-from features.comments.model.comment import Comment
+from features.form_comments.model.comment import Comment
 from features.status.models.request_status import RmsRequestStatus
 from services.database_service import DatabaseService
 from core.templates import templates
@@ -118,7 +118,7 @@ async def get_view_existing_form(
 
         # ✅ Return only the modal HTML (so it appends to <body>)
         return templates.TemplateResponse(
-            "modal/view_existing_modal.html",
+            "view_existing_modal.html",
             {
                 "request": request,
                 "metadata": metadata,
