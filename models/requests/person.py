@@ -10,16 +10,50 @@ class Person(Base):
     frontend_table_name = "Person"
     request_id = Column(String, primary_key=True, default=id_method)
     request_type = Column(String, default="PERSON_REQUEST", info={"options": ["PERSON_REQUEST"], "forms": {"create-new": {"enabled": True}, "view-existing": {"enabled": False}}})
-    name = Column(String, info={"field_name": "First and Last Name", "search": True, "required": True, "forms": {"create-new": {"enabled": True}, "view-existing": {"enabled": False}}})
-    age = Column(Integer, info={"required": True, "forms": {"create-new": {"enabled": True}, "view-existing": {"enabled": False}}})
+    name = Column(String, info={ "search": True, "required": True, "forms": {"create-new": {"enabled": True}, "view-existing": {"enabled": False}}})
+    age = Column(
+        Integer,
+        info={
+            "required": True,
+            "forms": {"create-new": {"enabled": True}, "view-existing": {"enabled": False}},
+            "visibility": [
+                {"field": "request_type", "show_if": ["PERSON_REQUEST"]},
+                {"field": "name", "show_if": ["Male", "Female"]}
+            ], 
+        },
+    )
     gender = Column(String, info={"options": ["Male", "Female", "Other"], "multi_select": True, "required": True, "forms": {"create-new": {"enabled": True}, "view-existing": {"enabled": False}}})
     unique_ref = Column(String, ForeignKey(f"{get_table_name('requests')}.unique_ref"), nullable=False, unique=True)
     rms_request = relationship("RmsRequest", backref="persons")
-    relatives = relationship("Relative", back_populates="person", cascade="all, delete-orphan", info={"predefined_options": False})
+    relatives = relationship("Relative", back_populates="person", cascade="all, delete-orphan")
     is_request = True
     request_menu_category = "DMP"
     request_status_config = RULE_WORKFLOW
-
+    form_config = {
+        "create-new": {
+            "enabled": True,
+            "fields": [
+                {"field": "request_type",  "options": ["PERSON_REQUEST"], "required": True},
+                {"field": "name", "field_name": "First and Last Name", "search": True, "required": True},
+                {"field": "age", "required": True},
+                {"field": "gender", "options": ["Male", "Female", "Other"], "multi_select": True,
+                    "visibility": [
+                        # {"field": "request_type", "show_if": ["PERSON_REQUEST"]},
+                        {"field": "name", "show_if": ["Paul"]}
+                    ],
+                 },
+            ]
+        },
+        "view-existing": {
+            "enabled": False,
+            "fields": [
+                {"field": "request_type"},
+                {"field": "name"},
+                {"field": "age"},
+                {"field": "gender"}
+            ]
+        }
+    }
     
 class Relative(Base):
     __tablename__ = get_table_name("relatives")

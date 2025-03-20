@@ -1,0 +1,35 @@
+<!-- Header Fields -->
+<div class="row g-3">
+    {% set request_fields = {
+        "organization": "Organization",
+        "sub_organization": "Sub Org",
+        "line_of_business": "LOB",
+        "team": "Team",
+        "decision_engine": "Decision Engine",
+        "effort": "Effort"
+    } %}
+    
+    {% for field_name, label in request_fields.items() %}
+        {% set field = request_columns | selectattr("name", "equalto", field_name) | first %}
+        
+        <div class="col-md-2">
+            {% if field %}
+                <label for="{{ field.name }}" class="form-label">{{ label }}</label>
+                <select class="form-select" id="{{ field.name }}" name="{{ field.name }}"
+                        {% if field.required %}required{% endif %}
+                        {% if not form_enabled %}disabled{% endif %}>
+                    <option value="">--Select--</option>
+                    {% for option in field.column_options or [] %}
+                        <option value="{{ option }}" {% if item_data[field.name] == option %}selected{% endif %}>
+                            {{ option }}
+                        </option>
+                    {% endfor %}
+                </select>
+            {% else %}
+                <!-- Debugging placeholder -->
+                <p style="color:red">Missing field: {{ field_name }}</p>
+            {% endif %}
+        </div>
+
+    {% endfor %}
+</div>

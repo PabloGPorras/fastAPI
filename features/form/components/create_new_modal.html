@@ -1,6 +1,6 @@
-<!-- Form and modal content -->
+<!-- Form and Modal Content -->
 <div class="container mt-3">
-  <!-- Modal (visible for testing) -->
+  <!-- Modal (for testing) -->
   <div class="modal fade show" id="createNewModal" style="display:block;" aria-modal="true">
     <div class="modal-dialog modal-lg">
       <div class="modal-content">
@@ -16,15 +16,44 @@
             </li>
           </ul>
 
-          <!-- Form (using plain JavaScript instead of HTMX) -->
-          <!-- Note: Remove hx- attributes -->
+          <!-- Main Form -->
           <form id="detailsForm2" action="/create-new/{{ model_name }}" method="POST">
-            <!-- Predefined form fields (insert your fields here or via your include) -->
-            {% include "form_fields.html" %}
-            <!-- Hidden field for relationships data -->
-            <input type="hidden" id="relationshipsInput" name="relationships" value="{}" />
 
-            <!-- Message containers (optional) -->
+            <!-- Container for Dynamic Header Fields -->
+            {% if is_request %}
+            <div id="form-header-container"
+                  hx-post="/get-form-header?&is_request={{ is_request }}&user_name={{ user.user_name }}&form_name={{ form_name }}"
+                  hx-trigger="revealed"
+                  hx-target="#form-header-container"
+                  hx-swap="innerHTML">
+              <p>Loading header fields...</p>
+            </div>
+            {% endif %}
+          
+
+            <!-- Predefined form fields / Search Fields -->
+            {% include "field_search.html" %}
+
+            <!-- Container for Dynamic Form Fields -->
+            <div id="form-fields-container"
+                hx-post="/get-form-fields?model_name={{ model_name }}&form_name={{ form_name }}"
+                hx-trigger="revealed"
+                hx-target="#form-fields-container"
+                hx-swap="innerHTML">
+              <p>Loading form fields...</p>
+            </div>
+       
+
+            <!-- Render Relationship Tables -->
+            <div id="relationship-subtable"
+                 hx-get="/get-relationship-subtable?model_name={{ model_name }}&form_name={{ form_name }}&unique_ref={{ unique_ref }}"
+                 hx-trigger="revealed"
+                 hx-target="#relationship-subtable"
+                 hx-swap="innerHTML">
+                <p>Loading subtable...</p>
+            </div>
+
+            <!-- Message Containers (optional) -->
             <div id="error-container" class="alert alert-danger" style="display:none;"></div>
             {% include "success_message.html" %}
 
@@ -38,6 +67,7 @@
     </div>
   </div>
 </div>
+
 <script>
 (function() {
     console.log("[Script] Script loaded.");

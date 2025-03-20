@@ -30,7 +30,7 @@ async def get_table_data(
     """Fetch paginated table data with filtering, ordering, and search."""
     try:
         body = await request.json()
-        print(f"📥 Received JSON Payload: {body}")  # Debugging
+        # print(f"📥 Received JSON Payload: {body}")  # Debugging
 
         draw = body.get("draw", 1)
         start = body.get("start", 0)

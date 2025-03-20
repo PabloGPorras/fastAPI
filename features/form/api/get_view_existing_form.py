@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Depends, Form, HTTPException, Request
 from fastapi.responses import HTMLResponse
 from sqlalchemy import inspect
+from core.get_current_user import get_current_user
 from core.get_db_session import get_db_session
 from models.request import RmsRequest
 from features.form_comments.model.comment import Comment
@@ -16,6 +17,8 @@ router = APIRouter()
 async def get_view_existing_form(
     request: Request,  
     session: Session = Depends(get_db_session),
+    user = Depends(get_current_user),  # Injected current user
+
 ):
     try:
         body = await request.json()  # ✅ Parse JSON request
@@ -69,52 +72,6 @@ async def get_view_existing_form(
             "unique_ref": unique_ref,
         })
 
-        # Fetch relationship data
-        relationships_data = {}
-        for relationship in inspect(model).relationships:
-            relationship_name = relationship.key
-
-            # Skip relationships to RmsRequest if necessary
-            if relationship.mapper.class_ == RmsRequest:
-                continue
-
-            related_records = getattr(item, relationship_name, [])
-            relationships_data[relationship_name] = [
-                {col.name: getattr(record, col.name, "") for col in relationship.mapper.class_.__table__.columns}
-                for record in related_records
-            ]
-
-        logger.debug(f"Fetched relationships data: {relationships_data}")
-
-        # Fetch comments
-        comments = session.query(Comment).filter(Comment.unique_ref == unique_ref).all()
-        serialized_comments = [
-            {
-                "type": "comment",
-                "text": comment.comment,
-                "user_name": comment.user_name,
-                "timestamp": comment.comment_timestamp,
-            }
-            for comment in comments
-        ]
-
-        # Fetch statuses
-        statuses = session.query(RmsRequestStatus).filter(RmsRequestStatus.unique_ref == unique_ref).all()
-        serialized_statuses = [
-            {
-                "type": "status",
-                "text": status.status,
-                "user_name": status.user_name,
-                "timestamp": status.timestamp,
-            }
-            for status in statuses
-        ]
-
-        # Combine and sort by timestamp
-        combined_entries = serialized_comments + serialized_statuses
-        combined_entries.sort(key=lambda x: x["timestamp"])  # Sort by timestamp
-
-        logger.debug(f"Combined and sorted entries: {combined_entries}")
 
         # ✅ Return only the modal HTML (so it appends to <body>)
         return templates.TemplateResponse(
@@ -122,23 +79,18 @@ async def get_view_existing_form(
             {
                 "request": request,
                 "metadata": metadata,
-                "form_fields": metadata.get("form_fields", []),
-                "relationships": metadata["relationships"],
-                "checklist_metadata": checklist_metadata,
-                "checklist_form_fields": checklist_metadata.get("form_fields", []),
-                "checklist_relationships": checklist_metadata["relationships"],
-                "relationship_data": relationships_data,
-                "predefined_options": metadata["predefined_options"],
                 "is_request": metadata["is_request"],
-                "item_data": item_data,
-                "entries": combined_entries,
+                # "item_data": item_data,
+                # "entries": combined_entries,
                 "model_name": model_name2,
                 "RmsRequest": RmsRequest,
                 "unique_ref": unique_ref,
-                "check_list": check_list,
+                # "check_list": check_list,
                 "form_name": 'view-existing',
                 "user_roles": user_roles,
                 "user_name": user_name,
+                "user": user,  # Pass the current user for any user-specific logic
+
             },
         )
     except Exception as e:

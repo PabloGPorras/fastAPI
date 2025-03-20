@@ -61,7 +61,11 @@ class RmsRequest(Base):
     )
     comments = relationship("Comment", back_populates="request", cascade="all, delete-orphan")
     group = relationship("Group", back_populates="requests")
-
+    form_config = {
+        "view-existing": {
+            "enabled": False,
+            }
+    }
 
     @validates("effort")
     def validate_effort(self, key, value):

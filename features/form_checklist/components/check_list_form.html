@@ -7,7 +7,7 @@
         <input type="hidden" name="unique_ref" value="{{ unique_ref }}">
 
         <!-- Dynamically Generated Fields -->
-        {% from 'modal/fields.html' import render_fields %}
+        {% from 'fields.html' import render_fields %}
         {{ render_fields(checklist_form_fields, item_data, 'check-list', metadata, relationship_data) }}
 
         <hr>
@@ -75,20 +75,20 @@
 {% endif %}
 
 <script>
-document.getElementById("updateChecklistButton").addEventListener("click", function () {
-    const checkboxes = document.querySelectorAll("#checklistForm .form-check-input");
-    const governanceData = {};
+// document.getElementById("updateChecklistButton").addEventListener("click", function () {
+//     const checkboxes = document.querySelectorAll("#checklistForm .form-check-input");
+//     const governanceData = {};
 
-    // Combine checkbox values into governanceData
-    checkboxes.forEach((checkbox) => {
-        const key = checkbox.getAttribute("data-governance-key");
-        governanceData[key] = checkbox.checked;
-    });
+//     // Combine checkbox values into governanceData
+//     checkboxes.forEach((checkbox) => {
+//         const key = checkbox.getAttribute("data-governance-key");
+//         governanceData[key] = checkbox.checked;
+//     });
 
-    // Update the hidden input value (if an element with id "governance" exists)
-    const governanceInput = document.getElementById("governance");
-    if (governanceInput) {
-        governanceInput.value = JSON.stringify(governanceData);
-    }
-});
+//     // Update the hidden input value (if an element with id "governance" exists)
+//     const governanceInput = document.getElementById("governance");
+//     if (governanceInput) {
+//         governanceInput.value = JSON.stringify(governanceData);
+//     }
+// });
 </script>

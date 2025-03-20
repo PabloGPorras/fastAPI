@@ -75,8 +75,40 @@
     }
 </style>
 
+<!-- Comments List -->
+<ul id="comments-list" class="list-group">
+    {% for entry in entries %}
+    <li class="comment-item {{ 'right' if entry.user_name == user_name else 'left' }}">
+        <div class="timestamp">{{ entry.timestamp.strftime('%Y-%m-%d %H:%M:%S') }}</div>
+        <div class="user-info">{{ entry.user_name }}</div>
+        <div class="entry-text">
+            {% if entry.type == 'comment' %}
+            Comment: {{ entry.text }}
+            {% elif entry.type == 'status' %}
+            Status changed to: {{ entry.text }}
+            {% endif %}
+        </div>
+    </li>
+    {% endfor %}
+</ul>
 
-<div class="tab-pane fade" id="comments-tab-pane" role="tabpanel" aria-labelledby="comments-tab">
+{% if not entries %}
+    <p>No comments available.</p>
+{% endif %}
+
+<!-- Add Comment Form -->
+<form id="commentForm" class="d-flex gap-2 mt-3"
+      hx-post="/requests/{{ unique_ref }}/comments"
+      hx-target="#comments-container"
+      hx-swap="innerHTML">
+    <input type="text" name="comment_text" id="commentText" class="form-control" placeholder="Enter your comment" required>
+    <button type="submit" class="btn btn-primary">Add Comment  
+    </button>
+</form>
+
+
+
+<!-- <div class="tab-pane fade" id="comments-tab-pane" role="tabpanel" aria-labelledby="comments-tab">
     <h5>Comments</h5>
     <ul id="comments-list" class="list-group">
         {% for entry in entries %}
@@ -94,94 +126,93 @@
         {% endfor %}
     </ul>
     
-    <!-- Add Comment Form -->
     <form id="commentForm" class="d-flex gap-2 mt-3">
         <input type="text" name="comment_text" id="commentText" class="form-control" placeholder="Enter your comment" required>
         <button type="button" id="addCommentButton" class="btn btn-primary">Add Comment</button>
     </form>
     
-</div>
+</div> -->
 
 <script>
 
-    $(document).ready(function () {
-        $("#addCommentButton").on("click", function (e) {
-            e.preventDefault(); // Prevent default form submission
+    // $(document).ready(function () {
+    //     $("#addCommentButton").on("click", function (e) {
+    //         e.preventDefault(); // Prevent default form submission
 
-            let commentText = $("#commentText").val();
-            if (!commentText.trim()) {
-                alert("Please enter a comment.");
-                return;
-            }
+    //         let commentText = $("#commentText").val();
+    //         if (!commentText.trim()) {
+    //             alert("Please enter a comment.");
+    //             return;
+    //         }
 
-            $.ajax({
-                url: "/requests/{{ unique_ref }}/comments",
-                type: "POST",
-                data: { comment_text: commentText },
-                success: function (response) {
-                    // Append the new comment to the list
-                    $("#comments-list").append(response);
+    //         $.ajax({
+    //             url: "/requests/{{ unique_ref }}/comments",
+    //             type: "POST",
+    //             data: { comment_text: commentText },
+    //             success: function (response) {
+    //                 // Append the new comment to the list
+    //                 $("#comments-list").append(response);
 
-                    // Clear the input field
-                    $("#commentText").val("");
-                },
-                error: function (xhr, status, error) {
-                    console.error("Error adding comment:", error);
-                    alert("Failed to add comment. Please try again.");
-                }
-            });
-        });
-    });
+    //                 // Clear the input field
+    //                 $("#commentText").val("");
+    //             },
+    //             error: function (xhr, status, error) {
+    //                 console.error("Error adding comment:", error);
+    //                 alert("Failed to add comment. Please try again.");
+    //             }
+    //         });
+    //     });
+    // });
 
-    $(document).ready(async function () {
+    // $(document).ready(async function () {
 
 
-        // Load comments dynamically for the current item
-        async function loadComments(itemId) {
-            console.log(`Loading comments for item: ${itemId}`); // Log the function call
-            const $commentsList = $("#comments-list");
-            $commentsList.empty();
+    //     // Load comments dynamically for the current item
+    //     async function loadComments(itemId) {
+    //         console.log(`Loading comments for item: ${itemId}`); // Log the function call
+    //         const $commentsList = $("#comments-list");
+    //         $commentsList.empty();
 
-            try {
-                const response = await fetch(`/requests/${itemId}/comments`);
-                if (!response.ok) {
-                    throw new Error(`Failed to fetch comments. HTTP Status: ${response.status}`);
-                }
+    //         try {
+    //             const response = await fetch(`/requests/${itemId}/comments`);
+    //             if (!response.ok) {
+    //                 throw new Error(`Failed to fetch comments. HTTP Status: ${response.status}`);
+    //             }
 
-                const comments = await response.json();
-                console.log("Fetched comments:", comments); // Log fetched comments
+    //             const comments = await response.json();
+    //             console.log("Fetched comments:", comments); // Log fetched comments
 
-                if (comments.length === 0) {
-                    $commentsList.append('<div class="no-comments">No comments available.</div>');
-                    return;
-                }
+    //             if (comments.length === 0) {
+    //                 $commentsList.append('<div class="no-comments">No comments available.</div>');
+    //                 return;
+    //             }
 
-                comments.forEach((comment) => {
-                    const alignmentClass = comment.user_name === currentUserId ? "right" : "left";
-                    const commentItem = `
-            <div class="comment-item ${alignmentClass}">
-                <div class="timestamp">${new Date(comment.comment_timestamp).toLocaleString()}</div>
-                <div class="user-info">User: ${comment.user_name}</div>
-                <div class="comment-text">${comment.comment}</div>
-            </div>
-        `;
-                    $commentsList.append(commentItem);
-                });
-            } catch (error) {
-                console.error("Error loading comments:", error);
-                alert("Failed to load comments. Please try again.");
-            }
-        }
+    //             comments.forEach((comment) => {
+    //                 const alignmentClass = comment.user_name === currentUserId ? "right" : "left";
+    //                 const commentItem = `
+    //         <div class="comment-item ${alignmentClass}">
+    //             <div class="timestamp">${new Date(comment.comment_timestamp).toLocaleString()}</div>
+    //             <div class="user-info">User: ${comment.user_name}</div>
+    //             <div class="comment-text">${comment.comment}</div>
+    //         </div>
+    //     `;
+    //                 $commentsList.append(commentItem);
+    //             });
+    //         } catch (error) {
+    //             console.error("Error loading comments:", error);
+    //             alert("Failed to load comments. Please try again.");
+    //         }
+    //     }
 
-        $("#viewExistingModal").off("shown.bs.modal").on("shown.bs.modal", function () {
-            const itemId = $(this).attr("data-id");
-            console.log(`Modal shown for item: ${itemId}`); // Debugging log
-            if (itemId) {
-                loadComments(itemId);
-            }
-        });
+    //     $("#viewExistingModal").off("shown.bs.modal").on("shown.bs.modal", function () {
+    //         const itemId = $(this).attr("data-id");
+    //         console.log(`Modal shown for item: ${itemId}`); // Debugging log
+    //         if (itemId) {
+    //             loadComments(itemId);
+    //         }
+    //     });
 
-    });
+    // });
 
 
 </script>

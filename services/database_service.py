@@ -170,13 +170,6 @@ class DatabaseService:
         query = query.offset(start).limit(length)
         rows = query.all()
 
-        # Debug: Print shape of returned rows.
-        for i, row in enumerate(rows):
-            if not isinstance(row, tuple):
-                row_tuple = (row,)
-            else:
-                row_tuple = row
-            print(f"Row {i} tuple length: {len(row_tuple)}; values: {row_tuple}")
 
         # --- Convert rows (tuples) to dictionaries ---
         result = []
@@ -263,7 +256,7 @@ class DatabaseService:
         Returns:
             dict: A dictionary containing metadata (columns, form fields, relationships, etc.).
         """
-        logger.info(f"Fetching data for model: {model}")
+        # logger.info(f"Fetching data for model: {model}")
 
         # 1) Setup / prevent loops
         if not model:
@@ -289,7 +282,6 @@ class DatabaseService:
             "columns": [],
             "form_fields": [],
             "relationships": [],
-            "predefined_options": {},
             "is_request": getattr(model, "is_request", False),
             "request_menu_category": getattr(model, "request_menu_category", None),
             "frontend_table_name": getattr(model, "frontend_table_name", None),

@@ -41,8 +41,35 @@
                     <div class="tab-pane fade show active" id="details-tab-pane" role="tabpanel"
                         aria-labelledby="details-tab">
                         <form id="detailsForm">
-                            <!-- Predefined Fields for "is_request" Models -->
-                            {% include "form_fields.html" %}
+                            <!-- Container for Dynamic Header Fields -->
+                            {% if is_request %}
+                            <div id="form-header-container-view"
+                                hx-post="/get-form-header?&is_request={{ is_request }}&user_name={{ user.user_name }}&unique_ref={{ unique_ref }}&form_name={{ form_name }}"
+                                hx-trigger="revealed"
+                                hx-target="#form-header-container-view"
+                                hx-swap="innerHTML">
+                            <p>Loading header fields...</p>
+                            </div>
+                            {% endif %}
+
+                            
+                            <!-- Render the Main Form Fields -->
+                            <div id="form-fields-container-view"
+                                hx-post="/get-form-fields?model_name={{ model_name }}&form_name={{ form_name }}&unique_ref={{ unique_ref }}"
+                                hx-trigger="revealed"
+                                hx-target="#form-fields-container-view"
+                                hx-swap="innerHTML">
+                                <p>Loading form fields...</p>
+                            </div>
+
+                            <!-- Render the Relationship Tables -->
+                            <div id="relationship-subtable-view"
+                                hx-get="/get-relationship-subtable?model_name={{ model_name }}&form_name={{ form_name }}&unique_ref={{ unique_ref }}"
+                                hx-trigger="revealed"
+                                hx-target="#relationship-subtable-view"
+                                hx-swap="innerHTML">
+                                <p>Loading subtable...</p>
+                            </div>
 
                             <div class="modal-footer">
                                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
@@ -51,23 +78,26 @@
                     </div>
 
                     <!-- Comments Tab -->
-                    {% include "comments_form.html" %}
+                    <div id="comments-tab-pane" class="tab-pane fade" role="tabpanel" aria-labelledby="comments-tab">
+                        <h5>Comments</h5>
+
+                        <!-- HTMX Container for Loading Comments List + Form -->
+                        <div id="comments-container-view"
+                            hx-post="/requests/{{ unique_ref }}/comments/template"
+                            hx-trigger="revealed"
+                            hx-target="#comments-container-view"
+                            hx-swap="innerHTML">
+                            <p>Loading comments...</p>
+                        </div>
+                    </div>
 
                     <!-- Checklist Tab -->
-                    {% include "check_list_form.html" %}
 
                 </div>
             </div>
         </div>
     </div>
 </div>
-
-
-
-<script id="detailsForm" type="application/json">
-    {{ {"form_fields": form_fields, "relationships": relationships, "predefined_options": predefined_options} | tojson | safe }}
-</script>
-
 <script>
 
     $(document).ready(function () {

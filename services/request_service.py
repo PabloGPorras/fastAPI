@@ -48,15 +48,28 @@ def assign_group_id(data):
     data["group_id"] = group_id
     return group_id
 
+def map_display_names_to_actual(data, display_mapping):
+    """
+    Remap keys in `data` that match any display names in `display_mapping`
+    to their corresponding actual column names.
+    """
+    remapped = {}
+    for key, value in data.items():
+        # Use the actual column name if key is a display name, otherwise keep key
+        remapped_key = display_mapping.get(key, key)
+        remapped[remapped_key] = value
+    return remapped
 
 def get_column_mappings(model):
     """ Retrieve column mappings, allowed keys, and required columns for a model. """
     column_mappings = {col.name: col.name for col in inspect(model).columns}
-    allowed_display_names = {col.info["field_name"]: col.name for col in inspect(model).columns if "field_name" in (col.info or {})}
-    allowed_keys = set(column_mappings.keys()).union(allowed_display_names.keys(),
-        {"effort", "organization", "sub_organization", "line_of_business", "team", "decision_engine"})
+    # Remove allowed_display_names from allowed_keys so that only actual keys are used.
+    allowed_keys = set(column_mappings.keys()).union(
+        {"effort", "organization", "sub_organization", "line_of_business", "team", "decision_engine"}
+    )
     required_columns = {col.name for col in inspect(model).columns if not col.nullable}
     return column_mappings, allowed_keys, required_columns
+
 
 
 def filter_and_clean_data(data, allowed_keys, required_columns, column_mappings, model):

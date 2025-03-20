@@ -6,6 +6,7 @@ from core.get_current_user import get_current_user
 from database import logger
 from sqlalchemy.orm import Session
 from features.form_comments.model.comment import Comment
+from features.status.models.request_status import RmsRequestStatus
 from models.request import RmsRequest
 
 router = APIRouter()
@@ -37,18 +38,72 @@ def fetch_and_serialize_comments(
         for comment in comments
     ]
 
+@router.post("/requests/{unique_ref}/comments/template", response_class=HTMLResponse)
+async def get_comments_template(
+    request: Request,
+    unique_ref: str,
+    session: Session = Depends(get_db_session),
+    user = Depends(get_current_user),
+):
+    """
+    Fetch comments and statuses for a specific request and return as an HTML template.
+    """
+    try:
+        logger.debug(f"Fetching comments and statuses for unique_ref: {unique_ref}")
 
+        # Fetch comments
+        comments = session.query(Comment).filter(Comment.unique_ref == unique_ref).all()
+        serialized_comments = [
+            {
+                "type": "comment",
+                "text": comment.comment,
+                "user_name": comment.user_name,
+                "timestamp": comment.comment_timestamp,
+            }
+            for comment in comments
+        ]
+
+        # Fetch statuses
+        statuses = session.query(RmsRequestStatus).filter(RmsRequestStatus.unique_ref == unique_ref).all()
+        serialized_statuses = [
+            {
+                "type": "status",
+                "text": status.status,
+                "user_name": status.user_name,
+                "timestamp": status.timestamp,
+            }
+            for status in statuses
+        ]
+
+        # Combine and sort by timestamp
+        combined_entries = serialized_comments + serialized_statuses
+        combined_entries.sort(key=lambda x: x["timestamp"])
+
+
+        context = {
+            "request": request,
+            "entries": combined_entries,
+            "unique_ref": unique_ref,
+            "user_name": user.user_name  # Replace with session/user logic
+        }
+
+        return templates.TemplateResponse("comments_form.html", context)
+
+    except Exception as e:
+        logger.error(f"Error fetching comments template: {str(e)}", exc_info=True)
+        return HTMLResponse(f"Unexpected error: {str(e)}", status_code=500)
+    
+    
 @router.post("/requests/{unique_ref}/comments", response_class=HTMLResponse)
 async def add_comment(
-    request: Request,  # Add Request as a parameter
+    request: Request,
     unique_ref: str,
     comment_text: str = Form(...),
     user = Depends(get_current_user),
-    session: Session = Depends(get_db_session),  # Injected session dependency
+    session: Session = Depends(get_db_session)
 ):
     logger.debug(f"Starting add_comment endpoint for unique_ref: {unique_ref}")
     try:
-        # Log user information
         logger.info(f"User {user.user_name} is attempting to add a comment to unique_ref: {unique_ref}")
 
         # Check if the request exists
@@ -56,9 +111,6 @@ async def add_comment(
         if not rms_request:
             logger.warning(f"Request with unique_ref {unique_ref} not found")
             raise HTTPException(status_code=404, detail=f"Request with unique_ref {unique_ref} does not exist")
-
-        # Log the comment text
-        logger.debug(f"Received comment_text: {comment_text}")
 
         # Create a new comment
         new_comment = Comment(
@@ -69,19 +121,44 @@ async def add_comment(
         session.add(new_comment)
         session.commit()
 
-        # Log successful creation
-        logger.info(f"Comment added successfully by {user.user_name} for unique_ref: {unique_ref}")
-        logger.debug(f"Comment details: {new_comment}")
-
-        # Render only the new comment as an HTML fragment
-        return templates.TemplateResponse(
-            "modal/comment_item.html",
+        # Fetch updated comments
+        comments = session.query(Comment).filter(Comment.unique_ref == unique_ref).all()
+        serialized_comments = [
             {
-                "request": request,
-                "comment": new_comment,
-                "alignment_class": "right" if user.user_name == new_comment.user_name else "left",
-            },
-        )
+                "type": "comment",
+                "text": comment.comment,
+                "user_name": comment.user_name,
+                "timestamp": comment.comment_timestamp,
+            }
+            for comment in comments
+        ]
+
+        # Fetch statuses
+        statuses = session.query(RmsRequestStatus).filter(RmsRequestStatus.unique_ref == unique_ref).all()
+        serialized_statuses = [
+            {
+                "type": "status",
+                "text": status.status,
+                "user_name": status.user_name,
+                "timestamp": status.timestamp,
+            }
+            for status in statuses
+        ]
+
+        # Combine and sort by timestamp
+        combined_entries = serialized_comments + serialized_statuses
+        combined_entries.sort(key=lambda x: x["timestamp"])
+
+        context = {
+            "request": request,
+            "entries": combined_entries,
+            "unique_ref": unique_ref,
+            "user_name": user.user_name
+        }
+
+        # Return the full comments list + form template
+        return templates.TemplateResponse("comments_form.html", context)
+
     except HTTPException as http_exc:
         logger.error(f"HTTP Exception: {http_exc.detail}")
         raise http_exc
@@ -89,6 +166,7 @@ async def add_comment(
         logger.error(f"Failed to add comment for unique_ref {unique_ref}: {str(e)}", exc_info=True)
         session.rollback()
         raise HTTPException(status_code=500, detail="Failed to add comment")
+
 
 
 

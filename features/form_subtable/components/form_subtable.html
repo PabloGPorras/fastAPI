@@ -1,75 +1,5 @@
-{% macro render_fields(form_fields, item_data, form_name,metadata,relationship_data) %}
-<!-- Loop through form fields -->
- 
-{% for field in form_fields %}
-    {% set display_name = field.field_name if field.field_name else field.name %}
-<div class="mb-3 form-field" data-field-name="{{ display_name }}">
-    <label for="{{ display_name }}" class="form-label">
-        {{ display_name|capitalize }}{% if is_required %} *{% endif %}
-    </label>
-    {% set has_search = field.search %}
-    {% set is_required = field.required %}
-    {% set is_enabled = field.forms.get(form_name, {}).get('enabled', False) %}
-    {% set max_length = field.length %}
-
-    {% if field.multi_select %}
-    <select class="form-select" id="{{ display_name }}" name="{{ display_name }}[]" multiple 
-        {% if is_required %}required{% endif %} 
-        {% if not is_enabled %}disabled{% endif %}>
-        {% for option in field.column_options or [] %}
-        <option value="{{ option }}" {% if item_data[display_name] and option in item_data[display_name] %}selected{% endif %}>
-            {{ option }}
-        </option>
-        {% endfor %}
-    </select>
-    {% elif field.column_options %}
-    <select class="form-select" id="{{ display_name }}" name="{{ display_name }}" 
-        {% if is_required %}required{% endif %} 
-        {% if not is_enabled %}disabled{% endif %}>
-        {% for option in field.column_options %}
-        <option value="{{ option }}" {% if item_data[display_name] == option %}selected{% endif %}>
-            {{ option }}
-        </option>
-        {% endfor %}
-    </select>
-    {% elif "INTEGER" in field.type %}
-    <input type="number" class="form-control" id="{{ display_name }}" name="{{ display_name }}" 
-        value="{{ item_data[display_name] | default('') }}" 
-        {% if is_required %}required{% endif %} 
-        {% if not is_enabled %}disabled{% endif %} 
-        {% if max_length %}max="{{ max_length }}"{% endif %}>
-    {% elif "BOOLEAN" in field.type %}
-    <select class="form-select" id="{{ display_name }}" name="{{ display_name }}" 
-        {% if is_required %}required{% endif %} 
-        {% if not is_enabled %}disabled{% endif %}>
-        <option value="true" {% if item_data[display_name] == true %}selected{% endif %}>True</option>
-        <option value="false" {% if item_data[display_name] == false %}selected{% endif %}>False</option>
-    </select>
-    {% elif "DATETIME" in field.type %}
-    <input type="datetime-local" class="form-control" id="{{ display_name }}" name="{{ display_name }}" 
-    value="{{ item_data[display_name] | default('') }}" 
-    {% if is_required %}required{% endif %} 
-    {% if not is_enabled %}disabled{% endif %}>
-    {% elif "DATE" in field.type %}
-    <input type="date" class="form-control" id="{{ display_name }}" name="{{ display_name }}" 
-        value="{{ item_data[display_name] | default('') }}" 
-        {% if is_required %}required{% endif %} 
-        {% if not is_enabled %}disabled{% endif %}>
-    {% else %}
-    <textarea class="form-control resizable"
-    id="{{ display_name }}"
-    name="{{ display_name }}"
-    rows="1"
-    {% if is_required %}required{% endif %}
-    {% if not is_enabled %}disabled{% endif %}
-    {% if max_length %}maxlength="{{ max_length }}"{% endif %}>{{ item_data[display_name] | default('') }}</textarea>
-    {% endif %}
-</div>
-{% endfor %}
-
-<!-- Now handle relationships with the new structure -->
 {% for relationship in metadata.relationships %}
-<h5>Relationship: {{ relationship.name|capitalize }}</h5>
+<h5>{{ relationship.name|capitalize }}</h5>
 {% set nested = relationship.nested_metadata %}
 
 {% if nested.already_visited %}
@@ -89,7 +19,6 @@
             </tr>
         </thead>
         <tbody>
-            <!-- Populate with existing relationship data -->
             {% for row in relationship_data.get(relationship.name, []) %}
             <tr>
                 {% for field in nested.form_fields %}
@@ -111,7 +40,7 @@
             <tr>
                 {% for field in nested.form_fields %}
                     {% set display_name = field.field_name if field.field_name else field.name %}
-                    {% set is_required = field.required if field else False %}
+                    {% set is_required = field.required %}
                     {% set is_enabled = field.forms[form_name]['enabled'] if field and field.forms.get(form_name) else True %}
                     {% set max_length = field.length %}
                 <td>
@@ -123,6 +52,7 @@
                         <option value="{{ option }}">{{ option }}</option>
                         {% endfor %}
                     </select>
+
                     {% elif field.column_options %}
                     <select class="form-select add-field-input" data-field="{{ display_name }}" 
                         {% if is_required %}required{% endif %} 
@@ -132,11 +62,13 @@
                         <option value="{{ option }}">{{ option }}</option>
                         {% endfor %}
                     </select>
+
                     {% elif "INTEGER" in field.type %}
                     <input type="number" class="form-control add-field-input" data-field="{{ display_name }}" value="" 
                         {% if is_required %}required{% endif %} 
                         {% if not is_enabled %}disabled{% endif %} 
                         {% if max_length %}max="{{ max_length }}"{% endif %}>
+
                     {% elif "BOOLEAN" in field.type %}
                     <select class="form-select add-field-input" data-field="{{ display_name }}" 
                         {% if is_required %}required{% endif %} 
@@ -145,14 +77,17 @@
                         <option value="true">True</option>
                         <option value="false">False</option>
                     </select>
+
                     {% elif "DATETIME" in field.type %}
                     <input type="datetime-local" class="form-control add-field-input" data-field="{{ display_name }}" value="" 
                         {% if is_required %}required{% endif %} 
                         {% if not is_enabled %}disabled{% endif %}>
+
                     {% elif "DATE" in field.type %}
                     <input type="date" class="form-control add-field-input" data-field="{{ display_name }}" value="" 
                         {% if is_required %}required{% endif %} 
                         {% if not is_enabled %}disabled{% endif %}>
+
                     {% else %}
                     <textarea class="form-control resizable add-field-input" rows="1" data-field="{{ display_name }}" 
                         {% if is_required %}required{% endif %} 
@@ -173,23 +108,81 @@
 </div>
 {% endif %}
 {% endfor %}
-{% endmacro %}
 
+
+
+<!-- Hidden field for relationships data -->
+<input type="hidden" id="relationshipsInput" name="relationships" value="{}" />
 
 <script>
-    document.addEventListener("htmx:configRequest", function (event) {
-        const form = event.detail.elt.closest("form");
-        if (form) {
-            // Find all multi-select fields in the form
-            const multiSelectFields = form.querySelectorAll("select[multiple]");
-            multiSelectFields.forEach((select) => {
-                const name = select.name.replace("[]", ""); // Remove the "[]" for the name
-                const selectedValues = Array.from(select.selectedOptions).map(option => option.value);
-                if (selectedValues.length > 0) {
-                    // Add CSV to the request parameters
-                    event.detail.parameters[name] = selectedValues.join(",");
-                }
-            });
-        }
+// Prevent multiple declarations
+window.relationshipsData = window.relationshipsData || {};
+
+function updateRelationshipsInput() {
+  const relationshipsInput = document.getElementById("relationshipsInput");
+  relationshipsInput.value = JSON.stringify(window.relationshipsData);
+  console.log("Updated relationshipsInput:", relationshipsInput.value);
+}
+
+// Attach event listeners only once (avoid reattaching when HTMX reloads parts of the page)
+document.body.addEventListener("click", (event) => {
+  if (event.target.matches(".add-row-btn")) {
+    const relationshipName = event.target.dataset.relationship;
+    const table = event.target.closest("table");
+    const tbody = table.querySelector("tbody");
+
+    const rowInputs = table.querySelectorAll(".add-field-input");
+    const rowData = {};
+
+    rowInputs.forEach((input) => {
+      const fieldName = input.dataset.field;
+      rowData[fieldName] = input.value;
     });
-</script>
+
+    const isValid = Object.values(rowData).every((value) => value.trim() !== "");
+    if (!isValid) {
+      alert("Please fill in all fields before adding a row.");
+      return;
+    }
+
+    const newRow = document.createElement("tr");
+    for (const [colName, val] of Object.entries(rowData)) {
+      const td = document.createElement("td");
+      td.textContent = val;
+      newRow.appendChild(td);
+    }
+
+    const actionsTd = document.createElement("td");
+    actionsTd.innerHTML = `
+      <button type="button" class="btn btn-danger btn-sm remove-row-btn" data-relationship="${relationshipName}">
+        Remove
+      </button>
+    `;
+    newRow.appendChild(actionsTd);
+
+    tbody.appendChild(newRow);
+    rowInputs.forEach((i) => (i.value = ""));
+
+    if (!window.relationshipsData[relationshipName]) {
+      window.relationshipsData[relationshipName] = [];
+    }
+    window.relationshipsData[relationshipName].push(rowData);
+    updateRelationshipsInput();
+  }
+
+  if (event.target.matches(".remove-row-btn")) {
+    const relationshipName = event.target.dataset.relationship;
+    const row = event.target.closest("tr");
+    const rowIndex = Array.from(row.parentElement.children).indexOf(row);
+
+    if (window.relationshipsData[relationshipName]) {
+      window.relationshipsData[relationshipName].splice(rowIndex, 1);
+    }
+
+    row.remove();
+    updateRelationshipsInput();
+  }
+});
+
+  </script>
+  
