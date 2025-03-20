@@ -139,7 +139,17 @@ document.body.addEventListener("click", (event) => {
       rowData[fieldName] = input.value;
     });
 
-    const isValid = Object.values(rowData).every((value) => value.trim() !== "");
+    const isValid = Array.from(rowInputs).every((input) => {
+      if (input.tagName === "SELECT") {
+        return input.value !== ""; // Ensure dropdown is selected
+      } else if (input.type === "number") {
+        return input.value !== "" && !isNaN(input.value); // Ensure number field is valid
+      } else if (input.type === "checkbox" || input.type === "radio") {
+        return input.checked; // Ensure at least one checkbox/radio is checked
+      } else {
+        return input.value.trim() !== ""; // Ensure text fields are filled
+      }
+    });
     if (!isValid) {
       alert("Please fill in all fields before adding a row.");
       return;
