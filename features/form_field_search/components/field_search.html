@@ -2,7 +2,7 @@
 {% if form_name== 'create-new' %}
 {% for field in form_fields %}
 <div class="mb-3 form-field" data-field-name="{{ field.name }}">
-    {% set has_search = field.search %}
+    {% set has_search = field.search_config.enabled %}
     {% if has_search %}
     <br>
     <div class="d-flex align-items-center gap-2">
