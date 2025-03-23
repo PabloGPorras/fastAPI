@@ -312,7 +312,13 @@ class DatabaseService:
             column_info["field_name"] = column.info.get("field_name", None) if hasattr(column, "info") else None
             column_info["multi_select"] = column.info.get("multi_select", False) if hasattr(column, "info") else False
             column_info["required"] = column.info.get("required", False) if hasattr(column, "info") else False
-            column_info["search"] = column.info.get("search", False) if hasattr(column, "info") else False
+
+            # Extract search config metadata
+            search_config = column.info.get("search_config", {})
+            column_info["search_config"] = {
+                "enabled": search_config.get("enabled", False),
+                "predefined_conditions": search_config.get("predefined_conditions", [])
+            }
 
             # Check for "forms" key and its nested "enabled" property
             forms_info = column.info.get("forms", {}) if hasattr(column, "info") else {}
@@ -337,6 +343,14 @@ class DatabaseService:
                         "target_model": rel.mapper.class_.__name__,
                         "nested_metadata": {},
                     }
+
+                    # Extract search config for relationships
+                    search_config = rel.info.get("search_config", {})
+                    relationship_info["search_config"] = {
+                    "enabled": search_config.get("enabled", False),
+                    "predefined_conditions": search_config.get("predefined_conditions", [])
+                    }
+
                     if max_depth > 1:
                         related_model = rel.mapper.class_
                         nested_meta = DatabaseService.gather_model_metadata(

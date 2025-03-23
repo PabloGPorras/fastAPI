@@ -7,7 +7,7 @@
     <label for="{{ display_name }}" class="form-label">
         {{ display_name|capitalize }}{% if is_required %} *{% endif %}
     </label>
-    {% set has_search = field.search %}
+    {% set has_search = field.search_config.enabled %}
     {% set is_required = field.required %}
     {% set is_enabled = field.forms.get(form_name, {}).get('enabled', False) %}
     {% set max_length = field.length %}
