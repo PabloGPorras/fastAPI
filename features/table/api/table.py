@@ -41,13 +41,13 @@ async def get_table(
         if not model:
             logger.warning(f"Model '{model_name}' not found.")
             raise HTTPException(status_code=404, detail=f"Model not found: {model_name}")
-
+        has_edit_existing = "edit-existing" in getattr(model, "form_config", {})
         metadata = DatabaseService.gather_model_metadata(model, session)
         request_metadata = DatabaseService.gather_model_metadata(RmsRequest, session)
         request_status_metadata = DatabaseService.gather_model_metadata(RmsRequestStatus, session)
         request_status_config = getattr(model, "request_status_config", None)
         is_request = getattr(model, "is_request", False)
-
+        print("has_edit_existing:", has_edit_existing)
         # ✅ Parse filters from query parameters
         filters = {
             key[8:-1]: value  # Extract key name between 'filters[' and ']'
@@ -74,6 +74,7 @@ async def get_table(
                 "request_metadata": request_metadata,
                 "request_status_metadata": request_status_metadata,
                 "filters": filters,  # ✅ Pass filters to template
+                "has_edit_existing": has_edit_existing,
             },
         )
 

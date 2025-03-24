@@ -3,7 +3,7 @@ from sqlalchemy import Column, Integer, String, ForeignKey
 from sqlalchemy.orm import relationship
 from core.id_method import id_method
 from core.get_table_name import Base, get_table_name
-from core.workflows import RULE_WORKFLOW
+from core.workflows import MAIN_SASFM_WORKFLOW
 
 class RuleConfigRequest(Base):
     __tablename__ = get_table_name("rule_config")
@@ -16,4 +16,4 @@ class RuleConfigRequest(Base):
     rms_request = relationship("RmsRequest", backref="rule_config_request", info={"forms":{"create-new": {"enabled":True},"view-existing":{"enabled":False}}})
     is_request = True
     request_menu_category = "DMP"
-    request_status_config = RULE_WORKFLOW
+    request_status_config = MAIN_SASFM_WORKFLOW

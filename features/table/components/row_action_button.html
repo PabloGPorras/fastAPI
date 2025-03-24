@@ -7,12 +7,10 @@
 
         <!-- Button Group -->
         <div class="btn-group dropend" style="height: 100%; width: 40px;">
-            <!-- Primary Button with Bolt Icon -->
             <button type="button" class="btn btn-primary btn-sm dropdown-toggle" data-bs-toggle="dropdown"
                 aria-expanded="false" style="height: 100%; width: 100%;">
                 <i class="fas fa-bolt"></i>
             </button>
-            <!-- Dropdown Menu -->
             <ul class="dropdown-menu dropdown-menu-end">
                 <li>
                     <button type="button" class="dropdown-item text-primary view-btn">
@@ -24,13 +22,14 @@
                         <i class="fas fa-edit me-2"></i> Edit
                     </button>
                 </li>
-                <li">
+                <li>
                     {% include "perf_metrics_button.html" %}
-                    </li>
+                </li>
             </ul>
         </div>
     </div>
 </template>
+
 
 
 
@@ -40,35 +39,47 @@
 <script>
     function getActionsColumn() {
         return {
-            title: "", // Empty title for the actions column
-            data: null, // No direct data mapping, we use render
+            title: "",
+            data: null,
             orderable: false,
             searchable: false,
             className: "text-center",
             render: function (data, type, row) {
-                // Clone the template content
                 let template = document.getElementById("row-action-template");
                 let clone = template.content.cloneNode(true);
 
-                // Set the unique_ref value in the checkbox
                 let checkbox = clone.querySelector(".row-checkbox");
                 checkbox.value = row.unique_ref;
 
-                // Set the unique_ref value dynamically in the "View" button
                 let viewBtn = clone.querySelector(".view-btn");
                 let editBtn = clone.querySelector(".edit-btn");
                 let perfMetricsBtn = clone.querySelector(".perf-metrics-btn");
+
                 viewBtn.setAttribute("data-unique-ref", row.unique_ref);
                 viewBtn.setAttribute("data-request-type", row.request_type);
-                editBtn.setAttribute("data-unique-ref", row.unique_ref);
-                editBtn.setAttribute("data-request-type", row.request_type);
-                editBtn.setAttribute("data-status", row.status);
-                perfMetricsBtn.setAttribute("data-group-id", row.group_id);
+
+                if (editBtn) {
+                    editBtn.setAttribute("data-unique-ref", row.unique_ref);
+                    editBtn.setAttribute("data-request-type", row.request_type);
+                    editBtn.setAttribute("data-status", row.status);
+                }
+
+                if (perfMetricsBtn) {
+                    perfMetricsBtn.setAttribute("data-group-id", row.group_id);
+                }
+
+                // ✅ Conditionally remove the Edit button if not allowed
+                if (!row.has_edit_existing) {
+                    if (editBtn && editBtn.parentElement) {
+                        editBtn.parentElement.remove(); // Remove the <li> that contains the button
+                    }
+                }
 
                 return clone.firstElementChild.outerHTML;
             }
         };
     }
+
 
 
     $(document).ready(function () {

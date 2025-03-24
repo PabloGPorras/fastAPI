@@ -72,11 +72,9 @@ CREATE_NEW = {
                         },
                         {
                             "field": "cron_schedule",
-                            "required": True,
                         },
                         {
                             "field": "associated_controls",
-                            "required": True,
                         },
                         {
                             "field": "document_file_type",
@@ -99,11 +97,9 @@ CREATE_NEW = {
                         },
                         {
                             "field": "item_type",
-                            "required": True,
                         },
                         {
                             "field": "path_to_item",
-                            "required": True,
                         },
                         {
                             "field": "changes_made_and_why",

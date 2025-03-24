@@ -61,6 +61,12 @@ async def get_table_data(
         length=length
     )
     json_safe_data = [serialize_row(row) for row in row_dicts]
+
+    # ✅ Inject the has_edit_existing flag
+    has_edit_existing = "edit-existing" in getattr(model, "form_config", {})
+    for row in json_safe_data:
+        row["has_edit_existing"] = has_edit_existing
+        
     return JSONResponse(content={
         "draw": draw,
         "recordsTotal": filtered_count,

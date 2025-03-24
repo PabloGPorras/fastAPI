@@ -1,4 +1,4 @@
-from list_values import BENIFIT_TYPE_LIST, RULE_STATUS_LIST,SUB_REQUEST_TYPE_LIST
+from list_values import BENIFIT_TYPE_LIST, DECISION_TYPE_LIST, RULE_STATUS_LIST,SUB_REQUEST_TYPE_LIST
 
 CREATE_NEW = {
             "enabled": True,  # Form-level toggle
@@ -26,40 +26,32 @@ CREATE_NEW = {
                         },
                         {
                             "field": "rule_id",
-                            "required": True,
                         },
                         {
                             "field": "rule_name",
-                            "required": True,
                         },
                         {
                             "field": "policy",
-                            "required": True,
                         },
                         {
                             "field": "weight",
-                            "required": True,
                         },
                         {
                             "field": "decision_type",
-                            "required": True,
+                            "options": DECISION_TYPE_LIST,
                         },
                         {
                             "field": "reason_code",
-                            "required": True,
                         },
                         {
                             "field": "rule_status",
                             "options": RULE_STATUS_LIST,
-                            "required": True,
                         },
                         {
                             "field": "output_type",
-                            "required": True,
                         },
                         {
                             "field": "output_requirements",
-                            "required": True,
                         },
                         {
                             "field": "benefit_amount",

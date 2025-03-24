@@ -21,11 +21,9 @@ CREATE_NEW = {
                         },
                         {
                             "field": "rule_id",
-                            "required": True,
                         },
                         {
                             "field": "rule_name",
-                            "required": True,
                         },
                         {
                             "field": "benefit_amount",
@@ -38,11 +36,9 @@ CREATE_NEW = {
                         },
                         {
                             "field": "approved_rik_id",
-                            "required": True,
                         },
                         {
                             "field": "valid_non_sas_change_request_id",
-                            "required": True,
                         },
                         {
                             "field": "errored_nonsas_governance_and_deployment_request_id",

@@ -2,10 +2,11 @@ from sqlalchemy import Column, Integer, String, ForeignKey,String,DateTime
 from sqlalchemy.orm import relationship
 from core.id_method import id_method
 from core.get_table_name import Base, get_table_name
-from core.workflows import EDC_IMPL_WORKFLOW, EDC_WORKFLOW, NON_SAS_GOV_AND_DEPLOY_WORKFLOW, RULE_WORKFLOW
-from models.requests.gov_and_deploy_req.create_new import CREATE_NEW
-from models.requests.euc_request.edit_existing import EDIT_EXISTING
-from models.requests.euc_request.view_existing import VIEW_EXISTING
+from core.workflows import NON_SAS_GOV_AND_DEPLOY_WORKFLOW
+from list_values import BENIFIT_TYPE_LIST
+from models.requests.non_sas_change_req.create_new import CREATE_NEW
+from models.requests.non_sas_change_req.view_existing import VIEW_EXISTING
+from sqlalchemy.orm import validates
     
 
 class NonSasGovAndDeploy(Base):
@@ -34,3 +35,32 @@ class NonSasGovAndDeploy(Base):
         "view-existing": VIEW_EXISTING,
         # "edit-existing": EDIT_EXISTING,
     }
+
+
+    @validates("rule_name")
+    def validate_rule_name(self, key, rule_name):
+        if self.rule_id == '' and rule_name == '':
+            raise ValueError(f"Either rule_id or rule_name must be provided")
+        return rule_name
+
+    @validates("benifit_type")
+    def validate_benifit_type(self, key, value):
+        if value == "-- Select One --":
+            return None
+        
+        options = BENIFIT_TYPE_LIST[1:]
+        if value not in options and value is not "":
+            raise ValueError(f"{key} must be one of {options}")
+        return value
+    
+    @validates("request_type")
+    def validate_request_type(self, key, value):
+        return "NON_SAS_GOV_AND_DEPLOY"
+    
+    #NULL/EMPTY FIELDS
+    @validates("short_description","requirements","benefit_amount")
+    def validate_not_empty(self, key, value):
+        if not value or not value.strip():
+            raise ValueError(f"{key} cannot be empty")
+        return value
+    

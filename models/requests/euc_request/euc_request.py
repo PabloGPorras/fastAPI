@@ -2,11 +2,15 @@ from sqlalchemy import Column, Integer, String, ForeignKey,String,DateTime
 from sqlalchemy.orm import relationship
 from core.id_method import id_method
 from core.get_table_name import Base, get_table_name
-from core.workflows import EDC_IMPL_WORKFLOW, EDC_WORKFLOW, RULE_WORKFLOW
+from core.workflows import EDC_IMPL_WORKFLOW, EDC_WORKFLOW
+from list_values import BUSINESS_PROCESS_LIST, EUC_TYPE_LIST, FREQUENCY_OF_USE_LIST, RISK_RATING_LIST
 from models.requests.euc_request.create_new import CREATE_NEW
 from models.requests.euc_request.edit_existing import EDIT_EXISTING
 from models.requests.euc_request.view_existing import VIEW_EXISTING
-    
+from sqlalchemy.orm import validates
+from croniter import croniter
+from croniter.croniter import CroniterBadCronError
+
 
 class EucRequest(Base):
     __tablename__ = get_table_name("euc_request")
@@ -57,3 +61,54 @@ class EucRequest(Base):
         "view-existing": VIEW_EXISTING,
         "edit-existing": EDIT_EXISTING,
     }
+
+
+    @validates("business_process")
+    def validate_business_process(self, key, value):
+        if value == "-- Select One --":
+            return None
+        options = BUSINESS_PROCESS_LIST[1:]
+        if value not in options and value is not "":
+            raise ValueError(f"{key} must be one of {options}")
+        return value
+    
+
+    @validates("euc_type")
+    def validate_euc_type(self, key, value):
+        if value == "-- Select One --":
+            return None
+        options = EUC_TYPE_LIST[1:]
+        if value not in options and value is not "":
+            raise ValueError(f"{key} must be one of {options}")
+        return value
+    
+    
+    @validates("risk_rating")
+    def validate_risk_rating(self, key, value):
+        if value == "-- Select One --":
+            return None
+        options = RISK_RATING_LIST[1:]
+        if value not in options and value is not "":
+            raise ValueError(f"{key} must be one of {options}")
+        return value
+    
+    @validates("frequency_of_use")
+    def validate_frequency_of_use(self, key, value):
+        if value == "-- Select One --":
+            return None
+        options = FREQUENCY_OF_USE_LIST[1:]
+        if value not in options and value is not "":
+            raise ValueError(f"{key} must be one of {options}")
+        return value
+    
+    @validates("cron_schedule")
+    def validate_cron_schedule(self, key, value):
+        # Reject nicknames like "@daily"
+        if value.strip().startswith("@"):
+            raise ValueError(f"Invalid cron expression (nickname not allowed): {value}")
+        try:
+            croniter(value)
+        except CroniterBadCronError as e:
+            raise ValueError(f"Invalid cron expression: {value}") from e
+        
+        return value
