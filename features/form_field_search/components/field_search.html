@@ -1,15 +1,13 @@
 <!-- Loop through form fields -->
 {% if form_name== 'create-new' %}
-{% for field in form_fields %}
+{% for group in grouped_fields %}
+{% for field in group.fields %}
 <div class="mb-3 form-field" data-field-name="{{ field.name }}">
-    {% set has_search = field.search_config.enabled %}
+    {% set has_search = field.search_config is defined and field.search_config.enabled %}
     {% if has_search %}
     <br>
     <div class="d-flex align-items-center gap-2">
-        <!-- <input type="text" class="form-control search-box" id="{{ field.name }}-search"
-            list="{{ field.name }}-suggestions" placeholder="Search {{ field.name|capitalize }}..."
-            data-field-id="{{ field.name }}" data-model-name="{{ model_name }}"> -->
-            <input type="text"  
+        <input type="text"  
             class="form-control search-box" placeholder="Search {{ field.name|capitalize }}..."
             id="{{ field.name }}-search"
             name="query"
@@ -19,13 +17,10 @@
             hx-indicator=".htmx-indicator"
             list="{{ field.name }}-suggestions">
 
-
-
         <button type="button" class="btn btn-primary search-btn" data-field-id="{{ field.name }}"
             data-model-name="{{ model_name }}">
             Search
         </button>
-
 
         <datalist id="{{ field.name }}-suggestions"></datalist>
         <!-- Optional loading indicator -->
@@ -40,6 +35,7 @@
     </div>
     {% endif %}
 </div>
+{% endfor %}
 {% endfor %}
 {% endif %}
 
@@ -63,11 +59,12 @@
 
                 const data = await response.json();
 
-                // Populate main form fields
+                // Populate main form fields using name attribute for selection
                 if (data.main_data) {
                     Object.keys(data.main_data).forEach((key) => {
-                        const fieldElement = document.getElementById(key);
+                        const fieldElement = document.querySelector(`[name="${key}"]`);
                         if (fieldElement) {
+                            console.log("Setting value for field:", key);
                             fieldElement.value = data.main_data[key];
                         }
                     });

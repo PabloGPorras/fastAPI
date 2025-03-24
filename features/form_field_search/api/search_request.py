@@ -38,7 +38,19 @@ async def search_field(
 
         # Fetch the field column
         field_column = getattr(model, field_name)
-        field_info = field_column.info.get("search_config", {})
+
+        new_form_config = getattr(model, "form_config", {}).get("create-new", {})
+        # Flatten the field groups into a mapping: field name -> field config.
+        field_config_map = {}
+        for group in new_form_config.get("field_groups", []):
+            for cfg in group.get("fields", []):
+                if "field" in cfg:
+                    field_config_map[cfg["field"]] = cfg
+        logger.debug(f"Field config map: {field_config_map}")
+        
+        # Retrieve the search configuration for the target field.
+        # If not defined, default to no search conditions.
+        search_config = field_config_map.get(field_name, {}).get("search_config", {})
 
         # Build the query
         query = (
@@ -48,7 +60,7 @@ async def search_field(
         )
 
         # Retrieve and apply each predefined condition.
-        predefined_conditions = field_info.get("predefined_conditions", [])
+        predefined_conditions = search_config.get("predefined_conditions", [])
         for condition in predefined_conditions:
             if callable(condition):
                 condition_expr = condition()  # Evaluate the lambda

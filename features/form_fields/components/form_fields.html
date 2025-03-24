@@ -1,3 +1,6 @@
+
+ <!-- Predefined form fields / Search Fields -->
+{% include "field_search.html" %}
 {% macro render_select(name, options, required, multiple, value, enabled) %}
 <select class="form-select" name="{{ name }}{% if multiple %}[]{% endif %}"
         {% if required %}required{% endif %}
