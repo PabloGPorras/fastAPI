@@ -91,7 +91,8 @@
 
 </head>
 
-<body>
+<body data-bs-theme="{{ theme | default('light') }}" class="{% if theme == 'dark' %}dark-mode{% endif %}">
+
 
 
     <div class="d-flex">
