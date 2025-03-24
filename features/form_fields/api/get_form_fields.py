@@ -112,6 +112,8 @@ async def get_form_fields(
                     "value": existing_data.get(field_name, "") if unique_ref else ""
                 }
 
+                test= field_info["required"]
+                print(f"Field info for '{field_name}': {test}")
                 # Add search configuration from cfg.
                 if "search_config" in cfg:
                     field_info["search_config"] = {

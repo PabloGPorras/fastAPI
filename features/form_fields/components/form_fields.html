@@ -1,6 +1,6 @@
-
- <!-- Predefined form fields / Search Fields -->
+<!-- Predefined form fields / Search Fields -->
 {% include "field_search.html" %}
+
 {% macro render_select(name, options, required, multiple, value, enabled) %}
 <select class="form-select" name="{{ name }}{% if multiple %}[]{% endif %}"
         {% if required %}required{% endif %}
@@ -21,29 +21,47 @@
 {% endmacro %}
 
 {% for group in grouped_fields %}
-    
     <h5>{{ group.group_name }}</h5>
     {% for field in group.fields %}
     <div class="mb-3 form-field"
          data-field-name="{{ field.name }}"
          data-visibility-conditions='{{ field.visibility_conditions | tojson | safe }}'
          data-required-if-visible="{{ field.required_if_visible | lower }}">
-    
+
         <label for="{{ field.name }}">{{ field.display_name }}{% if field.required %}*{% endif %}</label>
-    
+
         {% if field.options %}
-            {{ render_select(field.name, field.options, field.required, field.multi_select, field.value, field.enabled) }}
+            {{ render_select(field.name, field.options,
+                field.required and not field.required_if_visible,
+                field.multi_select,
+                field.value,
+                field.enabled) }}
         {% elif "INTEGER" in field.type %}
-            {{ render_input(field.name, "number", field.required, field.max_length, field.value, field.enabled) }}
+            {{ render_input(field.name, "number",
+                field.required and not field.required_if_visible,
+                field.max_length,
+                field.value,
+                field.enabled) }}
         {% elif "BOOLEAN" in field.type %}
-            {{ render_select(field.name, ["true", "false"], field.required, False, field.value, field.enabled) }}
+            {{ render_select(field.name, ["true", "false"],
+                field.required and not field.required_if_visible,
+                False,
+                field.value,
+                field.enabled) }}
         {% elif "DATETIME" in field.type %}
-            {{ render_input(field.name, "datetime-local", field.required, None, field.value, field.enabled) }}
+            {{ render_input(field.name, "datetime-local",
+                field.required and not field.required_if_visible,
+                None,
+                field.value,
+                field.enabled) }}
         {% elif "DATE" in field.type %}
-            {{ render_input(field.name, "date", field.required, None, field.value, field.enabled) }}
+            {{ render_input(field.name, "date",
+                field.required and not field.required_if_visible,
+                None,
+                field.value,
+                field.enabled) }}
         {% else %}
             <textarea class="form-control resizable" rows="1" name="{{ field.name }}"
-                      {% if field.required %}required{% endif %}
                       {% if field.max_length %}maxlength="{{ field.max_length }}"{% endif %}
                       {% if not field.enabled %}disabled{% endif %}>{{ field.value or "" }}</textarea>
         {% endif %}
@@ -67,7 +85,11 @@
     function evaluateVisibility() {
         fields.forEach(field => {
             const conditions = JSON.parse(field.dataset.visibilityConditions || "[]");
-            let visible = conditions.length === 0 ? true : true;
+
+            // Skip fields with no conditions
+            if (conditions.length === 0) return;
+
+            let visible = true;
 
             conditions.forEach(cond => {
                 const target = document.querySelector(`[name="${cond.field}"], [name="${cond.field}[]"]`);
@@ -75,12 +97,14 @@
                     visible = false;
                     return;
                 }
+
                 let values = [];
                 if (target.multiple) {
                     values = Array.from(target.selectedOptions).map(o => o.value);
                 } else {
                     values = [target.value];
                 }
+
                 if (!checkCondition(values, cond)) {
                     visible = false;
                 }
@@ -90,6 +114,7 @@
 
             const requiredIfVisible = field.dataset.requiredIfVisible === 'true';
             const input = field.querySelector('input, select, textarea');
+
             if (input) {
                 if (visible && requiredIfVisible) {
                     input.setAttribute('required', 'required');
@@ -97,7 +122,6 @@
                     input.removeAttribute('required');
                 }
 
-                // 🧼 If field is hidden, clear its value
                 if (!visible) {
                     if (input.tagName === 'SELECT') {
                         input.selectedIndex = -1;
@@ -105,7 +129,6 @@
                         input.value = '';
                     }
                 }
-                
             }
         });
     }

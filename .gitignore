@@ -2,4 +2,6 @@
 __pycache__/
 *.log
 *.db
+*.exe
+*build
 env.py

@@ -26,3 +26,50 @@ templates = Jinja2Templates(directory=template_dirs)
 
 # Add `getattr` to the template environment
 templates.env.globals['getattr'] = getattr
+
+
+
+
+# from fastapi.templating import Jinja2Templates
+# from pathlib import Path
+# import sys
+
+# def get_resource_path(relative_path: str) -> Path:
+#     """
+#     Get the path to a resource, handling PyInstaller bundles correctly.
+#     """
+#     if getattr(sys, 'frozen', False):
+#         # If we're running in a PyInstaller bundle
+#         base_path = Path(sys._MEIPASS)
+#     else:
+#         # Normal Python environment
+#         base_path = Path(__file__).resolve().parent
+#     return base_path / relative_path
+
+# # Define relative paths to templates/components
+# relative_template_dirs = [
+#     "templates",  # Global templates
+#     "features/bulk_upload/components",
+#     "features/darkmode/components",
+#     "features/performance_metrics/components",
+#     "features/form/components",
+#     "features/comment_item/components",
+#     "features/form_comments/components",
+#     "features/form_field_search/components",
+#     "features/form_checklist/components",
+#     "features/form_fields/components",
+#     "features/form_subtable/components",
+#     "features/form_headers/components",
+#     "features/table/components",
+#     "features/table_filters/components",
+#     "features/table_manage_columns/components",
+# ]
+
+# # Build the full paths
+# template_dirs = [str(get_resource_path(p)) for p in relative_template_dirs]
+
+# # Set up Jinja2Templates with all paths
+# templates = Jinja2Templates(directory=template_dirs)
+
+# # Allow use of getattr in Jinja templates
+# templates.env.globals['getattr'] = getattr
