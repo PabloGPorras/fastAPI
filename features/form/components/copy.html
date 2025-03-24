@@ -30,29 +30,48 @@
                     <!-- Details Tab -->
                     <div class="tab-pane fade show active" id="details-tab-pane" role="tabpanel"
                         aria-labelledby="details-tab">
-                        <form id="detailsForm">
-                            <!-- Container for Dynamic Header Fields -->
-                            {% if is_request %}
+                        <!-- Header Update Form -->
+                        <form id="headerUpdateForm"
+                            hx-post="/update-header/{{ unique_ref }}"
+                            hx-target="this"
+                            hx-swap="none"
+                            hx-trigger="submit">
                             <div id="form-header-container-view"
-                                hx-post="/get-form-header?&is_request={{ is_request }}&user_name={{ user.user_name }}&unique_ref={{ unique_ref }}&form_name={{ form_name }}"
+                                hx-post="/get-form-header?is_request={{ is_request }}&user_name={{ user.user_name }}&unique_ref={{ unique_ref }}&form_name={{ form_name }}"
                                 hx-trigger="revealed"
                                 hx-target="#form-header-container-view"
                                 hx-swap="innerHTML">
-                            <p>Loading header fields...</p>
+                                <p>Loading header fields...</p>
                             </div>
-                            {% endif %}
+                            <div class="modal-footer">
+                                <button type="submit" class="btn btn-primary mt-2">Update Header</button>
+                            </div>
+                        </form>
 
-                            
-                            <!-- Render the Main Form Fields -->
+                        <!-- Main Fields Update Form -->
+                        <form id="fieldsUpdateForm"
+                            hx-post="/update-fields/{{ unique_ref }}"
+                            hx-target="this"
+                            hx-swap="none"
+                            hx-trigger="submit">
                             <div id="form-fields-container-view"
-                                hx-post="/get-form-fields?model_name={{ model_name }}&form_name={{ form_name }}&unique_ref={{ unique_ref }}"
+                                hx-post="/get-form-fields?model_name={{ model_name }}&form_name={{ form_name }}&unique_ref={{ unique_ref }}&user_roles={{ user_roles }}&status={{ status }}"
                                 hx-trigger="revealed"
                                 hx-target="#form-fields-container-view"
                                 hx-swap="innerHTML">
                                 <p>Loading form fields...</p>
                             </div>
+                            <div class="modal-footer">
+                                <button type="submit" class="btn btn-primary mt-2">Update Fields</button>
+                            </div>
+                        </form>
 
-                            <!-- Render the Relationship Tables -->
+                        <!-- Subtable Update Form -->
+                        <form id="subtableUpdateForm"
+                            hx-post="/update-subtable/{{ unique_ref }}"
+                            hx-target="this"
+                            hx-swap="none"
+                            hx-trigger="submit">
                             <div id="relationship-subtable-view"
                                 hx-get="/get-relationship-subtable?model_name={{ model_name }}&form_name={{ form_name }}&unique_ref={{ unique_ref }}"
                                 hx-trigger="revealed"
@@ -60,11 +79,14 @@
                                 hx-swap="innerHTML">
                                 <p>Loading subtable...</p>
                             </div>
-
                             <div class="modal-footer">
-                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+
+                                <button type="submit" class="btn btn-primary mt-2">Update Subtable</button>
                             </div>
+
                         </form>
+
+                  
                     </div>
 
                     <!-- Comments Tab -->

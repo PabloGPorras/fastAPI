@@ -30,29 +30,32 @@
                     <!-- Details Tab -->
                     <div class="tab-pane fade show active" id="details-tab-pane" role="tabpanel"
                         aria-labelledby="details-tab">
-                        <form id="detailsForm">
-                            <!-- Container for Dynamic Header Fields -->
-                            {% if is_request %}
+                        <!-- Unified Update Form -->
+                        <form id="fullUpdateForm"
+                            hx-post="/update-existing/{{ model_name }}/{{ unique_ref }}"
+                            hx-target="this"
+                            hx-swap="none"
+                            hx-trigger="submit">
+
+                            <!-- Header Fields -->
                             <div id="form-header-container-view"
-                                hx-post="/get-form-header?&is_request={{ is_request }}&user_name={{ user.user_name }}&unique_ref={{ unique_ref }}&form_name={{ form_name }}"
+                                hx-post="/get-form-header?is_request={{ is_request }}&user_name={{ user.user_name }}&unique_ref={{ unique_ref }}&form_name={{ form_name }}"
                                 hx-trigger="revealed"
                                 hx-target="#form-header-container-view"
                                 hx-swap="innerHTML">
-                            <p>Loading header fields...</p>
+                                <p>Loading header fields...</p>
                             </div>
-                            {% endif %}
 
-                            
-                            <!-- Render the Main Form Fields -->
+                            <!-- Main Fields -->
                             <div id="form-fields-container-view"
-                                hx-post="/get-form-fields?model_name={{ model_name }}&form_name={{ form_name }}&unique_ref={{ unique_ref }}"
+                                hx-post="/get-form-fields?model_name={{ model_name }}&form_name={{ form_name }}&unique_ref={{ unique_ref }}&user_roles={{ user_roles }}&status={{ status }}"
                                 hx-trigger="revealed"
                                 hx-target="#form-fields-container-view"
                                 hx-swap="innerHTML">
                                 <p>Loading form fields...</p>
                             </div>
 
-                            <!-- Render the Relationship Tables -->
+                            <!-- Subtable / Relationships -->
                             <div id="relationship-subtable-view"
                                 hx-get="/get-relationship-subtable?model_name={{ model_name }}&form_name={{ form_name }}&unique_ref={{ unique_ref }}"
                                 hx-trigger="revealed"
@@ -61,10 +64,13 @@
                                 <p>Loading subtable...</p>
                             </div>
 
+                            <!-- Unified Submit -->
                             <div class="modal-footer">
                                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                                <button type="submit" class="btn btn-primary">Update</button>
                             </div>
                         </form>
+                  
                     </div>
 
                     <!-- Comments Tab -->

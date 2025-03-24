@@ -5,6 +5,7 @@ from core.id_method import id_method
 from models.request import RmsRequest
 from features.status.models.request_status import RmsRequestStatus
 from services.database_service import DatabaseService
+from services.workflow_service import WorkflowService
 
 # --------------- Helper Methods ---------------
 
@@ -73,14 +74,28 @@ def get_column_mappings(model):
 
 
 def filter_and_clean_data(data, allowed_keys, required_columns, column_mappings, model):
-    """ Filter, clean, and normalize data fields. """
+    """Filter, clean, and normalize data fields."""
+    
+    # 1. Keep only allowed keys
     data = {k: v for k, v in data.items() if k in allowed_keys}
+
+    # 2. Set required columns to None if missing
     for col in required_columns:
-        data.setdefault(col, "")
+        data.setdefault(col, None)
+
+    # 3. Convert blank strings to None
+    for key, value in list(data.items()):
+        if isinstance(value, str) and value.strip() == "":
+            data[key] = None
+
+    # 4. Remove fields with default values if explicitly empty (already covered above)
     for column in inspect(model).columns:
-        if getattr(column, "default", None) is not None and data.get(column.name) == "":
-            data.pop(column.name)
+        if getattr(column, "default", None) is not None and data.get(column.name) is None:
+            data.pop(column.name, None)
+
+    # 5. Rename keys using column mappings (e.g., display name to actual db column name)
     return {column_mappings.get(k, k): v for k, v in data.items()}
+
 
 
 def create_rms_request(model, data, group_id, user):
@@ -98,7 +113,9 @@ def create_rms_request(model, data, group_id, user):
 
     unique_ref = id_method()
     rms_request_data["unique_ref"] = unique_ref
-    initial_status = list(model.request_status_config.keys())[0]
+    # ✅ Use WorkflowService to support both single and multi workflows
+    status_config = WorkflowService.get_request_status_config(rms_request_data["request_type"])
+    initial_status = list(status_config.keys())[0]
 
     new_request = RmsRequest(**rms_request_data, request_status=initial_status)
     new_status = RmsRequestStatus(

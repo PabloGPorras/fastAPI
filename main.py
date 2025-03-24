@@ -10,7 +10,9 @@ from features.users.api.current_user import router as current_user_router
 
 from features.form_comments.api.comments import router as comments_router
 from features.form.api.create_new import router as create_new_router
-from features.form.api.get_view_existing_form import router as get_details_router
+from features.form.api.update_existing import router as update_existing_router
+from features.form.api.get_view_existing_form import router as get_view_existing_form
+from features.form.api.get_edit_existing_form import router as get_edit_existing_form
 from features.form.api.get_create_new_form import router as get_create_new_form_router
 from features.form_subtable.api.form_subtable import router as get_form_subtable_router
 from features.form_fields.api.get_form_fields import router as get_form_fields_router
@@ -46,8 +48,10 @@ app.include_router(bulk_import_template)
 app.include_router(bulk_update_status_router)
 app.include_router(comments_router)
 app.include_router(create_new_router)
+app.include_router(update_existing_router)
 app.include_router(current_user_router)
-app.include_router(get_details_router)
+app.include_router(get_view_existing_form)
+app.include_router(get_edit_existing_form)
 app.include_router(get_create_new_form_router)
 app.include_router(status_transitions_router)
 app.include_router(table_router)

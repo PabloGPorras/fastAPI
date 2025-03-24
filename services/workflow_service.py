@@ -14,14 +14,36 @@ class WorkflowService:
         """Fetch the status configuration for the given request type."""
         print("request_type", request_type)
         model_name = DatabaseService.get_model_by_request_type(request_type)
-        print("model_name", model_name)
+        print("WorkflowService model_name", model_name)
         model = DatabaseService.get_model_by_tablename(model_name)
-        if not model or not hasattr(model, "request_status_config"):
+
+        if not model:
             raise HTTPException(
                 status_code=404,
-                detail=f"Model '{request_type}' not found or has no status config."
+                detail=f"Model '{request_type}' not found."
             )
-        return model.request_status_config
+
+        # First check: single request_status_config
+        if hasattr(model, "request_status_config"):
+            return model.request_status_config
+
+        # Second check: multi_request_type_config (dict)
+        if hasattr(model, "multi_request_type_config"):
+            workflow_map = model.multi_request_type_config
+            if request_type in workflow_map:
+                return workflow_map[request_type]
+            else:
+                raise HTTPException(
+                    status_code=404,
+                    detail=f"Request type '{request_type}' not found in multi_request_type_config."
+                )
+
+        # If neither config is found
+        raise HTTPException(
+            status_code=404,
+            detail=f"Model '{request_type}' has no status config defined."
+        )
+
 
     @staticmethod
     def validate_status_consistency(rows: List[dict]) -> Tuple[str, str]:

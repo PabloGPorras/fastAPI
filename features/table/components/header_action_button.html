@@ -35,14 +35,6 @@
 
 
         <!-- Bulk Import Upload -->
-        <li>
-            <button type="button" class="dropdown-item" id="bulkImportButton" data-bs-toggle="modal"
-                data-bs-target="#uploadBulkModal" data-model-name="{{ model_name }}">
-                Bulk Import
-            </button>
-        </li>
-        
-        <!-- Bulk Import Upload -->
         {% if model_name != RmsRequest.__tablename__ %}
         <li>
             <button type="button" class="dropdown-item" id="bulkImportButton" data-bs-toggle="modal"

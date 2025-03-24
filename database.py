@@ -37,10 +37,10 @@ from features.form_comments.model.comment import Comment
 from models.request import RmsRequest
 from features.status.models.request_status import RmsRequestStatus
 from models.requests.person import Person
+from models.requests.euc_request.euc_request import EucRequest
 from models.requests.rule_config_request import RuleConfigRequest
 from models.requests.rule_request import RuleRequest
 from features.performance_metrics.models.performance_metric import PerformanceMetric
-
 
 Base.metadata.create_all(engine)
 

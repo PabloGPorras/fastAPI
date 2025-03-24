@@ -64,6 +64,9 @@ class RmsRequest(Base):
     form_config = {
         "view-existing": {
             "enabled": False,
+            },
+        "edit-existing": {
+            "enabled": False,
             }
     }
 

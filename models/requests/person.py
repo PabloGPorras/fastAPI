@@ -31,29 +31,133 @@ class Person(Base):
     request_status_config = RULE_WORKFLOW
     form_config = {
         "create-new": {
-            "enabled": True,
-            "fields": [
-                {"field": "request_type",  "options": ["PERSON_REQUEST"], "required": True},
-                {"field": "name", "field_name": "First and Last Name", "search": True, "required": True},
-                {"field": "age", "required": True},
-                {"field": "gender", "options": ["Male", "Female", "Other"], "multi_select": True,
-                    "visibility": [
-                        # {"field": "request_type", "show_if": ["PERSON_REQUEST"]},
-                        {"field": "name", "show_if": ["Paul"]}
-                    ],
-                 },
+            "enabled": True,  # Form-level toggle
+            "field_groups": [
+                {
+                    "group_name": "Basic Information",
+                    "fields": [
+                        {
+                            "field": "request_type",
+                            "field_name": "Request Type",
+                            "options": ["TEST","PERSON_REQUEST"],
+                            "required": True,
+                        },
+                        {
+                            "field": "name",
+                            "field_name": "Full Name",
+                            "required": True,
+                        }
+                    ]
+                },
+                {
+                    "group_name": "Additional Details",
+                    # "edit_conditions": {
+                    #     "allowed_roles": ["admin"],
+                    #     "allowed_states": ["pending"]
+                    # },
+                    "fields": [
+                        {
+                            "field": "age",
+                            "required": True,
+                        },
+                        {
+                            "field": "gender",
+                            "options": ["Male", "Female", "Other"],
+                            "multi_select": True,
+                            "required": True,
+                            "visibility": [
+                            {"field": "request_type", "show_if": ["PERSON_REQUEST"]},
+                            ],
+                        }
+                    ]
+                }
             ]
         },
         "view-existing": {
-            "enabled": False,
-            "fields": [
-                {"field": "request_type"},
-                {"field": "name"},
-                {"field": "age"},
-                {"field": "gender"}
+            "field_groups": [
+                {
+                    "group_name": "Basic Information",
+                    "fields": [
+                        {
+                            "field": "request_type",
+                            "field_name": "Request Type",
+                            "required": True,
+                        },
+                        {
+                            "field": "name",
+                            "field_name": "Full Name",
+                            "required": True,
+                        }
+                    ]
+                },
+                {
+                    "group_name": "Additional Details",
+                    "edit_conditions": {
+                        "allowed_roles": ["admin"],
+                        "allowed_states": ["pending"]
+                    },
+                    "fields": [
+                        {
+                            "field": "age",
+                            "required": True,
+                        },
+                        {
+                            "field": "gender",
+                            "options": ["Male", "Female", "Other"],
+                            "multi_select": True,
+                            "required": True,
+                        }
+                    ]
+                }
+            ]
+        },
+        "edit-existing": {
+            "field_groups": [
+                {
+                    "group_name": "Basic Information",
+                    "fields": [
+                        {
+                            "field": "name",
+                            "field_name": "Full Name",
+                            "required": True,
+                        }
+                    ]
+                },
+                {
+                    "group_name": "Additional Details",
+                    "edit_conditions": {
+                        "allowed_roles": ["IMPL_Specialist"],  # Adjusted to match your role names
+                        "allowed_states": ["PENDING APPROVAL"]
+                    },
+                    "fields": [
+                        {
+                            "field": "request_type",
+                            "field_name": "Request Type",
+                            "options": ["TEST","PERSON_REQUEST"],
+                            "required": True,
+                        },
+                        {
+                            "field": "age",
+                            "required": True,
+                        },
+                        {
+                            "field": "gender",
+                            "options": ["Male", "Female", "Other"],
+                            "multi_select": True,
+                            "required": True,
+                            "visibility": [
+                                {"field": "request_type", "show_if": ["PERSON_REQUEST"]},
+                            ],
+                        }
+                    ]
+                }
             ]
         }
     }
+
+
+
+
     
 class Relative(Base):
     __tablename__ = get_table_name("relatives")
@@ -62,7 +166,7 @@ class Relative(Base):
         String, 
         ForeignKey(f"{get_table_name('persons')}.unique_ref")  # Use dynamic table name
     )
-    name = Column(String, info={"forms": {"create-new": {"enabled": True}, "view-existing": {"enabled": False}}})
-    relation_type = Column(String, info={"forms": {"create-new": {"enabled": True}, "view-existing": {"enabled": False}}})
-    gender = Column(String, info={"options": ["Male", "Female", "Other"], "forms": {"create-new": {"enabled": True}, "view-existing": {"enabled": False}}})
+    name = Column(String, info={"forms": {"create-new": {"enabled": True},"edit-existing": {"enabled": True}, "view-existing": {"enabled": False}}})
+    relation_type = Column(String, info={"forms": {"create-new": {"enabled": True},"edit-existing": {"enabled": True}, "view-existing": {"enabled": False}}})
+    gender = Column(String, info={"options": ["Male", "Female", "Other"], "forms": {"create-new": {"enabled": True},"edit-existing": {"enabled": True}, "view-existing": {"enabled": False}}})
     person = relationship("Person", back_populates="relatives")

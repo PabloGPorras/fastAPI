@@ -15,11 +15,18 @@
             <!-- Dropdown Menu -->
             <ul class="dropdown-menu dropdown-menu-end">
                 <li>
-                    {% include "view_request_button.html" %}
+                    <button type="button" class="dropdown-item text-primary view-btn">
+                        <i class="fas fa-eye"></i> View
+                    </button>
                 </li>
-                <li style="display: none;">
+                <li>
+                    <button type="button" class="dropdown-item text-warning edit-btn">
+                        <i class="fas fa-edit me-2"></i> Edit
+                    </button>
+                </li>
+                <li">
                     {% include "perf_metrics_button.html" %}
-                </li>
+                    </li>
             </ul>
         </div>
     </div>
@@ -49,10 +56,14 @@
 
                 // Set the unique_ref value dynamically in the "View" button
                 let viewBtn = clone.querySelector(".view-btn");
+                let editBtn = clone.querySelector(".edit-btn");
                 let perfMetricsBtn = clone.querySelector(".perf-metrics-btn");
-                viewBtn.setAttribute("data-unique-ref", row.unique_ref); // Store unique_ref in button
-                viewBtn.setAttribute("data-request-type", row.request_type); // Store unique_ref in button
-                perfMetricsBtn.setAttribute("data-group-id", row.group_id); // Store unique_ref in button
+                viewBtn.setAttribute("data-unique-ref", row.unique_ref);
+                viewBtn.setAttribute("data-request-type", row.request_type);
+                editBtn.setAttribute("data-unique-ref", row.unique_ref);
+                editBtn.setAttribute("data-request-type", row.request_type);
+                editBtn.setAttribute("data-status", row.status);
+                perfMetricsBtn.setAttribute("data-group-id", row.group_id);
 
                 return clone.firstElementChild.outerHTML;
             }
@@ -95,5 +106,51 @@
                 }
             });
         });
+        $("body").on("click", ".edit-btn", function () {
+            let uniqueRef = $(this).attr("data-unique-ref");
+            let requestType = $(this).attr("data-request-type");
+            let status = $(this).attr("data-status");
+            let user_roles = "{{ user.roles }}";  // Injected from Jinja2
+            let userName = "{{ user.user_name }}";  // Injected from Jinja2
+            let model_name = "{{ model_name }}";  // Injected from Jinja2
+
+            console.log(`Editing uniqueRef: ${uniqueRef}`);
+            console.log(`Request type: ${requestType}`);
+            console.log(`Status: ${status}`);
+            console.log(`user_roles: ${user_roles}`);
+
+            $.ajax({
+                url: "/get-edit-existing-form",
+                type: "POST",
+                contentType: "application/json",
+                data: JSON.stringify({
+                    unique_ref: uniqueRef,
+                    request_type: requestType,
+                    user_roles: user_roles,
+                    user_name: userName,
+                    model_name: model_name,
+                    status: status
+                }),
+                success: function (response) {
+                    // Inject the modal
+                    $("#modalContainer").html(response);
+
+                    // Show the modal
+                    $("#viewExistingModal").modal("show");
+
+                    // 🔁 Force HTMX to process dynamic content (enables hx-trigger="revealed")
+                    htmx.process($("#modalContainer")[0]);
+                },
+                error: function (xhr, status, error) {
+                    console.error("❌ Error loading edit form:", xhr.responseText);
+                    alert("Failed to load edit form. Please try again.");
+                }
+            });
+        });
+
+
+
+
+
     });
 </script>

@@ -78,7 +78,7 @@ async def get_performance_metrics_modal(request: Request, session: Session = Dep
             logger.warning(f"No performance metrics found for group_id: {group_id}")
 
         return templates.TemplateResponse(
-            "table/performance_metrics_modal.html",
+            "performance_metrics_modal.html",
             {
                 "request": request,
                 "group_id": group_id,
