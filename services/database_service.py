@@ -289,6 +289,14 @@ class DatabaseService:
             "checklist_fields": [],  # New attribute for check-list fields
         }
 
+        # Extract form config from model
+        form_config = getattr(model, "form_config", {})
+        field_config_map = {}
+        if form_name and form_config.get(form_name, {}).get("enabled", False): # for even disabled
+            for field in form_config[form_name].get("fields", []):
+                if "field" in field:
+                    field_config_map[field["field"]] = field
+
         # 3) Columns + form fields
         for column in mapper.columns:
             column_info = {
@@ -298,26 +306,25 @@ class DatabaseService:
                 "model_name": model.__name__,
             }
 
-            # Extract additional metadata from column.info
+            logger.debug(f"Checking field config for column: {column.name}")
+            field_cfg = field_config_map.get(column.name, {})
+
+            #Override fields from form_config
+            column_info["field_name"] = field_cfg.get("field_name", column.name)
+            column_info["multi_select"] = field_cfg.get("multi_select", False)
+            column_info["required"] = field_cfg.get("required", False)
             column_info["column_options"] = column.info.get("options") if hasattr(column, "info") else None
-            column_info["length"] = column.info.get("length", None) if hasattr(column, "info") else None
-            column_info["field_name"] = column.info.get("field_name", None) if hasattr(column, "info") else None
-            column_info["multi_select"] = column.info.get("multi_select", False) if hasattr(column, "info") else False
-            column_info["required"] = column.info.get("required", False) if hasattr(column, "info") else False
-            column_info["search"] = column.info.get("search", False) if hasattr(column, "info") else False
-
-            # Check for "forms" key and its nested "enabled" property
-            forms_info = column.info.get("forms", {}) if hasattr(column, "info") else {}
-            column_info["forms"] = {
-                form: {"enabled": form_data.get("enabled", False)} for form, form_data in forms_info.items()
+            column_info["visibility"] = field_cfg.get("visibility", [])
+            column_info["search_config"] = {
+                "enabled": field_cfg.get("search", False),
+                "predefined_conditions": field_cfg.get("predefined_conditions", [])
             }
-
-            # Respect the "forms" key in column.info
-            if form_name and form_name in forms_info:
-                metadata["form_fields"].append(column_info)
 
             # Add to columns
             metadata["columns"].append(column_info)
+
+            if form_name and column.name in field_config_map:
+                metadata["form_fields"].append(column_info)
 
         # 4) One-to-Many Relationships + Recursion
         if max_depth > 0:
@@ -328,7 +335,12 @@ class DatabaseService:
                         "name": rel.key,
                         "target_model": rel.mapper.class_.__name__,
                         "nested_metadata": {},
+                        "search_config": {
+                            "enabled": False,
+                            "predefined_conditions": []
+                        }
                     }
+
                     if max_depth > 1:
                         related_model = rel.mapper.class_
                         nested_meta = DatabaseService.gather_model_metadata(
@@ -341,7 +353,6 @@ class DatabaseService:
                         relationship_info["nested_metadata"] = nested_meta
 
                     metadata["relationships"].append(relationship_info)
-
         return metadata
 
 

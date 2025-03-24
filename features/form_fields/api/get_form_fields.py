@@ -112,6 +112,15 @@ async def get_form_fields(
                     "value": existing_data.get(field_name, "") if unique_ref else ""
                 }
 
+                # Add search configuration from cfg.
+                if "search_config" in cfg:
+                    field_info["search_config"] = {
+                        "enabled": cfg["search_config"].get("enabled", False),
+                        "predefined_conditions": cfg["search_config"].get("predefined_conditions", [])
+                    }
+                else:
+                    field_info["search_config"] = {"enabled": False, "predefined_conditions": []}
+
                 group_obj["fields"].append(field_info)
 
             grouped_fields.append(group_obj)

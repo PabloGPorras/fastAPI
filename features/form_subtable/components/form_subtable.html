@@ -41,7 +41,7 @@
                 {% for field in nested.form_fields %}
                     {% set display_name = field.field_name if field.field_name else field.name %}
                     {% set is_required = field.required %}
-                    {% set is_enabled = field.forms[form_name]['enabled'] if field and field.forms.get(form_name) else True %}
+                    {% set is_enabled = field.get('enabled', True) %}
                     {% set max_length = field.length %}
                 <td>
                     {% if field.multi_select %}

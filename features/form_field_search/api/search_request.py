@@ -1,7 +1,7 @@
 from typing import Optional
 from fastapi import APIRouter, Depends, HTTPException, Query
 from fastapi.responses import HTMLResponse
-from sqlalchemy import inspect
+from sqlalchemy import BinaryExpression, func, inspect
 from core.get_db_session import get_db_session
 from core.get_current_user import get_current_user
 from models.request import RmsRequest
@@ -16,7 +16,6 @@ async def search_field(
     model_name: str,
     field_name: str,
     search_value: str = Query(..., min_length=1),
-    user: Optional[object] = Depends(get_current_user),  # User object is optional
     session: Session = Depends(get_db_session),  # Injected session dependency
 
 ):
@@ -27,9 +26,7 @@ async def search_field(
     try:
 
         logger.info(f"Search initiated: model={model_name}, field={field_name}, value={search_value}")
-        if user:
-            logger.info(f"User: {user.user_name}")
-
+        
         # Resolve the main model
         model = DatabaseService.get_model_by_tablename(model_name)
         if not model:
@@ -42,6 +39,19 @@ async def search_field(
         # Fetch the field column
         field_column = getattr(model, field_name)
 
+        new_form_config = getattr(model, "form_config", {}).get("create-new", {})
+        # Flatten the field groups into a mapping: field name -> field config.
+        field_config_map = {}
+        for group in new_form_config.get("field_groups", []):
+            for cfg in group.get("fields", []):
+                if "field" in cfg:
+                    field_config_map[cfg["field"]] = cfg
+        logger.debug(f"Field config map: {field_config_map}")
+        
+        # Retrieve the search configuration for the target field.
+        # If not defined, default to no search conditions.
+        search_config = field_config_map.get(field_name, {}).get("search_config", {})
+
         # Build the query
         query = (
             session.query(model)
@@ -49,30 +59,36 @@ async def search_field(
             .filter(field_column == search_value)
         )
 
-        if user:
-            query = query.filter(RmsRequest.requester == user.user_name)
+        # Retrieve and apply each predefined condition.
+        predefined_conditions = search_config.get("predefined_conditions", [])
+        for condition in predefined_conditions:
+            if callable(condition):
+                condition_expr = condition()  # Evaluate the lambda
+                logger.info(f"Applying condition: {condition_expr} (Type: {type(condition_expr)})")
+                # Here we assume condition_expr is a complete SQLAlchemy filter expression
+                query = query.filter(condition_expr)
+            
+        compiled_query = query.statement.compile(
+            dialect=session.bind.dialect,
+            compile_kwargs={"literal_binds": True}
+        )
+        logger.info(f"Final Query: {compiled_query}")
 
+        # Execute query and fetch result
         result = query.order_by(RmsRequest.request_received_timestamp.desc()).first()
-
         if not result:
             raise HTTPException(status_code=404, detail="No matching request found.")
 
-        # Prepare main model data
+        # Prepare response
         main_data = {field.name: getattr(result, field.name) for field in model.__table__.columns}
 
-        # Handle related models
         related_data = {}
         for relationship in inspect(model).relationships:
             related_field_name = relationship.key
-
-            # Skip relationships involving RmsRequest
             if relationship.mapper.class_.__name__ == "RmsRequest":
-                logger.info(f"Skipping RmsRequest relationship: {related_field_name}")
-                continue
-
+                continue  
             related_records = getattr(result, related_field_name)
-
-            if related_records:  # It's a one-to-many relationship
+            if related_records:
                 related_data[related_field_name] = [
                     {col.name: getattr(record, col.name) for col in relationship.mapper.class_.__table__.columns}
                     for record in related_records
