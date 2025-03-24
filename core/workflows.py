@@ -9,6 +9,7 @@ MAIN_SASFM_WORKFLOW = {
         "COMPLETED": {"Roles": ["IMPL_Specialist"], "Next": [], "Status_Type":[]},  
         "USER REJECTED": {"Roles": ["FS_Analyst"], "Next": [], "Status_Type":["APPROVAL"]},  
     }
+
 EDC_IMPL_WORKFLOW = {
         "PENDING APPROVAL": {"Roles": ["FS_Manager"], "Next": ["PENDING GOVERNANCE","APPROVAL REJECTED"], "Status_Type":["APPROVAL"]},
         "APPROVAL REJECTED": {"Roles": ["FS_Manager"], "Next": [], "Status_Type":["APPROVAL REJECTED"]},  
@@ -28,7 +29,7 @@ EDC_IMPL_WORKFLOW = {
         "COMPLETED": {"Roles": [], "Next": [], "Status_Type":[]},
 }
 EDC_WORKFLOW = {
-        "PENDING APPROVAL": {"Roles": ["FS_Manager"], "Next": ["PENDING DIR APPROVAL","APPROVAL REJECTED"], "Status_Type":[]},
+        "PENDING APPROVAL": {"Roles": ["FS_Manager"], "Next": ["PENDING DIRECTOR APPROVAL","APPROVAL REJECTED"], "Status_Type":[]},
         "APPROVAL REJECTED": {"Roles": ["FS_Manager"], "Next": [], "Status_Type":["APPROVAL REJECTED"]},  
 
         "PENDING DIRECTOR APPROVAL": {"Roles": ["FS_Director"], "Next": ["COMPLETED","DIRECTOR REJECTED"], "Status_Type":["APPROVAL"]},
