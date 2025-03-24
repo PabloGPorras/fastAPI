@@ -1,6 +1,15 @@
 from list_values import ASSET_STATUS_LIST, BUSINESS_PROCESS_LIST, EUC_TYPE_LIST, FREQUENCY_OF_USE_LIST, RISK_RATING_LIST, YES_NO_LIST
 
-CREATE_NEW = {
+def CREATE_NEW(search_config):
+    """
+    Configuration for the 'create-new' form of the EUC Request model.
+    This function defines the structure and validation rules for the form.
+    """
+
+    # Define the form configuration for creating a new EUC request
+    # Each field can have options, required status, and visibility conditions
+    # The visibility conditions determine when a field should be shown based on other field values
+    return {
             "enabled": True,  # Form-level toggle
             "field_groups": [
                 {
@@ -14,6 +23,7 @@ CREATE_NEW = {
                         {
                             "field": "euc_name",
                             "required": True,
+                            "search_config": search_config
                         },
                         {
                             "field": "created_timestamp",

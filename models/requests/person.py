@@ -4,34 +4,23 @@ from sqlalchemy.orm import relationship
 from core.id_method import id_method
 from core.get_table_name import Base, get_table_name
 from core.workflows import MAIN_SASFM_WORKFLOW
+from features.status.models.request_status import RmsRequestStatus
+from models.request import RmsRequest
 
 class Person(Base):
     __tablename__ = get_table_name("persons")
     frontend_table_name = "Person"
     request_id = Column(String, primary_key=True, default=id_method)
     request_type = Column(String, default="PERSON_REQUEST", info={"options": ["PERSON_REQUEST","TEST"], "forms": {"create-new": {"enabled": True}, "view-existing": {"enabled": False}}})
-    name = Column(String, info={ "search": True, "required": True, "forms": {"create-new": {"enabled": True}, "view-existing": {"enabled": False}}})
-    age = Column(
-        Integer,
-        info={
-            "required": True,
-            "forms": {"create-new": {"enabled": True}, "view-existing": {"enabled": False}},
-            "visibility": [
-                {"field": "request_type", "show_if": ["PERSON_REQUEST"]},
-                {"field": "name", "show_if": ["Male", "Female"]}
-            ], 
-        },
-    )
+    name = Column(String, info={"required": True, "forms": {"create-new": {"enabled": True}, "view-existing": {"enabled": False}}})
+    age = Column(Integer, info={"required": True, "forms": {"create-new": {"enabled": True}, "view-existing": {"enabled": False}}})
     gender = Column(String, info={"options": ["Male", "Female", "Other"], "multi_select": True, "required": True, "forms": {"create-new": {"enabled": True}, "view-existing": {"enabled": False}}})
     unique_ref = Column(String, ForeignKey(f"{get_table_name('requests')}.unique_ref"), nullable=False, unique=True)
     rms_request = relationship("RmsRequest", backref="persons")
     relatives = relationship("Relative", back_populates="person", cascade="all, delete-orphan")
     is_request = True
     request_menu_category = "DMP"
-    multi_request_type_config = {
-        "TEST": MAIN_SASFM_WORKFLOW,
-        "PERSON_REQUEST": MAIN_SASFM_WORKFLOW,
-    }
+    request_status_config = MAIN_SASFM_WORKFLOW
     form_config = {
         "create-new": {
             "enabled": True,  # Form-level toggle
@@ -47,8 +36,25 @@ class Person(Base):
                         },
                         {
                             "field": "name",
-                            "field_name": "Full Name",
+                            "field_name": "First and Last Name",
                             "required": True,
+                            "search_config": {
+                                "enabled" : True,
+                                "predefined_conditions": [
+                                    lambda: (
+                                        Person.rms_request.has(
+                                            and_(
+                                                RmsRequestStatus.status == "PENDING APPROVAL",
+                                                RmsRequestStatus.timestamp ==
+                                                    select(func.max(RmsRequestStatus.timestamp))
+                                                    .where(RmsRequestStatus.unique_ref == RmsRequest.unique_ref)
+                                                    .correlate(RmsRequest)
+                                                    .scalar_subquery()
+                                            )
+                                        )
+                                    )
+                                ]
+                            },
                         }
                     ]
                 },

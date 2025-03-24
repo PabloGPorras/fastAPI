@@ -1,9 +1,11 @@
-from sqlalchemy import Column, Integer, String, ForeignKey,String,DateTime
+from sqlalchemy import Column, Integer, String, ForeignKey,String,DateTime,and_, func, select
 from sqlalchemy.orm import relationship
 from core.id_method import id_method
 from core.get_table_name import Base, get_table_name
 from core.workflows import EDC_IMPL_WORKFLOW, EDC_WORKFLOW
+from features.status.models.request_status import RmsRequestStatus
 from list_values import BUSINESS_PROCESS_LIST, EUC_TYPE_LIST, FREQUENCY_OF_USE_LIST, RISK_RATING_LIST
+from models.request import RmsRequest
 from models.requests.euc_request.create_new import CREATE_NEW
 from models.requests.euc_request.edit_existing import EDIT_EXISTING
 from models.requests.euc_request.view_existing import VIEW_EXISTING
@@ -11,6 +13,23 @@ from sqlalchemy.orm import validates
 from croniter import croniter
 from croniter.croniter import CroniterBadCronError
 
+search_config = {
+    "enabled" : True,
+    "predefined_conditions": [
+        lambda: (
+            EucRequest.rms_request.has(
+                and_(
+                    RmsRequestStatus.status == "PENDING APPROVAL",
+                    RmsRequestStatus.timestamp ==
+                        select(func.max(RmsRequestStatus.timestamp))
+                        .where(RmsRequestStatus.unique_ref == RmsRequest.unique_ref)
+                        .correlate(RmsRequest)
+                        .scalar_subquery()
+                )
+            )
+        )
+    ]
+}
 
 class EucRequest(Base):
     __tablename__ = get_table_name("euc_request")
@@ -57,10 +76,11 @@ class EucRequest(Base):
         "EUC_BUSINESS_MANAGED": EDC_WORKFLOW,
     }
     form_config = {
-        "create-new": CREATE_NEW,
+        "create-new": CREATE_NEW(search_config),
         "view-existing": VIEW_EXISTING,
         "edit-existing": EDIT_EXISTING,
     }
+
 
 
     @validates("business_process")
