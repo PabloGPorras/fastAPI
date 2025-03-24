@@ -306,7 +306,6 @@ class DatabaseService:
                 "model_name": model.__name__,
             }
 
-            logger.debug(f"Checking field config for column: {column.name}")
             field_cfg = field_config_map.get(column.name, {})
 
             #Override fields from form_config

@@ -30,6 +30,76 @@ class User(Base):
     line_of_businesses = Column(String, nullable=False, info={"options": LINE_OF_BUSINESS_LIST, "multi_select": True,"forms":{"create-new": {"enabled":True},"view-existing":{"enabled":False}}})
     teams = Column(String, nullable=False, info={"options": TEAM_LIST, "multi_select": True,"forms":{"create-new": {"enabled":True},"view-existing":{"enabled":False}}})
     decision_engines = Column(String, nullable=False, info={"options": DECISION_ENGINE_LIST, "multi_select": True,"forms":{"create-new": {"enabled":True},"view-existing":{"enabled":False}}})
+    form_config = {
+        "create-new": {
+            "enabled": True,  # Form-level toggle
+            "field_groups": [
+                {
+                    "group_name": "Basic Information",
+                    "fields": [
+                        {
+                            "field": "user_name",
+                            "required": True,
+                        },
+                        {
+                            "field": "email_from",
+                            "required": True,
+                        },
+                        {
+                            "field": "email_to",
+                            "required": True,
+                        },
+                        {
+                            "field": "email_cc",
+                            "required": True,
+                        },
+                        {
+                            "field": "user_role_expire_timestamp",
+                            "required": True,
+                        },
+                        {
+                            "field": "roles",
+                            "options": ROLES_OPTIONS,
+                            "multi_select": True,   
+                            "required": True,
+                        },
+                        {
+                            "field": "organizations",
+                            "options": ORGANIZATIONS_LIST,
+                            "multi_select": True,
+                            "required": True,
+                        },
+                        {
+                            "field": "sub_organizations",
+                            "options": SUB_ORGANIZATION_LIST,
+                            "multi_select": True,
+                            "required": True,
+                        },
+                        {
+                            "field": "line_of_businesses",
+                            "options": LINE_OF_BUSINESS_LIST,
+                            "multi_select": True,
+                            "required": True,
+                        },
+                        {
+                            "field": "teams",
+                            "options": TEAM_LIST,
+                            "multi_select": True,
+                            "required": True,
+                        },
+                        {
+                            "field": "decision_engines",
+                            "options": DECISION_ENGINE_LIST,
+                            "multi_select": True,
+                            "required": True,
+                        }
+                    ]
+                }
+            ]
+        }
+    }
+
+
 
     @validates("user_role_expire_timestamp", "last_update_timestamp")
     def validate_datetime_fields(self, key, value):
