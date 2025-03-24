@@ -76,35 +76,38 @@
 </style>
 
 <!-- Comments List -->
-<ul id="comments-list" class="list-group">
-    {% for entry in entries %}
-    <li class="comment-item {{ 'right' if entry.user_name == user_name else 'left' }}">
-        <div class="timestamp">{{ entry.timestamp.strftime('%Y-%m-%d %H:%M:%S') }}</div>
-        <div class="user-info">{{ entry.user_name }}</div>
-        <div class="entry-text">
-            {% if entry.type == 'comment' %}
-            Comment: {{ entry.text }}
-            {% elif entry.type == 'status' %}
-            Status changed to: {{ entry.text }}
-            {% endif %}
-        </div>
-    </li>
-    {% endfor %}
-</ul>
+<div id="comments-container">
 
-{% if not entries %}
-    <p>No comments available.</p>
-{% endif %}
+    <!-- Comments List -->
+    <ul id="comments-list" class="list-group">
+        {% for entry in entries %}
+        <li class="comment-item {{ 'right' if entry.user_name == user_name else 'left' }}">
+            <div class="timestamp">{{ entry.timestamp.strftime('%Y-%m-%d %H:%M:%S') }}</div>
+            <div class="user-info">{{ entry.user_name }}</div>
+            <div class="entry-text">
+                {% if entry.type == 'comment' %}
+                Comment: {{ entry.text }}
+                {% elif entry.type == 'status' %}
+                Status changed to: {{ entry.text }}
+                {% endif %}
+            </div>
+        </li>
+        {% endfor %}
+    </ul>
 
-<!-- Add Comment Form -->
-<form id="commentForm" class="d-flex gap-2 mt-3"
-      hx-post="/requests/{{ unique_ref }}/comments"
-      hx-target="#comments-list"
-      hx-swap="innerHTML">
-    <input type="text" name="comment_text" id="commentText" class="form-control" placeholder="Enter your comment" required>
-    <button type="submit" class="btn btn-primary">Add Comment  
-    </button>
-</form>
+    {% if not entries %}
+        <p>No comments available.</p>
+    {% endif %}
+
+    <!-- Add Comment Form -->
+    <form id="commentForm" class="d-flex gap-2 mt-3"
+        hx-post="/requests/{{ unique_ref }}/comments"
+        hx-target="#comments-container"
+        hx-swap="innerHTML">
+        <input type="text" name="comment_text" id="commentText" class="form-control" placeholder="Enter your comment" required>
+        <button type="submit" class="btn btn-primary">Add Comment</button>
+    </form>
+</div>
 
 
 
