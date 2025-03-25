@@ -96,6 +96,7 @@ ASSET_STATUS_LIST = [
 
 BUSINESS_PROCESS_LIST = [
     "-- Select One --",
+    "Develop Design and Maintain Products or Services",
     "Market/Sell Products and Services", 
     "Origination/Onboarding New Accounts", 
     "Servicing/Account Maintenance",
@@ -104,6 +105,8 @@ BUSINESS_PROCESS_LIST = [
     "Perform Settlement and Closing Activities",
     "Collections",
     "Recoveries",
+    "Manage Human Resources",
+    "Manage Business Technology",
     "Manage Finance Accounting and Taxation",
     "Manage Capital, Funding, and Liquidity",
     "Manage Physical Assets and Facilities",
@@ -141,7 +144,7 @@ FREQUENCY_OF_USE_LIST = [
     "Monthly",
     "Bi-Monthly",
     "Quarterly",
-    "Annually"
+    "Annually",
     "CRON"
 ]
 

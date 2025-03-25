@@ -52,6 +52,10 @@ VIEW_EXISTING = {
                             "required": True,
                         },
                         {
+                            "field": "asset_description",
+                            "required": True,
+                        },
+                        {
                             "field": "euc_type",
                             "options": EUC_TYPE_LIST,
                             "required": True,
@@ -72,6 +76,9 @@ VIEW_EXISTING = {
                         },
                         {
                             "field": "cron_schedule",
+                            "visibility": [
+                                {"field": "frequency_of_use", "show_if": ["CRON"]},
+                            ],
                             "required": True,
                         },
                         {

@@ -15,11 +15,14 @@ EDC_IMPL_WORKFLOW = {
         "APPROVAL REJECTED": {"Roles": ["FS_Manager"], "Next": [], "Status_Type":["APPROVAL REJECTED"]},  
 
         "PENDING GOVERNANCE": {"Roles": ["IMPL_Specialist"], "Next": ["ASSET APPROVAL PENDING","GOVERNANCE REJECTED"], "Status_Type":["GOVERNANCE"]},
-        "GOVERNANCE REJECTED": {"Roles": ["IMPL_Specialist"], "Next": [], "Status_Type":["GOVERNANCE REJECTED"]}, 
+        "GOVERNANCE REJECTED": {"Roles": ["IMPL_Specialist"], "Next": [], "Status_Type":[]}, 
 
-        "ASSET APPROVAL PENDING": {"Roles": ["FS_Director"], "Next": ["DEPLOYMENT READY","ASSET APPROVAL REJECTED"], "Status_Type":["GOVERNANCE"]},
-        "ASSET APPROVAL REJECTED": {"Roles": ["FS_Director"], "Next": [], "Status_Type":["GOVERNANCE REJECTED"]},
+        "ASSET APPROVAL PENDING": {"Roles": ["FS_Director"], "Next": ["DEPLOYMENT APPROVAL PENDING","ASSET APPROVAL REJECTED"], "Status_Type":["GOVERNANCE"]},
+        "ASSET APPROVAL REJECTED": {"Roles": ["FS_Director"], "Next": [], "Status_Type":[]},
 
+        "DEPLOYMENT APPROVAL PENDING": {"Roles": ["FS_Director"], "Next": ["DEPLOYMENT READY","DEPLOYMENT APPROVAL REJECT"], "Status_Type":["GOVERNANCE"]},
+        "DEPLOYMENT APPROVAL REJECT": {"Roles": ["FS_Director"], "Next": [], "Status_Type":[]},
+        
         "DEPLOYMENT READY": {"Roles": ["IMPL_Specialist"], "Next": ["DEPLOYMENT CHECKS","DEPLOYMENT CHECKS REJECTED"], "Status_Type":[]},
         "DEPLOYMENT REJECTED": {"Roles": ["IMPL_Specialist"], "Next": [], "Status_Type":[]},
         

@@ -35,7 +35,7 @@
 
 
         <!-- Bulk Import Upload -->
-        {% if model_name != RmsRequest.__tablename__ %}
+        {% if model_name != RmsRequest.__tablename__  and show_bulk_import %}
         <li>
             <button type="button" class="dropdown-item" id="bulkImportButton" data-bs-toggle="modal"
                 data-bs-target="#uploadBulkModal" data-model-name="{{ model_name }}">

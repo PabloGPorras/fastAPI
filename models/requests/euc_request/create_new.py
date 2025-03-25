@@ -62,6 +62,10 @@ def CREATE_NEW(search_config):
                             "required": True,
                         },
                         {
+                            "field": "asset_description",
+                            "required": True,
+                        },
+                        {
                             "field": "euc_type",
                             "options": EUC_TYPE_LIST,
                             "required": True,
@@ -82,6 +86,9 @@ def CREATE_NEW(search_config):
                         },
                         {
                             "field": "cron_schedule",
+                            "visibility": [
+                                {"field": "frequency_of_use", "show_if": ["CRON"]},
+                            ],
                         },
                         {
                             "field": "associated_controls",
@@ -138,6 +145,7 @@ def CREATE_NEW(search_config):
                         },
                         {
                             "field": "evidence_of_testing",
+                            "field_name": "Path to Evidence of Testing/ Data Integrity and veresion control",
                             "required": True,
                             "visibility": [
                                 {"field": "request_type", "show_if": ["EUC_BUSINESS_MANAGED"]},

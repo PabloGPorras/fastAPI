@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, ForeignKey,String,DateTime,and_, func, select
+from sqlalchemy import Column, Integer, String, ForeignKey,String,DateTime,and_, func, select,Date
 from sqlalchemy.orm import relationship
 from core.id_method import id_method
 from core.get_table_name import Base, get_table_name
@@ -19,7 +19,7 @@ search_config = {
         lambda: (
             EucRequest.rms_request.has(
                 and_(
-                    RmsRequestStatus.status == "PENDING APPROVAL",
+                    RmsRequestStatus.status == "COMPLETED",
                     RmsRequestStatus.timestamp ==
                         select(func.max(RmsRequestStatus.timestamp))
                         .where(RmsRequestStatus.unique_ref == RmsRequest.unique_ref)
@@ -45,6 +45,7 @@ class EucRequest(Base):
     business_process = Column(String)
     euc_director = Column(String)
     euc_owner = Column(String)
+    asset_description = Column(String)
     euc_type = Column(String)
     risk_rating = Column(String)
     risk_rating_rationale = Column(String)
@@ -65,7 +66,7 @@ class EucRequest(Base):
     does_mrm_policy_apply = Column(String)
     date_mrm_policy_assessed = Column(String)
     path_to_mrm_assessment_evidence = Column(String)
-    was_risk_rating_reassessed = Column(String)
+    date_risk_rating_assessed = Column(Date)
 
     unique_ref = Column(String, ForeignKey(f"{get_table_name('requests')}.unique_ref"), nullable=False, unique=True)
     rms_request = relationship("RmsRequest", backref="euc_request")
@@ -88,7 +89,7 @@ class EucRequest(Base):
         if value == "-- Select One --":
             return None
         options = BUSINESS_PROCESS_LIST[1:]
-        if value not in options and value is not "":
+        if value != options and value != "":
             raise ValueError(f"{key} must be one of {options}")
         return value
     
@@ -98,7 +99,7 @@ class EucRequest(Base):
         if value == "-- Select One --":
             return None
         options = EUC_TYPE_LIST[1:]
-        if value not in options and value is not "":
+        if value != options and value != "":
             raise ValueError(f"{key} must be one of {options}")
         return value
     
@@ -108,7 +109,7 @@ class EucRequest(Base):
         if value == "-- Select One --":
             return None
         options = RISK_RATING_LIST[1:]
-        if value not in options and value is not "":
+        if value != options and value != "":
             raise ValueError(f"{key} must be one of {options}")
         return value
     
@@ -117,18 +118,19 @@ class EucRequest(Base):
         if value == "-- Select One --":
             return None
         options = FREQUENCY_OF_USE_LIST[1:]
-        if value not in options and value is not "":
+        if value != options and value != "":
             raise ValueError(f"{key} must be one of {options}")
         return value
     
     @validates("cron_schedule")
     def validate_cron_schedule(self, key, value):
-        # Reject nicknames like "@daily"
-        if value.strip().startswith("@"):
-            raise ValueError(f"Invalid cron expression (nickname not allowed): {value}")
-        try:
-            croniter(value)
-        except CroniterBadCronError as e:
-            raise ValueError(f"Invalid cron expression: {value}") from e
-        
-        return value
+        if not None:
+            # Reject nicknames like "@daily"
+            if value.strip().startswith("@"):
+                raise ValueError(f"Invalid cron expression (nickname not allowed): {value}")
+            try:
+                croniter(value)
+            except CroniterBadCronError as e:
+                raise ValueError(f"Invalid cron expression: {value}") from e
+            
+            return value

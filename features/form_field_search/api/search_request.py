@@ -114,6 +114,7 @@ async def get_suggestions(
 ):
     """
     Provide autocomplete suggestions for a given field and model.
+    Only include suggestions that match the same conditions as the search endpoint.
     """
     try:
         logger.info(f"Fetching suggestions for model '{model_name}', field '{field_name}', query '{query}'")
@@ -127,20 +128,31 @@ async def get_suggestions(
 
         field_column = getattr(model, field_name)
 
-        suggestions = (
-            session.query(field_column)
-            .distinct()
-            .filter(field_column.ilike(f"%{query}%"))
-            .limit(limit)
-            .all()
-        )
+        # Parse form config for predefined_conditions (same as /search endpoint)
+        new_form_config = getattr(model, "form_config", {}).get("create-new", {})
+        field_config_map = {}
+        for group in new_form_config.get("field_groups", []):
+            for cfg in group.get("fields", []):
+                if "field" in cfg:
+                    field_config_map[cfg["field"]] = cfg
 
+        search_config = field_config_map.get(field_name, {}).get("search_config", {})
+        predefined_conditions = search_config.get("predefined_conditions", [])
+
+        # Build the filtered query
+        query_stmt = session.query(field_column).distinct().filter(field_column.ilike(f"%{query}%"))
+
+        # Apply same filters as search endpoint
+        for condition in predefined_conditions:
+            if callable(condition):
+                query_stmt = query_stmt.filter(condition())
+
+        suggestions = query_stmt.limit(limit).all()
         suggestions_list = [value[0] for value in suggestions]
+
         logger.info(f"Suggestions found: {suggestions_list}")
 
-        # Generate HTML response for HTMX
         suggestions_html = "".join(f'<option value="{s}"></option>' for s in suggestions_list)
-
         return HTMLResponse(suggestions_html)
 
     except Exception as e:

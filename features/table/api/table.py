@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, Request, Response
 from core.get_db_session import get_db_session
 from core.templates import templates
+from models.requests.euc_request.euc_request import EucRequest
 from services.database_service import DatabaseService
 from models.request import RmsRequest
 from features.status.models.request_status import RmsRequestStatus
@@ -48,6 +49,14 @@ async def get_table(
         request_status_config = getattr(model, "request_status_config", None)
         is_request = getattr(model, "is_request", False)
         print("has_edit_existing:", has_edit_existing)
+        
+        show_bulk_import = True
+        if model_name in [EucRequest.__table__.description ]:
+            show_bulk_import = False
+        
+        print("show_bulk_import: ",show_bulk_import)
+
+
         # ✅ Parse filters from query parameters
         filters = {
             key[8:-1]: value  # Extract key name between 'filters[' and ']'
@@ -75,6 +84,7 @@ async def get_table(
                 "request_status_metadata": request_status_metadata,
                 "filters": filters,  # ✅ Pass filters to template
                 "has_edit_existing": has_edit_existing,
+                "show_bulk_import":show_bulk_import
             },
         )
 

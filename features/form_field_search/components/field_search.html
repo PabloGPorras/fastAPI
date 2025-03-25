@@ -8,6 +8,7 @@
     <br>
     <div class="d-flex align-items-center gap-2">
         <input type="text"  
+            autocomplete="off" 
             class="form-control search-box" placeholder="Search {{ field.name|capitalize }}..."
             id="{{ field.name }}-search"
             name="query"
@@ -26,11 +27,11 @@
         <!-- Optional loading indicator -->
         <div class="htmx-indicator">Loading...</div>
         
-        <div class="form-check d-flex align-items-center m-0">
+        <!-- <div class="form-check d-flex align-items-center m-0">
             <input type="checkbox" class="form-check-input me-1" id="{{ field.name }}-toggle"
                 data-field-id="{{ field.name }}">
             <label class="form-check-label" for="{{ field.name }}-toggle">Search Mine Only</label>
-        </div>
+        </div> -->
 
     </div>
     {% endif %}
