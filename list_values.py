@@ -56,7 +56,8 @@ DECISION_ENGINE_LIST = [
     "ODE",
     "Payments Hold - Kitenet",
     "SRC",
-    "TMX"
+    "TMX",
+    "SASFM"
 ]
 
 EFFORT_LIST = ["BAU", "EXPEDITED"]

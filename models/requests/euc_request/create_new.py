@@ -125,7 +125,7 @@ def CREATE_NEW(search_config):
                     ]
                 },
                 {
-                    "group_name": "EUC CONTROL",
+                    "group_name": "",
                     "fields": [
                         {
                             "field": "asset_has_role_based_security",
