@@ -139,6 +139,7 @@ VIEW_EXISTING = {
                         },
                         {
                             "field": "evidence_of_testing",
+                            "field_name": "Path to Evidence of Testing/ Data Integrity and veresion control",
                             "required": True,
                             "visibility": [
                                 {"field": "request_type", "show_if": ["EUC_BUSINESS_MANAGED"]},
@@ -169,22 +170,12 @@ VIEW_EXISTING = {
                             ],
                         },
                         {
-                            "field": "was_risk_rating_reassessed",
+                            "field": "date_risk_rating_assessed",
                             "required": True,
                             "visibility": [
                                 {"field": "request_type", "show_if": ["EUC_BUSINESS_MANAGED"]},
                             ],
                         },
-                        {
-                            "field": "gender",
-                            "options": ["Male", "Female", "Other"],
-                            "multi_select": True,
-                            "required": True,
-                            "visibility": [
-                                {"field": "request_type", "show_if": ["EUC_BUSINESS_MANAGED"]},
-                                {"field": "request_type", "show_if": ["Critical","High"]},
-                            ],
-                        }
                     ]
                 } 
             ]

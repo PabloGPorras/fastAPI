@@ -88,9 +88,11 @@ class EucRequest(Base):
     def validate_business_process(self, key, value):
         if value == "-- Select One --":
             return None
-        options = BUSINESS_PROCESS_LIST[1:]
-        if value != options and value != "":
+
+        options = BUSINESS_PROCESS_LIST[1:]  # skip placeholder
+        if value not in options and value != "":
             raise ValueError(f"{key} must be one of {options}")
+
         return value
     
 
@@ -99,7 +101,7 @@ class EucRequest(Base):
         if value == "-- Select One --":
             return None
         options = EUC_TYPE_LIST[1:]
-        if value != options and value != "":
+        if value not in options and value != "":
             raise ValueError(f"{key} must be one of {options}")
         return value
     
@@ -109,7 +111,7 @@ class EucRequest(Base):
         if value == "-- Select One --":
             return None
         options = RISK_RATING_LIST[1:]
-        if value != options and value != "":
+        if value not in options and value != "":
             raise ValueError(f"{key} must be one of {options}")
         return value
     
@@ -118,13 +120,13 @@ class EucRequest(Base):
         if value == "-- Select One --":
             return None
         options = FREQUENCY_OF_USE_LIST[1:]
-        if value != options and value != "":
+        if value not in options and value != "":
             raise ValueError(f"{key} must be one of {options}")
         return value
     
     @validates("cron_schedule")
     def validate_cron_schedule(self, key, value):
-        if not None:
+        if value != None:
             # Reject nicknames like "@daily"
             if value.strip().startswith("@"):
                 raise ValueError(f"Invalid cron expression (nickname not allowed): {value}")

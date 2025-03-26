@@ -23,48 +23,52 @@
 {% for group in grouped_fields %}
     <h5>{{ group.group_name }}</h5>
     {% for field in group.fields %}
+    {% set is_required_now = field.required %}
     <div class="mb-3 form-field"
          data-field-name="{{ field.name }}"
          data-visibility-conditions='{{ field.visibility_conditions | tojson | safe }}'
-         data-required-if-visible="{{ field.required_if_visible | lower }}">
+         data-is-required="{{ field.required | lower }}"
+         data-is-shown="true">
 
         <label for="{{ field.name }}">{{ field.display_name }}{% if field.required %}*{% endif %}</label>
 
         {% if field.options %}
             {{ render_select(field.name, field.options,
-                field.required and not field.required_if_visible,
+                is_required_now,
                 field.multi_select,
                 field.value,
                 field.enabled) }}
         {% elif "INTEGER" in field.type %}
             {{ render_input(field.name, "number",
-                field.required and not field.required_if_visible,
+                is_required_now,
                 field.max_length,
                 field.value,
                 field.enabled) }}
         {% elif "BOOLEAN" in field.type %}
             {{ render_select(field.name, ["true", "false"],
-                field.required and not field.required_if_visible,
+                is_required_now,
                 False,
                 field.value,
                 field.enabled) }}
         {% elif "DATETIME" in field.type %}
             {{ render_input(field.name, "datetime-local",
-                field.required and not field.required_if_visible,
+                is_required_now,
                 None,
                 field.value,
                 field.enabled) }}
         {% elif "DATE" in field.type %}
             {{ render_input(field.name, "date",
-                field.required and not field.required_if_visible,
+                is_required_now,
                 None,
                 field.value,
                 field.enabled) }}
         {% else %}
             <textarea class="form-control resizable" rows="1" name="{{ field.name }}"
                       {% if field.max_length %}maxlength="{{ field.max_length }}"{% endif %}
+                      {% if is_required_now %}required{% endif %}
                       {% if not field.enabled %}disabled{% endif %}>{{ field.value or "" }}</textarea>
         {% endif %}
+
     </div>
     {% endfor %}
 {% endfor %}
@@ -85,38 +89,36 @@
     function evaluateVisibility() {
         fields.forEach(field => {
             const conditions = JSON.parse(field.dataset.visibilityConditions || "[]");
-
-            // Skip fields with no conditions
-            if (conditions.length === 0) return;
-
+            const isRequired = field.dataset.isRequired === 'true';
             let visible = true;
 
-            conditions.forEach(cond => {
-                const target = document.querySelector(`[name="${cond.field}"], [name="${cond.field}[]"]`);
-                if (!target) {
-                    visible = false;
-                    return;
-                }
+            if (conditions.length > 0) {
+                conditions.forEach(cond => {
+                    const target = document.querySelector(`[name="${cond.field}"], [name="${cond.field}[]"]`);
+                    if (!target) {
+                        visible = false;
+                        return;
+                    }
 
-                let values = [];
-                if (target.multiple) {
-                    values = Array.from(target.selectedOptions).map(o => o.value);
-                } else {
-                    values = [target.value];
-                }
+                    let values = [];
+                    if (target.multiple) {
+                        values = Array.from(target.selectedOptions).map(o => o.value);
+                    } else {
+                        values = [target.value];
+                    }
 
-                if (!checkCondition(values, cond)) {
-                    visible = false;
-                }
-            });
+                    if (!checkCondition(values, cond)) {
+                        visible = false;
+                    }
+                });
+            }
 
+            field.dataset.isShown = visible;
             field.style.display = visible ? 'block' : 'none';
 
-            const requiredIfVisible = field.dataset.requiredIfVisible === 'true';
             const input = field.querySelector('input, select, textarea');
-
             if (input) {
-                if (visible && requiredIfVisible) {
+                if (visible && isRequired) {
                     input.setAttribute('required', 'required');
                 } else {
                     input.removeAttribute('required');

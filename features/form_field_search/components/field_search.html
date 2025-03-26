@@ -46,7 +46,8 @@
             const fieldId = this.dataset.fieldId;
             const modelName = this.dataset.modelName;
             const searchValue = document.getElementById(`${fieldId}-search`).value;
-            const searchByUser = document.getElementById(`${fieldId}-toggle`).checked;
+            const searchByUser = document.getElementById(`${fieldId}-toggle`)?.checked || false;
+
 
             if (searchValue.length < 1) {
                 console.warn("Search value is empty. Please enter a value.");

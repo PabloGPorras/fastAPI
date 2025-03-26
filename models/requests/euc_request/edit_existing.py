@@ -130,6 +130,7 @@ EDIT_EXISTING = {
                 },
                 {
                     "field": "evidence_of_testing",
+                    "field_name": "Path to Evidence of Testing/ Data Integrity and veresion control",
                     "required": True,
                 },
                 {
@@ -152,18 +153,9 @@ EDIT_EXISTING = {
                     ],
                 },
                 {
-                    "field": "was_risk_rating_reassessed",
+                    "field": "date_risk_rating_assessed",
                     "required": True,
                 },
-                {
-                    "field": "gender",
-                    "options": ["Male", "Female", "Other"],
-                    "multi_select": True,
-                    "required": True,
-                    "visibility": [
-                        {"field": "request_type", "show_if": ["Critical","High"]},
-                    ],
-                }
             ]
         } 
     ]

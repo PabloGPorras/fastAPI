@@ -109,7 +109,7 @@ BUSINESS_PROCESS_LIST = [
     "Manage Human Resources",
     "Manage Business Technology",
     "Manage Finance Accounting and Taxation",
-    "Manage Capital, Funding, and Liquidity",
+    "Manage Capital/ Funding/ and Liquidity",
     "Manage Physical Assets and Facilities",
     "Manage Compliance Legal/ Governance and Audit",
     "Manage Risk Programs" 

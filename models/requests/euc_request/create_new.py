@@ -176,22 +176,12 @@ def CREATE_NEW(search_config):
                             ],
                         },
                         {
-                            "field": "was_risk_rating_reassessed",
+                            "field": "date_risk_rating_assessed",
                             "required": True,
                             "visibility": [
                                 {"field": "request_type", "show_if": ["EUC_BUSINESS_MANAGED"]},
                             ],
                         },
-                        {
-                            "field": "gender",
-                            "options": ["Male", "Female", "Other"],
-                            "multi_select": True,
-                            "required": True,
-                            "visibility": [
-                                {"field": "request_type", "show_if": ["EUC_BUSINESS_MANAGED"]},
-                                {"field": "request_type", "show_if": ["Critical","High"]},
-                            ],
-                        }
                     ]
                 } 
             ]
