@@ -38,6 +38,7 @@ async def get_view_existing_form(
 
         # Resolve the underlying model
         model_name2 = DatabaseService.get_model_by_request_type(request_type)
+        print(f"request_type: {request_type}")
         print(f"Model name: {model_name2}")
         print(f"request_type name: {request_type}")
         model = DatabaseService.get_model_by_tablename(model_name2)

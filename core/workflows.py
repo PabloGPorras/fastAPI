@@ -11,7 +11,7 @@ MAIN_SASFM_WORKFLOW = {
     }
 
 EDC_IMPL_WORKFLOW = {
-        "PENDING APPROVAL": {"Roles": ["FS_Manager"], "Next": ["PENDING GOVERNANCE","APPROVAL REJECTED"], "Status_Type":["APPROVAL"]},
+        "PENDING APPROVAL": {"Roles": ["FS_Manager"], "Next": ["PENDING GOVERNANCE","APPROVAL REJECTED","USER REJECTED"], "Status_Type":["APPROVAL"]},
         "APPROVAL REJECTED": {"Roles": ["FS_Manager"], "Next": [], "Status_Type":["APPROVAL REJECTED"]},  
 
         "PENDING GOVERNANCE": {"Roles": ["IMPL_Specialist"], "Next": ["ASSET APPROVAL PENDING","GOVERNANCE REJECTED"], "Status_Type":["GOVERNANCE"]},
@@ -20,8 +20,8 @@ EDC_IMPL_WORKFLOW = {
         "ASSET APPROVAL PENDING": {"Roles": ["FS_Director"], "Next": ["DEPLOYMENT APPROVAL PENDING","ASSET APPROVAL REJECTED"], "Status_Type":["GOVERNANCE"]},
         "ASSET APPROVAL REJECTED": {"Roles": ["FS_Director"], "Next": [], "Status_Type":[]},
 
-        "DEPLOYMENT APPROVAL PENDING": {"Roles": ["FS_Director"], "Next": ["DEPLOYMENT READY","DEPLOYMENT APPROVAL REJECT"], "Status_Type":["GOVERNANCE"]},
-        "DEPLOYMENT APPROVAL REJECT": {"Roles": ["FS_Director"], "Next": [], "Status_Type":[]},
+        "DEPLOYMENT APPROVAL PENDING": {"Roles": ["IMPL_Director"], "Next": ["DEPLOYMENT READY","DEPLOYMENT APPROVAL REJECT"], "Status_Type":["GOVERNANCE"]},
+        "DEPLOYMENT APPROVAL REJECT": {"Roles": ["IMPL_Director"], "Next": [], "Status_Type":[]},
         
         "DEPLOYMENT READY": {"Roles": ["IMPL_Specialist"], "Next": ["DEPLOYMENT CHECKS","DEPLOYMENT CHECKS REJECTED"], "Status_Type":[]},
         "DEPLOYMENT REJECTED": {"Roles": ["IMPL_Specialist"], "Next": [], "Status_Type":[]},
@@ -30,6 +30,8 @@ EDC_IMPL_WORKFLOW = {
         "DEPLOYMENT CHECKS REJECTED": {"Roles": ["IMPL_Specialist"], "Next": [], "Status_Type":[]},
 
         "COMPLETED": {"Roles": [], "Next": [], "Status_Type":[]},
+        "USER REJECTED": {"Roles": ["FS_Analyst"], "Next": [], "Status_Type":["APPROVAL"]},  
+
 }
 EDC_WORKFLOW = {
         "PENDING APPROVAL": {"Roles": ["FS_Manager"], "Next": ["PENDING DIRECTOR APPROVAL","APPROVAL REJECTED"], "Status_Type":[]},
@@ -67,11 +69,14 @@ NON_SAS_GOV_AND_DEPLOY_WORKFLOW = {
 }
 
 NON_SAS_CHANGE_REQUEST_WORKFLOW = {
-        "PENDING APPROVAL": {"Roles": ["FS_Manager"], "Next": ["PENDING GOVERNANCE","APPROVAL REJECTED","USER REJECTED"], "Status_Type":["APPROVAL"]},
+        "PENDING APPROVAL": {"Roles": ["FS_Manager"], "Next": ["PENDING CODING","APPROVAL REJECTED","USER REJECTED"], "Status_Type":["APPROVAL"]},
         "APPROVAL REJECTED": {"Roles": ["FS_Manager"], "Next": [], "Status_Type":[]},  
         
-        "PENDING CODING": {"Roles": ["IMPL_Specialist"], "Next": ["COMPLETED","CODING REJECTED"], "Status_Type":["GOVERNANCE"]},
-        "CODING REJECTED": {"Roles": ["IMPL_Specialist"], "Next": [], "Status_Type":["GOVERNANCE REJECTED"]}, 
+        "PENDING CODING": {"Roles": ["IMPL_Specialist"], "Next": ["PENDING REVIEW","CODING REJECTED"], "Status_Type":["GOVERNANCE"]},
+        "CODING REJECTED": {"Roles": [], "Next": [], "Status_Type":["GOVERNANCE REJECTED"]}, 
+
+        "PENDING REVIEW": {"Roles": ["IMPL_Specialist"], "Next": ["PENDING CODING","COMPLETED","PENDING REVIEW REJECTED"], "Status_Type":["GOVERNANCE"]},
+        "PENDING REVIEW REJECTED": {"Roles": [], "Next": [], "Status_Type":["GOVERNANCE REJECTED"]}, 
 
         "COMPLETED": {"Roles": ["IMPL_Specialist"], "Next": [], "Status_Type":["COMPLETED"]},  
         "USER REJECTED": {"Roles": ["FS_Analyst"], "Next": [], "Status_Type":["APPROVAL REJECTED"]},  

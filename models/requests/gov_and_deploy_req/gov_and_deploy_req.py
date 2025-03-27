@@ -16,8 +16,8 @@ class NonSasGovAndDeploy(Base):
     request_type = Column(String,info={"options": ["NON_SAS_GOV_AND_DEPLOY"]})
     # Main EUC fields
     short_description = Column(String)
-    requirements = Column(DateTime)
-    rule_id = Column(DateTime)
+    requirements = Column(String)
+    rule_id = Column(String)
     rule_name = Column(String)
     benefit_amount = Column(String)
     benifit_type = Column(String)

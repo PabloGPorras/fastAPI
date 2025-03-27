@@ -47,12 +47,125 @@ class DatabaseService:
 
     
     @staticmethod
+    def build_columns_mapping(model) -> Tuple[Dict[str, Any], List[str], List[Any]]:
+        """
+        Build a mapping of column names to column objects, an ordered list of column names,
+        and a list of entities (columns) to select.
+        """
+        base_columns = {col.name: col for col in model.__table__.columns}
+        column_order = list(base_columns.keys())
+        entities = list(base_columns.values())
+        return base_columns, column_order, entities
+
+    @staticmethod
+    def apply_request_joins(query, model, base_columns: Dict[str, Any], 
+                            column_order: List[str], entities: List[Any]):
+        if getattr(model, "is_request", False) or (model.__tablename__ == RmsRequest.__tablename__):
+            if getattr(model, "is_request", False) and hasattr(model, "rms_request"):
+                request_model = model.__mapper__.relationships["rms_request"].mapper.class_
+            else:
+                request_model = model
+
+            for col_name in REQUEST_EXTRA_COLUMNS:
+                col_attr = getattr(request_model, col_name, None)
+                if col_attr is not None:
+                    base_columns[col_name] = col_attr
+                    # Replace in entities and column_order only if not already present
+                    if col_attr not in entities:
+                        entities.append(col_attr)
+                    if col_name not in column_order:
+                        column_order.append(col_name)
+
+            latest_status = aliased(RmsRequestStatus)
+            correlated_subq = (
+                select(func.max(RmsRequestStatus.timestamp))
+                .filter(RmsRequestStatus.unique_ref == request_model.__table__.c.unique_ref)
+                .scalar_subquery()
+            )
+            status_col = func.coalesce(latest_status.status, "").label("status")
+            entities.append(status_col)
+            base_columns["status"] = status_col
+            column_order.append("status")
+
+            query = query.join(model.rms_request) if getattr(model, "is_request", False) and hasattr(model, "rms_request") else query
+            query = query.outerjoin(
+                latest_status,
+                (latest_status.unique_ref == request_model.__table__.c.unique_ref)
+                & (latest_status.timestamp == correlated_subq)
+            )
+            # **Update the query's selected columns**
+            query = query.with_entities(*entities)
+        return query, base_columns, column_order, entities
+
+    @staticmethod
+    def apply_global_search(query, base_columns: Dict[str, Any], search_value: str, model) -> Any:
+        """
+        Apply global search filtering across all string columns.
+        """
+        if search_value:
+            search_filters = []
+            for name, col in base_columns.items():
+                try:
+                    # Only apply search to columns with python_type == str
+                    if col.type.python_type == str:
+                        search_filters.append(col.ilike(f"%{search_value}%"))
+                except Exception:
+                    continue
+            if search_filters:
+                query = query.filter(or_(*search_filters))
+        return query
+
+    @staticmethod
+    def apply_column_filters(query, base_columns: Dict[str, Any], filters: Dict[str, Any]) -> Any:
+        """
+        Apply column-specific filters based on a mapping of column names to column objects.
+        """
+        if filters:
+            for col_name, filter_value in filters.items():
+                col_attr = base_columns.get(col_name)
+                if col_attr is not None:
+                    query = query.filter(col_attr == filter_value)
+        return query
+
+    @staticmethod
+    def apply_sorting(query, base_columns: Dict[str, Any], column_order: List[str],
+                    sort_column: Optional[str], sort_column_index: Optional[int], sort_order: str) -> Any:
+        """
+        Apply sorting to the query using either a column name or index.
+        """
+        # If no sort_column name is provided, try mapping from the column index.
+        if not sort_column and sort_column_index is not None:
+            if 0 <= sort_column_index < len(column_order):
+                sort_column = column_order[sort_column_index]
+        if sort_column:
+            col_attr = base_columns.get(sort_column)
+            if col_attr is not None:
+                query = query.order_by(
+                    col_attr.desc() if sort_order.lower() == "desc" else col_attr.asc()
+                )
+        return query
+
+    @staticmethod
+    def convert_rows_to_dict(rows, column_order: List[str]) -> List[Dict[str, Any]]:
+        results = []
+        for row in rows:
+            # If row is a SQLAlchemy Row object, use its _mapping attribute.
+            if hasattr(row, "_mapping"):
+                row_dict = dict(row._mapping)
+            else:
+                # Fallback: if row is a tuple, convert using column_order.
+                row_dict = {name: value for name, value in zip(column_order, row)}
+            results.append(row_dict)
+        return results
+
+    @staticmethod
     def fetch_model_rows(
         model_name: str,
         session: Session,
         model,
         filters: Dict[str, Any] = None,  # Column-specific filters
         search_value: str = "",          # Full-table search value
+        sort_column: Optional[str] = None,
         sort_column_index: Optional[int] = None,
         sort_order: str = "asc",
         start: int = 0,
@@ -60,129 +173,52 @@ class DatabaseService:
     ) -> Tuple[List[Dict[str, Any]], int]:
         """
         Fetch rows for the model with filtering, full-table search, ordering, and pagination.
-        For models that are request models (i.e. either model.is_request == True or the model is RmsRequest),
-        join the latest Request Status (RmsRequestStatus). Additionally, if model.is_request is True,
-        join extra Request data (RmsRequest) to fetch fields like organization and sub_organization.
-        Only selected columns (as defined by arrays) are fetched.
+        
+        For request models (model.is_request == True or model is RmsRequest), join extra Request data
+        (from RmsRequest and the latest RmsRequestStatus) to include fields such as organization,
+        sub_organization, and status.
         """
-        # --- Base setup ---
-        base_columns = list(model.__table__.columns)
-        base_col_names = [col.name for col in base_columns]
-        # Start with the base entities.
-        entities = base_columns[:]  # initial list of columns to fetch
-        extra_col_names = []        # names for extra columns from joins
+        # Build the base columns mapping and entity list.
+        base_columns, column_order, entities = DatabaseService.build_columns_mapping(model)
+        print("DEBUG: Initial column_order:", column_order)
 
-        # Define extra columns to fetch.
-        request_columns = REQUEST_EXTRA_COLUMNS
-        request_status_columns = ["status"]
-
-        # Initialize a dictionary for filtering on extra (joined) columns.
-        extra_filters = {}
-
-        if getattr(model, "is_request", False) or (model.__tablename__ == RmsRequest.__tablename__):
-            if getattr(model, "is_request", False):
-                if hasattr(model, "rms_request"):
-                    # Get the related Request model.
-                    request_model = model.__mapper__.relationships["rms_request"].mapper.class_
-                else:
-                    request_model = model
-
-                # Build a list of column attributes from the request_model.
-                req_cols = []
-                for col in request_columns:
-                    col_attr = getattr(request_model, col, None)
-                    if col_attr is not None:
-                        req_cols.append(col_attr)
-                        # Automatically add to extra_filters.
-                        extra_filters[col] = col_attr
-                        # If you need to track extra column names (for example, for later use)
-                        extra_col_names.append(col)
-
-                # Add the extra request columns to your query entities.
-                entities.extend(req_cols)
-            else:
-                request_model = model
-
-
-            # --- Always join the latest status in this case ---
-            latest_status = aliased(RmsRequestStatus)
-            correlated_subq = (
-                select(func.max(RmsRequestStatus.timestamp))
-                .filter(RmsRequestStatus.unique_ref == request_model.__table__.c.unique_ref)
-                .scalar_subquery()
-            )
-            rs_cols = [func.coalesce(getattr(latest_status, col), "").label(col)
-                    for col in request_status_columns]
-            extra_col_names.extend(request_status_columns)
-            entities.extend(rs_cols)
-            extra_filters["status"] = getattr(latest_status, "status", None)
-
-            # Build the query: select the entities and apply the necessary joins.
-            query = session.query(*entities)
-            if getattr(model, "is_request", False) and hasattr(model, "rms_request"):
-                query = query.join(model.rms_request)
-            query = query.outerjoin(
-                latest_status,
-                (latest_status.unique_ref == request_model.__table__.c.unique_ref) &
-                (latest_status.timestamp == correlated_subq)
-            )
-        else:
-            # For models that are not request models, query the base table only.
-            query = session.query(*entities)
-
-        # --- Global search filtering ---
-        if search_value:
-            search_filters = [
-                getattr(model, col.name).ilike(f"%{search_value}%")
-                for col in model.__table__.columns
-                if hasattr(model, col.name)
-                and hasattr(getattr(model, col.name), "type")
-                and getattr(model, col.name).type.python_type == str
-            ]
-            if search_filters:
-                query = query.filter(or_(*search_filters))
-
-        # --- Column-specific filtering ---
-        if filters:
-            for col_name, filter_value in filters.items():
-                # Try to get the column from the base model.
-                col_attr = getattr(model, col_name, None)
-                # If not found and this is a request model, try extra_filters.
-                if col_attr is None and (getattr(model, "is_request", False) or (model.__tablename__ == RmsRequest.__tablename__)):
-                    col_attr = extra_filters.get(col_name)
-                if col_attr is not None:
-                    query = query.filter(col_attr == filter_value)
-
-        # --- Count records after filtering ---
+        # Build the initial query.
+        query = session.query(*entities)
+        # print('______________________________________________________')
+        # print(query.statement.compile(compile_kwargs={"literal_binds": True}))
+        # If applicable, add request-specific joins and extra columns.
+        query, base_columns, column_order, entities = DatabaseService.apply_request_joins(query, model, base_columns, column_order, entities)
+        # print('______________________________________________________')
+        # print(query.statement.compile(compile_kwargs={"literal_binds": True}))
+        print("DEBUG: Updated column_order:", column_order)
+        # Apply global search filtering.
+        query = DatabaseService.apply_global_search(query, base_columns, search_value, model)
+        # print('______________________________________________________')
+        # print(query.statement.compile(compile_kwargs={"literal_binds": True}))
+        # Apply column-specific filtering.
+        query = DatabaseService.apply_column_filters(query, base_columns, filters)
+        # print('______________________________________________________')
+        # print(query.statement.compile(compile_kwargs={"literal_binds": True}))
+        # Count records after filtering.
         filtered_count = query.count()
-
-        # --- Sorting ---
-        if sort_column_index is not None:
-            model_columns = list(model.__table__.columns)
-            if 0 <= sort_column_index < len(model_columns):
-                sort_column = model_columns[sort_column_index]
-                if sort_order.lower() == "desc":
-                    query = query.order_by(sort_column.desc())
-                else:
-                    query = query.order_by(sort_column.asc())
-
-        # --- Pagination ---
+        
+        # Apply sorting.
+        query = DatabaseService.apply_sorting(query, base_columns, column_order, sort_column, sort_column_index, sort_order)
+        # print('______________________________________________________')
+        # print(query.statement.compile(compile_kwargs={"literal_binds": True}))
+        # Apply pagination.
         query = query.offset(start).limit(length)
+        print('______________________________________________________')
+        print(query.statement.compile(compile_kwargs={"literal_binds": True}))
+
+
         rows = query.all()
+        
+        # Convert rows to dictionaries.
+        results = DatabaseService.convert_rows_to_dict(rows, column_order)
+        
+        return results, filtered_count
 
-
-        # --- Convert rows (tuples) to dictionaries ---
-        result = []
-        total_base = len(base_columns)
-        total_extra = len(extra_col_names)
-        for row in rows:
-            row = list(row)
-            base_data = dict(zip(base_col_names, row[:total_base]))
-            extra_data = dict(zip(extra_col_names, row[total_base:])) if total_extra > 0 else {}
-            row_dict = {**base_data, **extra_data}
-            result.append(row_dict)
-
-        return result, filtered_count
 
 
 

@@ -2,7 +2,7 @@ from sqlalchemy import Column, Integer, String, ForeignKey,String,DateTime
 from sqlalchemy.orm import relationship
 from core.id_method import id_method
 from core.get_table_name import Base, get_table_name
-from core.workflows import NON_SAS_GOV_AND_DEPLOY_WORKFLOW
+from core.workflows import NON_SAS_CHANGE_REQUEST_WORKFLOW, NON_SAS_GOV_AND_DEPLOY_WORKFLOW
 from list_values import BENIFIT_TYPE_LIST, DECISION_TYPE_LIST, RULE_STATUS_LIST, SUB_REQUEST_TYPE_LIST
 from models.requests.non_sas_change_req.create_new import CREATE_NEW
 from models.requests.non_sas_change_req.view_existing import VIEW_EXISTING
@@ -17,7 +17,7 @@ class NonSasChangeRequest(Base):
     request_type = Column(String,info={"options": ["NON_SAS_CHANGE_REQUEST"]})
     sub_request_type = Column(String)
     short_description = Column(String)
-    requirements = Column(DateTime)
+    requirements = Column(String)
     rule_id = Column(String)
     rule_name = Column(String)
     policy = Column(String)
@@ -36,7 +36,7 @@ class NonSasChangeRequest(Base):
     rms_request = relationship("RmsRequest", backref=__tablename__)
     is_request = True
     request_menu_category = "DMP"
-    request_status_config = NON_SAS_GOV_AND_DEPLOY_WORKFLOW
+    request_status_config = NON_SAS_CHANGE_REQUEST_WORKFLOW
     form_config = {
         "create-new": CREATE_NEW,
         "view-existing": VIEW_EXISTING,

@@ -25,6 +25,12 @@ def get_status_transitions(
         logger.debug(f"Received selected row data (JSON): {selected_rows}")
         logger.debug(f"Next status: {next_status}")
 
+        organizations = organizations.replace("&amp;","&")
+        sub_organizations = sub_organizations.replace("&amp;","&")
+        line_of_businesses = line_of_businesses.replace("&amp;","&")
+        teams = teams.replace("&amp;","&")
+        decision_engines = decision_engines.replace("&amp;","&")
+        roles = roles.replace("&amp;","&")
         try:
             parsed_rows = json.loads(selected_rows)
         except json.JSONDecodeError as e:

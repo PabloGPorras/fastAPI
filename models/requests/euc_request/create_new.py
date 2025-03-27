@@ -125,10 +125,11 @@ def CREATE_NEW(search_config):
                     ]
                 },
                 {
-                    "group_name": "",
+                    "group_name": "EUC CONTROL",
                     "fields": [
                         {
                             "field": "asset_has_role_based_security",
+                            "exclude_from_populate": True, 
                             "options": YES_NO_LIST,
                             "required": True,
                             "visibility": [
@@ -137,6 +138,7 @@ def CREATE_NEW(search_config):
                         },
                         {
                             "field": "backup_or_archive_available",
+                            "exclude_from_populate": True, 
                             "options": YES_NO_LIST,
                             "required": True,
                             "visibility": [
@@ -145,7 +147,8 @@ def CREATE_NEW(search_config):
                         },
                         {
                             "field": "evidence_of_testing",
-                            "field_name": "Path to Evidence of Testing/ Data Integrity and veresion control",
+                            "exclude_from_populate": True, 
+                            "field_name": "Path to Evidence of Testing/ Data Integrity and version control",
                             "required": True,
                             "visibility": [
                                 {"field": "request_type", "show_if": ["EUC_BUSINESS_MANAGED"]},
@@ -153,6 +156,7 @@ def CREATE_NEW(search_config):
                         },
                         {
                             "field": "does_mrm_policy_apply",
+                            "exclude_from_populate": True, 
                             "options": YES_NO_LIST,
                             "required": True,
                             "visibility": [
@@ -161,6 +165,7 @@ def CREATE_NEW(search_config):
                         },
                         {
                             "field": "date_mrm_policy_assessed",
+                            "exclude_from_populate": True, 
                             "required": True,
                             "visibility": [
                                 {"field": "request_type", "show_if": ["EUC_BUSINESS_MANAGED"]},
@@ -169,14 +174,16 @@ def CREATE_NEW(search_config):
                         },
                         {
                             "field": "path_to_mrm_assessment_evidence",
+                            "exclude_from_populate": True, 
                             "required": True,
-                        "visibility": [
-                                {"field": "request_type", "show_if": ["EUC_BUSINESS_MANAGED"]},
-                                {"field": "does_mrm_policy_apply", "show_if": ["Yes"]},
-                            ],
+                            "visibility": [
+                                    {"field": "request_type", "show_if": ["EUC_BUSINESS_MANAGED"]},
+                                    {"field": "does_mrm_policy_apply", "show_if": ["Yes"]},
+                                ],
                         },
                         {
                             "field": "date_risk_rating_assessed",
+                            "exclude_from_populate": True, 
                             "required": True,
                             "visibility": [
                                 {"field": "request_type", "show_if": ["EUC_BUSINESS_MANAGED"]},

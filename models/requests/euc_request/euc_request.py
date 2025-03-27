@@ -64,12 +64,12 @@ class EucRequest(Base):
     backup_or_archive_available = Column(String)
     evidence_of_testing = Column(String)
     does_mrm_policy_apply = Column(String)
-    date_mrm_policy_assessed = Column(String)
+    date_mrm_policy_assessed = Column(Date)
     path_to_mrm_assessment_evidence = Column(String)
     date_risk_rating_assessed = Column(Date)
 
     unique_ref = Column(String, ForeignKey(f"{get_table_name('requests')}.unique_ref"), nullable=False, unique=True)
-    rms_request = relationship("RmsRequest", backref="euc_request")
+    rms_request = relationship("RmsRequest", uselist=False)
     is_request = True
     request_menu_category = ""
     multi_request_type_config = {
@@ -86,9 +86,6 @@ class EucRequest(Base):
 
     @validates("business_process")
     def validate_business_process(self, key, value):
-        if value == "-- Select One --":
-            return None
-
         options = BUSINESS_PROCESS_LIST[1:]  # skip placeholder
         if value not in options and value != "":
             raise ValueError(f"{key} must be one of {options}")
@@ -98,8 +95,6 @@ class EucRequest(Base):
 
     @validates("euc_type")
     def validate_euc_type(self, key, value):
-        if value == "-- Select One --":
-            return None
         options = EUC_TYPE_LIST[1:]
         if value not in options and value != "":
             raise ValueError(f"{key} must be one of {options}")
@@ -108,8 +103,6 @@ class EucRequest(Base):
     
     @validates("risk_rating")
     def validate_risk_rating(self, key, value):
-        if value == "-- Select One --":
-            return None
         options = RISK_RATING_LIST[1:]
         if value not in options and value != "":
             raise ValueError(f"{key} must be one of {options}")
@@ -117,8 +110,6 @@ class EucRequest(Base):
     
     @validates("frequency_of_use")
     def validate_frequency_of_use(self, key, value):
-        if value == "-- Select One --":
-            return None
         options = FREQUENCY_OF_USE_LIST[1:]
         if value not in options and value != "":
             raise ValueError(f"{key} must be one of {options}")

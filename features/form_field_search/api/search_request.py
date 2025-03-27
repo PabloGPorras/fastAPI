@@ -79,8 +79,19 @@ async def search_field(
         if not result:
             raise HTTPException(status_code=404, detail="No matching request found.")
 
-        # Prepare response
-        main_data = {field.name: getattr(result, field.name) for field in model.__table__.columns}
+        # Prepare main_data while excluding fields marked as "exclude_from_populate"
+        main_data = {}
+        for field in model.__table__.columns:
+            field_cfg = field_config_map.get(field.name, {})
+            if field_cfg.get("exclude_from_populate", False):
+                continue
+            main_data[field.name] = getattr(result, field.name)
+
+        # ✅ Inject request_type from RmsRequest
+        if hasattr(result, "rms_request") and result.rms_request:
+            main_data["request_type"] = result.rms_request.request_type
+
+
 
         related_data = {}
         for relationship in inspect(model).relationships:

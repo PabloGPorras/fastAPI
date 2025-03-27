@@ -22,16 +22,10 @@ VIEW_EXISTING = {
                         {
                             "field": "retired_timestamp",
                             "required": True,
-                            "visibility": [
-                                {"field": "asset_status", "show_if": ["RETIRED"]},
-                            ],
                         },
                         {
                             "field": "retire_rationale",
                             "required": True,
-                            "visibility": [
-                                {"field": "asset_status", "show_if": ["RETIRED"]},
-                            ],
                         },
                         {
                             "field": "asset_status",
@@ -119,7 +113,7 @@ VIEW_EXISTING = {
                     ]
                 },
                 {
-                    "group_name": "",
+                    "group_name": "EUC CONTROL",
                     "fields": [
                         {
                             "field": "asset_has_role_based_security",

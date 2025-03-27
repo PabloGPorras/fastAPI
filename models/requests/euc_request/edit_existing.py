@@ -22,16 +22,10 @@ EDIT_EXISTING = {
                 {
                     "field": "retired_timestamp",
                     "required": True,
-                    "visibility": [
-                        {"field": "asset_status", "show_if": ["RETIRED"]},
-                    ],
                 },
                 {
                     "field": "retire_rationale",
                     "required": True,
-                    "visibility": [
-                        {"field": "asset_status", "show_if": ["RETIRED"]},
-                    ],
                 },
                 {
                     "field": "asset_status",
@@ -115,7 +109,7 @@ EDIT_EXISTING = {
             "group_name": "EUC CONTROL",
             "edit_conditions": {
                 "allowed_roles": ["IMPL_Specialist"],  # Adjusted to match your role names
-                "allowed_states": ["PENDING APPROVAL"]
+                "allowed_states": ["PENDING GOVERNANCE"]
             },
             "fields": [
                 {

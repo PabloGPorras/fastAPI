@@ -111,7 +111,9 @@
 
                 // Reload DataTable when filter changes
                 select.addEventListener("change", function () {
-                    table.ajax.reload();
+                    if (table && table.ajax) {
+                        table.ajax.reload();
+                    }
                 });
 
                 filterContainer.append(clone);
@@ -128,7 +130,9 @@
 
                 // Reload DataTable when free text changes (you could also use keyup for instant updates)
                 input.addEventListener("change", function () {
-                    table.ajax.reload();
+                    if (table && table.ajax) {
+                        table.ajax.reload();
+                    }
                 });
 
                 filterContainer.append(clone);

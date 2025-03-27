@@ -52,10 +52,17 @@ async def get_form_fields(
             if not item:
                 logger.warning(f"No item found with unique_ref '{unique_ref}'")
                 raise HTTPException(status_code=404, detail=f"Item not found for unique_ref '{unique_ref}'")
+
+            # Start with the model's own fields
             existing_data = {
                 column.name: getattr(item, column.name, None)
                 for column in model.__table__.columns
             }
+
+            # Inject request_type from the related RmsRequest if present
+            if hasattr(item, "rms_request") and item.rms_request:
+                existing_data["request_type"] = item.rms_request.request_type
+
 
         grouped_fields = []
         for group in field_groups:
