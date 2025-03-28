@@ -32,9 +32,11 @@ CREATE_NEW = {
                         },
                         {
                             "field": "policy",
+                            "field_name": "Policy/strategy",
                         },
                         {
                             "field": "weight",
+                            "field_name": "Weight/priority",
                         },
                         {
                             "field": "decision_type",
@@ -45,13 +47,16 @@ CREATE_NEW = {
                         },
                         {
                             "field": "rule_status",
+                            "field_name": "Active/inactive",
                             "options": RULE_STATUS_LIST,
                         },
                         {
                             "field": "output_type",
+                            "field_name": "Output queue / case details output/ channel output",
                         },
                         {
                             "field": "output_requirements",
+                            "field_name": "Output requirements (decision, rule outputs, risk level code)",
                         },
                         {
                             "field": "benefit_amount",
@@ -64,6 +69,10 @@ CREATE_NEW = {
                         },
                         {
                             "field": "rik_id",
+                            "required": True,
+                        },
+                        {
+                            "field": "errored_non_sas_change_request_field",
                             "required": True,
                         }
                     ]

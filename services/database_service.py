@@ -180,7 +180,7 @@ class DatabaseService:
         """
         # Build the base columns mapping and entity list.
         base_columns, column_order, entities = DatabaseService.build_columns_mapping(model)
-        print("DEBUG: Initial column_order:", column_order)
+        # print("DEBUG: Initial column_order:", column_order)
 
         # Build the initial query.
         query = session.query(*entities)
@@ -208,8 +208,8 @@ class DatabaseService:
         # print(query.statement.compile(compile_kwargs={"literal_binds": True}))
         # Apply pagination.
         query = query.offset(start).limit(length)
-        print('______________________________________________________')
-        print(query.statement.compile(compile_kwargs={"literal_binds": True}))
+        # print('______________________________________________________')
+        # print(query.statement.compile(compile_kwargs={"literal_binds": True}))
 
 
         rows = query.all()

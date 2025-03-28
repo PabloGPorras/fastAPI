@@ -42,7 +42,6 @@ CREATE_NEW = {
                         },
                         {
                             "field": "errored_nonsas_governance_and_deployment_request_id",
-                            "required": True,
                         }
                     ]
                 }

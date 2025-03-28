@@ -1,4 +1,4 @@
-from list_values import BENIFIT_TYPE_LIST, RULE_STATUS_LIST,SUB_REQUEST_TYPE_LIST
+from list_values import BENIFIT_TYPE_LIST, DECISION_TYPE_LIST, RULE_STATUS_LIST,SUB_REQUEST_TYPE_LIST
 
 VIEW_EXISTING = {
             "enabled": False,  # Form-level toggle
@@ -26,40 +26,37 @@ VIEW_EXISTING = {
                         },
                         {
                             "field": "rule_id",
-                            "required": True,
                         },
                         {
                             "field": "rule_name",
-                            "required": True,
                         },
                         {
                             "field": "policy",
-                            "required": True,
+                            "field_name": "Policy/strategy",
                         },
                         {
                             "field": "weight",
-                            "required": True,
+                            "field_name": "Weight/priority",
                         },
                         {
                             "field": "decision_type",
-                            "required": True,
+                            "options": DECISION_TYPE_LIST,
                         },
                         {
                             "field": "reason_code",
-                            "required": True,
                         },
                         {
                             "field": "rule_status",
+                            "field_name": "Active/inactive",
                             "options": RULE_STATUS_LIST,
-                            "required": True,
                         },
                         {
                             "field": "output_type",
-                            "required": True,
+                            "field_name": "Output queue / case details output/ channel output",
                         },
                         {
                             "field": "output_requirements",
-                            "required": True,
+                            "field_name": "Output requirements (decision, rule outputs, risk level code)",
                         },
                         {
                             "field": "benefit_amount",
@@ -72,6 +69,10 @@ VIEW_EXISTING = {
                         },
                         {
                             "field": "rik_id",
+                            "required": True,
+                        },
+                        {
+                            "field": "errored_non_sas_change_request_field",
                             "required": True,
                         }
                     ]

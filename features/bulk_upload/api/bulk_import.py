@@ -31,63 +31,72 @@ async def bulk_import(
         raise HTTPException(status_code=400, detail="Only CSV files are supported.")
 
     try:
-        model = get_model(model_name)  # ✅ Reuses get_model()
+        model = get_model(model_name)
+        if not model:
+            logger.warning(f"Model '{model_name}' not found.")
+            raise HTTPException(status_code=404, detail=f"Model '{model_name}' not found.")
 
-        # Read CSV content
-        content = await file.read()
-        csv_reader = csv.DictReader(io.StringIO(content.decode("utf-8")))
+        # Get expected headers from form_config
+        raw_form_config = getattr(model, "form_config", {})
+        form_config = raw_form_config.get("create-new", {})
+        if not form_config or not form_config.get("enabled", False):
+            raise HTTPException(status_code=400, detail=f"No enabled 'create-new' form found for '{model_name}'")
 
-        # Get expected headers from model metadata
-        metadata = DatabaseService.gather_model_metadata(model, session=session, form_name="create-new")
-        expected_headers = [col["name"] for col in metadata["columns"]]
+        expected_headers = []
+        for group in form_config.get("field_groups", []):
+            for field in group.get("fields", []):
+                field_name = field.get("field")
+                if field_name:
+                    expected_headers.append(field_name)
 
-        if metadata["is_request"]:
+        # Append standard fields if it's a request model
+        is_request = getattr(model, "is_request", False)
+        if is_request:
             expected_headers.extend([
                 "organization",
                 "sub_organization",
                 "line_of_business",
                 "team",
                 "decision_engine",
-                "effort"    
-
+                "effort"
             ])
 
-        # Validate CSV headers
+        # Read CSV content
+        content = await file.read()
+        csv_reader = csv.DictReader(io.StringIO(content.decode("utf-8")))
+
         file_headers = csv_reader.fieldnames
+        logger.debug(f"CSV headers found in uploaded file: {file_headers}")
+
+        # Validate headers
         if not file_headers or any(header not in expected_headers for header in file_headers):
             raise HTTPException(
                 status_code=400,
-                detail=f"Invalid CSV headers. Expected headers: {', '.join(expected_headers)}",
+                detail=f"Invalid CSV headers. Expected headers: {', '.join(expected_headers)}"
             )
-
-        logger.debug(f"CSV headers found in uploaded file: {file_headers}")
-
 
         # Process rows
         objects_to_add = []
-        group_id = assign_group_id({})  # ✅ Generates group_id
+        group_id = assign_group_id({})
         row_count = 0
 
         for row in csv_reader:
             row_count += 1
             logger.debug(f"Processing row {row_count}: {row}")
 
-            # ✅ Create RmsRequest if the model is a request type
-            if metadata["is_request"]:
+            if is_request:
                 new_request, new_status = create_rms_request(model, row, group_id, user)
                 objects_to_add.extend([new_request, new_status])
 
-            # ✅ Process model-specific data
             column_mappings, allowed_keys, required_columns = get_column_mappings(model)
             logger.debug(f"Column mappings: {column_mappings}, Allowed keys: {allowed_keys}, Required columns: {required_columns}")
-            row_data = filter_and_clean_data(row, allowed_keys, required_columns, column_mappings, model)
-            row_data["unique_ref"] = new_request.unique_ref if metadata["is_request"] else None
 
-            # ✅ Create the main object
+            row_data = filter_and_clean_data(row, allowed_keys, required_columns, column_mappings, model)
+            row_data["unique_ref"] = new_request.unique_ref if is_request else None
+
             instance = model(**row_data)
             objects_to_add.append(instance)
 
-        # ✅ Add all objects in bulk
         session.add_all(objects_to_add)
         session.commit()
 
