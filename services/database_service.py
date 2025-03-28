@@ -224,26 +224,6 @@ class DatabaseService:
 
 
 
-
-
-
-
-
-    @staticmethod
-    def get_all_models_as_dict():
-        """
-        Returns a dictionary of all models with the model name as the key and the SQLAlchemy class as the value.
-
-        Returns:
-            dict: Dictionary mapping model names to SQLAlchemy model classes.
-        """
-        models_dict = {}
-        for mapper in Base.registry.mappers:  # Loop through all registered mappers
-            cls = mapper.class_
-            if isinstance(cls, DeclarativeMeta):  # Ensure it's a valid SQLAlchemy model
-                models_dict[cls.__tablename__] = cls
-        return models_dict
-
     @staticmethod
     def get_all_models():
         """
@@ -292,7 +272,6 @@ class DatabaseService:
         Returns:
             dict: A dictionary containing metadata (columns, form fields, relationships, etc.).
         """
-        # logger.info(f"Fetching data for model: {model}")
 
         # 1) Setup / prevent loops
         if not model:
