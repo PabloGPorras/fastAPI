@@ -101,6 +101,11 @@
             } catch (error) {
                 console.error("Search error:", error);
             }
+
+
+            // After setting field values from search
+            evaluateVisibility();  // Refresh visibility rules
+
         });
     });
 

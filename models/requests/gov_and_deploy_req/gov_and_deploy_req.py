@@ -4,8 +4,8 @@ from core.id_method import id_method
 from core.get_table_name import Base, get_table_name
 from core.workflows import NON_SAS_GOV_AND_DEPLOY_WORKFLOW
 from list_values import BENIFIT_TYPE_LIST
-from models.requests.non_sas_change_req.create_new import CREATE_NEW
-from models.requests.non_sas_change_req.view_existing import VIEW_EXISTING
+from models.requests.gov_and_deploy_req.create_new import CREATE_NEW
+from models.requests.gov_and_deploy_req.view_existing import VIEW_EXISTING
 from sqlalchemy.orm import validates
     
 

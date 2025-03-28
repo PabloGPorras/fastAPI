@@ -106,7 +106,7 @@ EDIT_EXISTING = {
             ]
         },
         {
-            "group_name": "EUC CONTROL",
+            "group_name": "",
             "edit_conditions": {
                 "allowed_roles": ["IMPL_Specialist"],  # Adjusted to match your role names
                 "allowed_states": ["PENDING GOVERNANCE"]

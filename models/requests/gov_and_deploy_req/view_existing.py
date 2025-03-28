@@ -1,4 +1,4 @@
-CREATE_NEW = {
+VIEW_EXISTING = {
             "enabled": True,  # Form-level toggle
             "field_groups": [
                 {

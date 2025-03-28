@@ -86,7 +86,7 @@
         return false;
     }
 
-    function evaluateVisibility() {
+    window.evaluateVisibility = function evaluateVisibility() {
         fields.forEach(field => {
             const conditions = JSON.parse(field.dataset.visibilityConditions || "[]");
             const isRequired = field.dataset.isRequired === 'true';
@@ -133,7 +133,7 @@
                 }
             }
         });
-    }
+    };
 
     evaluateVisibility();
 

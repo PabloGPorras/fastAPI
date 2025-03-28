@@ -86,6 +86,7 @@ def CREATE_NEW(search_config):
                         },
                         {
                             "field": "cron_schedule",
+                            "required": True,
                             "visibility": [
                                 {"field": "frequency_of_use", "show_if": ["CRON"]},
                             ],
@@ -125,7 +126,7 @@ def CREATE_NEW(search_config):
                     ]
                 },
                 {
-                    "group_name": "EUC CONTROL",
+                    "group_name": "",
                     "fields": [
                         {
                             "field": "asset_has_role_based_security",

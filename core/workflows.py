@@ -21,7 +21,7 @@ EDC_IMPL_WORKFLOW = {
         "ASSET APPROVAL REJECTED": {"Roles": ["FS_Director"], "Next": [], "Status_Type":[]},
 
         "DEPLOYMENT APPROVAL PENDING": {"Roles": ["IMPL_Director"], "Next": ["DEPLOYMENT READY","DEPLOYMENT APPROVAL REJECT"], "Status_Type":["GOVERNANCE"]},
-        "DEPLOYMENT APPROVAL REJECT": {"Roles": ["IMPL_Director"], "Next": [], "Status_Type":[]},
+        "DEPLOYMENT APPROVAL REJECTED": {"Roles": ["IMPL_Director"], "Next": [], "Status_Type":[]},
         
         "DEPLOYMENT READY": {"Roles": ["IMPL_Specialist"], "Next": ["DEPLOYMENT CHECKS","DEPLOYMENT CHECKS REJECTED"], "Status_Type":[]},
         "DEPLOYMENT REJECTED": {"Roles": ["IMPL_Specialist"], "Next": [], "Status_Type":[]},
